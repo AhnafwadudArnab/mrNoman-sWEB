@@ -1,0 +1,153 @@
+════════════════════════════════════════════════════════════════
+ELECTROZONEBD - COMPOSER INSTALLATION COMMANDS
+════════════════════════════════════════════════════════════════
+
+QUICK START (Copy & Paste):
+
+cd /home/asiment3/public_html/api
+php -v
+composer install --no-dev --optimize-autoloader
+
+════════════════════════════════════════════════════════════════
+
+STEP-BY-STEP COMMANDS:
+
+1. NAVIGATE TO API FOLDER:
+   cd /home/asiment3/public_html/api
+
+2. CHECK PHP VERSION (must be 8.1+):
+   php -v
+
+3. INSTALL COMPOSER (if composer command available):
+   composer install --no-dev --optimize-autoloader
+
+4. IF COMPOSER NOT AVAILABLE - DOWNLOAD IT:
+   php -r "copy('https://getcomposer.org/installer', 'composer-setup.php'); php('composer-setup.php'); unlink('composer-setup.php');"
+   php composer.phar install --no-dev --optimize-autoloader
+
+5. VERIFY INSTALLATION - CHECK VENDOR FOLDER:
+   ls -la
+   ls -la vendor/
+
+6. CREATE STORAGE DIRECTORIES:
+   mkdir -p storage/uploads
+   mkdir -p storage/logs
+   mkdir -p storage/temp
+
+7. SET CORRECT PERMISSIONS:
+   chmod 755 storage
+   chmod 755 storage/uploads
+   chmod 755 storage/logs
+   chmod 755 storage/temp
+
+8. VERIFY PERMISSIONS:
+   ls -la storage/
+
+════════════════════════════════════════════════════════════════
+
+TESTING COMMANDS:
+
+1. TEST API HEALTH:
+   curl -s https://electrozonebd.com/api/health | jq
+
+2. TEST PRODUCTS ENDPOINT:
+   curl -s https://electrozonebd.com/api/products | jq
+
+3. CHECK ERROR LOGS:
+   tail -50 storage/logs/error.log
+
+4. TEST DATABASE CONNECTION:
+   mysql -h localhost -u asiment3_zones -pasiment3_electrobd -D asiment3_electrobd -e "SELECT COUNT(*) as products FROM products;"
+
+════════════════════════════════════════════════════════════════
+
+COMPOSER FLAGS EXPLANATION:
+
+--no-dev
+  ✓ Don't install development dependencies (PHPUnit, debugging tools)
+  ✓ Reduces vendor/ folder size
+  ✓ Better for production
+
+--optimize-autoloader
+  ✓ Generate optimized class loader
+  ✓ Faster class loading
+  ✓ Better performance
+
+════════════════════════════════════════════════════════════════
+
+TROUBLESHOOTING COMMANDS:
+
+1. IF PHP VERSION WRONG - CHECK AVAILABLE VERSIONS:
+   /opt/cpanel/ea-php*/bin/php -v
+
+2. SELECT SPECIFIC PHP VERSION:
+   /opt/cpanel/ea-php81/bin/php composer.phar install --no-dev --optimize-autoloader
+
+3. CHECK DISK SPACE:
+   df -h
+
+4. CHECK API FOLDER PERMISSIONS:
+   ls -la /home/asiment3/public_html/api
+
+5. VIEW .ENV FILE:
+   cat .env
+
+6. VIEW RECENT ERRORS:
+   tail -100 storage/logs/error.log
+
+7. RESTART API (clear cache):
+   rm -rf storage/cache/*
+
+════════════════════════════════════════════════════════════════
+
+EXPECTED OUTPUT:
+
+After running "composer install --no-dev --optimize-autoloader":
+
+Loading composer repositories with package information
+Updating dependencies
+Downloading ...
+Installing ...
+Generating optimized autoload files
+✓ All dependencies installed
+
+And you should see: vendor/ folder (40+ packages)
+
+════════════════════════════════════════════════════════════════
+
+INSTALLATION TIME ESTIMATE:
+
+- First run: 5-15 minutes (depends on server speed)
+- Files downloaded: ~40 packages
+- vendor/ folder size: 100+ MB
+- During installation: Don't close terminal, don't interrupt
+
+════════════════════════════════════════════════════════════════
+
+AFTER SUCCESSFUL INSTALLATION:
+
+✓ vendor/ folder exists: /home/asiment3/public_html/api/vendor/
+✓ storage/ folders created: uploads/, logs/, temp/
+✓ Permissions set correctly: 755 for folders
+✓ Can access: https://electrozonebd.com/api/health
+✓ API returns: {"status":"ok","message":"API is running"}
+✓ Can list products: https://electrozonebd.com/api/products
+
+════════════════════════════════════════════════════════════════
+
+QUICK CHECKLIST:
+
+[ ] Logged into cPanel Terminal
+[ ] Navigated to /home/asiment3/public_html/api
+[ ] Checked PHP version (8.1+)
+[ ] Ran composer install
+[ ] Installation completed successfully
+[ ] vendor/ folder exists
+[ ] storage/uploads folder created
+[ ] storage/logs folder created
+[ ] storage/temp folder created
+[ ] Permissions set (755)
+[ ] API health check works
+[ ] Products endpoint returns data
+
+════════════════════════════════════════════════════════════════

@@ -1,0 +1,341 @@
+════════════════════════════════════════════════════════════════
+ELECTROZONEBD - API QUICK TESTING COMMANDS
+════════════════════════════════════════════════════════════════
+
+BASE URL: https://electrozonebd.com/api
+
+════════════════════════════════════════════════════════════════
+TEST 1: HEALTH CHECK (No Auth Required)
+════════════════════════════════════════════════════════════════
+
+curl -X GET "https://electrozonebd.com/api/health"
+
+Expected Response:
+{"status":"ok","message":"API is running"}
+
+════════════════════════════════════════════════════════════════
+TEST 2: GET PRODUCTS (No Auth Required)
+════════════════════════════════════════════════════════════════
+
+curl -X GET "https://electrozonebd.com/api/products?limit=5"
+
+Expected Response:
+[
+  {
+    "product_id": 1,
+    "product_name": "...",
+    "price": 9999,
+    ...
+  }
+]
+
+════════════════════════════════════════════════════════════════
+TEST 3: GET SINGLE PRODUCT (No Auth Required)
+════════════════════════════════════════════════════════════════
+
+curl -X GET "https://electrozonebd.com/api/products/1"
+
+Expected Response:
+{
+  "product_id": 1,
+  "product_name": "...",
+  "price": 9999,
+  ...
+}
+
+════════════════════════════════════════════════════════════════
+TEST 4: GET CATEGORIES (No Auth Required)
+════════════════════════════════════════════════════════════════
+
+curl -X GET "https://electrozonebd.com/api/categories"
+
+Expected Response:
+[
+  {"category_id": 1, "category_name": "..."},
+  ...
+]
+
+════════════════════════════════════════════════════════════════
+TEST 5: USER LOGIN (No Auth Required)
+════════════════════════════════════════════════════════════════
+
+curl -X POST "https://electrozonebd.com/api/auth/login" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "adminNoman@electrozonebd.com",
+    "password": "ElectroAdmin@2026"
+  }'
+
+Expected Response:
+{
+  "success": true,
+  "token": "eyJhbGc...",
+  "user": {...}
+}
+
+⚠️  SAVE THE TOKEN FOR NEXT TESTS:
+export JWT_TOKEN="your_token_here"
+
+════════════════════════════════════════════════════════════════
+TEST 6: GET USER PROFILE (Auth Required)
+════════════════════════════════════════════════════════════════
+
+curl -X GET "https://electrozonebd.com/api/auth/me" \
+  -H "Authorization: Bearer $JWT_TOKEN"
+
+Expected Response:
+{
+  "success": true,
+  "user": {...}
+}
+
+════════════════════════════════════════════════════════════════
+TEST 7: ADD TO CART (Auth Required)
+════════════════════════════════════════════════════════════════
+
+curl -X POST "https://electrozonebd.com/api/cart" \
+  -H "Authorization: Bearer $JWT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "product_id": 1,
+    "quantity": 2
+  }'
+
+Expected Response:
+{
+  "success": true,
+  "message": "Product added to cart",
+  "cart_id": 10,
+  "product_id": 1,
+  "quantity": 2
+}
+
+════════════════════════════════════════════════════════════════
+TEST 8: GET CART (Auth Required)
+════════════════════════════════════════════════════════════════
+
+curl -X GET "https://electrozonebd.com/api/cart" \
+  -H "Authorization: Bearer $JWT_TOKEN"
+
+Expected Response:
+{
+  "success": true,
+  "cart_items": [
+    {
+      "cart_id": 10,
+      "product_id": 1,
+      "product_name": "...",
+      "quantity": 2,
+      "subtotal": 51998
+    }
+  ],
+  "total_amount": 51998
+}
+
+════════════════════════════════════════════════════════════════
+TEST 9: CREATE ORDER (Auth Required)
+════════════════════════════════════════════════════════════════
+
+curl -X POST "https://electrozonebd.com/api/orders" \
+  -H "Authorization: Bearer $JWT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "delivery_address": "123 Main St, Dhaka",
+    "phone": "01700000001",
+    "payment_method": "bkash"
+  }'
+
+Expected Response:
+{
+  "success": true,
+  "message": "Order created successfully",
+  "order_id": 5,
+  "order_total": 51998
+}
+
+════════════════════════════════════════════════════════════════
+TEST 10: GET USER ORDERS (Auth Required)
+════════════════════════════════════════════════════════════════
+
+curl -X GET "https://electrozonebd.com/api/orders" \
+  -H "Authorization: Bearer $JWT_TOKEN"
+
+Expected Response:
+{
+  "success": true,
+  "orders": [
+    {
+      "order_id": 5,
+      "order_total": 51998,
+      "status": "pending",
+      "created_at": "..."
+    }
+  ]
+}
+
+════════════════════════════════════════════════════════════════
+TEST 11: ADD TO WISHLIST (Auth Required)
+════════════════════════════════════════════════════════════════
+
+curl -X POST "https://electrozonebd.com/api/wishlist" \
+  -H "Authorization: Bearer $JWT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "product_id": 1
+  }'
+
+Expected Response:
+{
+  "success": true,
+  "message": "Added to wishlist"
+}
+
+════════════════════════════════════════════════════════════════
+TEST 12: GET WISHLIST (Auth Required)
+════════════════════════════════════════════════════════════════
+
+curl -X GET "https://electrozonebd.com/api/wishlist" \
+  -H "Authorization: Bearer $JWT_TOKEN"
+
+Expected Response:
+{
+  "success": true,
+  "wishlist": [
+    {
+      "wishlist_id": 1,
+      "product_id": 1,
+      "product_name": "...",
+      "price": 25999
+    }
+  ]
+}
+
+════════════════════════════════════════════════════════════════
+TEST 13: ADMIN - GET ALL ORDERS (Auth Required, Admin Only)
+════════════════════════════════════════════════════════════════
+
+curl -X GET "https://electrozonebd.com/api/orders?admin=true" \
+  -H "Authorization: Bearer $JWT_TOKEN"
+
+Expected Response:
+[
+  {
+    "order_id": 1,
+    "user_id": 2,
+    "order_total": 51998,
+    "status": "pending"
+  }
+]
+
+════════════════════════════════════════════════════════════════
+TEST 14: ADMIN - CREATE PRODUCT (Auth Required, Admin Only)
+════════════════════════════════════════════════════════════════
+
+curl -X POST "https://electrozonebd.com/api/products" \
+  -H "Authorization: Bearer $JWT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "product_name": "New Product",
+    "description": "Description",
+    "price": 9999,
+    "stock_quantity": 100,
+    "category_id": 1,
+    "brand_id": 1
+  }'
+
+Expected Response:
+{
+  "success": true,
+  "message": "Product created",
+  "product_id": 100
+}
+
+════════════════════════════════════════════════════════════════
+SETTING JWT TOKEN (For Linux/Mac):
+════════════════════════════════════════════════════════════════
+
+1. Login and get token:
+TOKEN=$(curl -s -X POST "https://electrozonebd.com/api/auth/login" \
+  -H "Content-Type: application/json" \
+  -d '{"email":"adminNoman@electrozonebd.com","password":"ElectroAdmin@2026"}' \
+  | grep -o '"token":"[^"]*' | cut -d'"' -f4)
+
+2. Use token in requests:
+curl -X GET "https://electrozonebd.com/api/auth/me" \
+  -H "Authorization: Bearer $TOKEN"
+
+════════════════════════════════════════════════════════════════
+POSTMAN IMPORT (Quick Setup):
+════════════════════════════════════════════════════════════════
+
+1. Download Postman: https://www.postman.com/downloads/
+2. Create New Collection
+3. Set base URL: https://electrozonebd.com/api
+4. Create requests for each endpoint above
+5. For auth requests, use Pre-request Script:
+   - Set environment variable "token" from login response
+6. Use {{token}} in Authorization header for protected routes
+
+════════════════════════════════════════════════════════════════
+BROWSER TESTING (Simple GET Requests):
+════════════════════════════════════════════════════════════════
+
+Just open these URLs in browser:
+
+1. Health: https://electrozonebd.com/api/health
+2. Products: https://electrozonebd.com/api/products
+3. Categories: https://electrozonebd.com/api/categories
+4. Single Product: https://electrozonebd.com/api/products/1
+
+Note: Only works for GET requests without authentication
+
+════════════════════════════════════════════════════════════════
+COMMON ISSUES & SOLUTIONS:
+════════════════════════════════════════════════════════════════
+
+Problem: "404 Not Found"
+Solution:
+  1. Check URL spelling
+  2. Verify API is running: https://electrozonebd.com/api/health
+  3. Check .htaccess exists in /api folder
+  4. Ensure mod_rewrite is enabled
+
+Problem: "401 Unauthorized"
+Solution:
+  1. Include Authorization header with JWT token
+  2. Token format: "Authorization: Bearer YOUR_TOKEN"
+  3. Verify token is valid (check expiration)
+
+Problem: "CORS Error"
+Solution:
+  1. This is normal for browser requests from different domain
+  2. Flutter app won't have this issue
+  3. Check .htaccess has CORS headers
+
+Problem: "500 Internal Server Error"
+Solution:
+  1. Check server error logs on cPanel
+  2. Verify database connection
+  3. Check .env file has correct credentials
+
+════════════════════════════════════════════════════════════════
+TESTING CHECKLIST:
+════════════════════════════════════════════════════════════════
+
+[ ] Health endpoint returns OK
+[ ] Can fetch products
+[ ] Can fetch single product
+[ ] Can fetch categories
+[ ] Can register new user
+[ ] Can login with admin account
+[ ] Can add items to cart (with JWT)
+[ ] Can view cart contents
+[ ] Can create order
+[ ] Can view orders
+[ ] Can add to wishlist
+[ ] Admin endpoints work
+[ ] No 404 errors
+[ ] No CORS issues (browser testing)
+[ ] All responses valid JSON
+
+════════════════════════════════════════════════════════════════

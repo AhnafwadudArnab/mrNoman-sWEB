@@ -1,0 +1,231 @@
+===============================================
+FLUTTER API - INSTALLATION GUIDE
+===============================================
+
+আপনার ৫টি API ফাইল এখন প্রস্তুত!
+
+ফাইলগুলো:
+1. flutter_home_data.php - Home screen ডাটা
+2. flutter_products.php - পণ্য লিস্ট, সার্চ
+3. flutter_cart.php - কার্ট ম্যানেজমেন্ট
+4. flutter_orders.php - অর্ডার ম্যানেজমেন্ট
+5. flutter_test.php - ডাটাবেস টেস্টিং
+
+===============================================
+STEP 1: cPanel File Manager খুলুন
+===============================================
+
+URL: https://your-domain.com:2083
+User: asiment3
+Password: [আপনার পাসওয়ার্ড]
+
+অথবা hosting এর control panel এ যান
+
+===============================================
+STEP 2: Path এ যান
+===============================================
+
+Navigate to: /home/asiment3/electrozonebd.com/public_html
+
+এখানে আপনার website files আছে
+
+===============================================
+STEP 3: backend/api ফোল্ডার খুলুন
+===============================================
+
+1. public_html এ "backend" ফোল্ডার খোঁজুন
+2. backend ফোল্ডার খুলুন
+3. "api" ফোল্ডার খুলুন
+
+না থাকলে তৈরি করুন:
+- Right click → Create Folder → "api" লিখুন
+
+===============================================
+STEP 4: ফাইলগুলো আপলোড করুন
+===============================================
+
+Method 1: Individual Upload
+----------------------------
+1. api ফোল্ডার খোলা রাখুন
+2. "Upload" বাটন ক্লিক করুন
+3. প্রতিটি ফাইল select করুন:
+   - flutter_home_data.php
+   - flutter_products.php
+   - flutter_cart.php
+   - flutter_orders.php
+   - flutter_test.php
+
+Method 2: Drag & Drop (সহজ)
+----------------------------
+1. api ফোল্ডার খোলা রাখুন
+2. আপনার কম্পিউটার থেকে ৫টি ফাইল drag করুন
+3. api ফোল্ডারে drop করুন
+
+===============================================
+STEP 5: ডাটাবেস Config চেক করুন
+===============================================
+
+backend/config.php খোলুন এবং এডিট করুন:
+
+Location: /home/asiment3/electrozonebd.com/public_html/backend/config.php
+
+খোঁজুন এই লাইন:
+'db' => [
+    'host' => 'localhost',
+    'name' => 'electrobd',        ← আপনার DB নাম
+    'user' => 'cpanel_db_user',   ← cPanel DB user
+    'pass' => 'db_password',      ← DB password
+]
+
+cPanel থেকে পাবেন:
+- Go to: MySQL Databases
+- আপনার database দেখবেন
+- Username দেখবেন
+
+===============================================
+STEP 6: টেস্ট করুন
+===============================================
+
+ব্রাউজারে খুলুন:
+
+http://electrozonebd.com/backend/api/flutter_test.php
+
+দেখবেন:
+✅ Database Connection Status
+✅ All Tables
+✅ Sample Data
+✅ API Test Results
+
+===============================================
+STEP 7: Flutter এ ব্যবহার করুন
+===============================================
+
+API এন্ডপয়েন্টগুলো:
+
+1. Home Data:
+   GET http://electrozonebd.com/backend/api/flutter_home_data.php
+
+2. Products List:
+   GET http://electrozonebd.com/backend/api/flutter_products.php?action=list
+
+3. Product Details:
+   GET http://electrozonebd.com/backend/api/flutter_products.php?action=details&product_id=1
+
+4. Search:
+   GET http://electrozonebd.com/backend/api/flutter_products.php?action=search&search=blender
+
+5. Cart (View):
+   GET http://electrozonebd.com/backend/api/flutter_cart.php?user_id=1
+
+6. Cart (Add):
+   POST http://electrozonebd.com/backend/api/flutter_cart.php?user_id=1
+   Body: {"user_id": 1, "product_id": 1, "quantity": 2}
+
+7. Orders (View):
+   GET http://electrozonebd.com/backend/api/flutter_orders.php?user_id=1
+
+8. Orders (Create):
+   POST http://electrozonebd.com/backend/api/flutter_orders.php
+   Body: {"user_id": 1, "items": [...], "delivery_address": "...", ...}
+
+===============================================
+FLUTTER CODE EXAMPLE
+===============================================
+
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+
+// Home Data পান
+Future<void> loadHomeData() async {
+  try {
+    final response = await http.get(
+      Uri.parse('http://electrozonebd.com/backend/api/flutter_home_data.php'),
+    );
+    
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      print('Success: ${data['data']}');
+    }
+  } catch (e) {
+    print('Error: $e');
+  }
+}
+
+// Products পান
+Future<void> loadProducts() async {
+  final response = await http.get(
+    Uri.parse('http://electrozonebd.com/backend/api/flutter_products.php?action=list'),
+  );
+  
+  if (response.statusCode == 200) {
+    final data = json.decode(response.body);
+    final products = data['data'];
+    print('Products: $products');
+  }
+}
+
+// কার্টে যোগ করুন
+Future<void> addToCart(int productId) async {
+  final response = await http.post(
+    Uri.parse('http://electrozonebd.com/backend/api/flutter_cart.php?user_id=1'),
+    headers: {'Content-Type': 'application/json'},
+    body: json.encode({
+      'user_id': 1,
+      'product_id': productId,
+      'quantity': 1,
+    }),
+  );
+  
+  if (response.statusCode == 200) {
+    print('Added to cart!');
+  }
+}
+
+===============================================
+TROUBLESHOOTING
+===============================================
+
+Problem: 404 Not Found
+Solution: ফাইল path সঠিক আছে কিনা চেক করুন
+         /home/asiment3/electrozonebd.com/public_html/backend/api/
+
+Problem: Database Connection Error
+Solution: config.php এ DB credentials সঠিক আছে কিনা চেক করুন
+         cPanel MySQL Databases থেকে verify করুন
+
+Problem: CORS Error
+Solution: এটি শুধু development এ সমস্যা হয়
+         Production এ কাজ করবে
+
+Problem: Empty Data
+Solution: flutter_test.php ভিজিট করে ডাটা আছে কিনা চেক করুন
+
+===============================================
+IMPORTANT
+===============================================
+
+✓ সব ফাইল UTF-8 এনকোডিং এ আছে
+✓ CORS support enabled
+✓ JSON response format
+✓ Error handling included
+
+===============================================
+SUPPORT
+===============================================
+
+যদি কোনো সমস্যা হয়:
+
+1. flutter_test.php খুলুন এবং দেখুন কোথায় error আছে
+2. Browser console check করুন (F12)
+3. cPanel error logs check করুন
+4. Database credentials verify করুন
+
+===============================================
+DONE! 
+===============================================
+
+আপনার API এখন live! ✅
+এখন Flutter এ connect করতে পারেন!
+
+Happy Coding! 🚀
+

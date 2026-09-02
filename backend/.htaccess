@@ -1,0 +1,92 @@
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    Options -Indexes
+
+    # Block access to hidden files and sensitive config files
+    RewriteRule "(^|/)\." - [F]
+    <FilesMatch "^(config\.php|\.env|composer\.json|composer\.lock|router\.php)$">
+        Require all denied
+    </FilesMatch>
+
+    # Handle Authorization Header (needed for JWT on cPanel)
+    RewriteCond %{HTTP:Authorization} .
+    RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+
+    # Prevent Apache from adding trailing slash redirects
+    DirectorySlash Off
+
+    # Serve uploaded images directly — handles both /api/uploads/... and /uploads/...
+    # When backend is at /api/, REQUEST_URI will be /api/uploads/filename.jpg
+    RewriteCond %{REQUEST_URI} ^/api/uploads/(.+)$
+    RewriteCond %{DOCUMENT_ROOT}/api/public/uploads/%1 -f
+    RewriteRule ^uploads/(.+)$ public/uploads/$1 [L]
+
+    # Also handle if accessed without /api prefix (direct backend access)
+    RewriteCond %{REQUEST_URI} ^/uploads/(.+)$
+    RewriteCond %{DOCUMENT_ROOT}/public/uploads/%1 -f
+    RewriteRule ^uploads/(.+)$ public/uploads/$1 [L]
+
+    # Allow direct access to existing files
+    RewriteCond %{REQUEST_FILENAME} -f
+    RewriteRule ^ - [L]
+
+    # Allow direct access to existing directories
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteRule ^ - [L]
+
+    # Route everything else to public/index.php
+    RewriteRule ^ public/index.php [L]
+</IfModule>
+
+# ─── CORS for uploaded images (served directly by Apache/LiteSpeed) ───
+<IfModule mod_headers.c>
+    <FilesMatch "\.(jpg|jpeg|png|webp|gif|svg)$">
+        Header always set Access-Control-Allow-Origin "*"
+        Header always set Access-Control-Allow-Methods "GET, OPTIONS"
+        Header always set Access-Control-Allow-Headers "Origin, Accept"
+    </FilesMatch>
+</IfModule>
+
+# ─── GZIP Compression ───
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css
+    AddOutputFilterByType DEFLATE application/json application/javascript
+    AddOutputFilterByType DEFLATE application/x-javascript text/javascript
+    AddOutputFilterByType DEFLATE image/svg+xml
+</IfModule>
+
+# ─── Browser Caching for static files ───
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresByType image/jpg "access plus 1 month"
+    ExpiresByType image/jpeg "access plus 1 month"
+    ExpiresByType image/png "access plus 1 month"
+    ExpiresByType image/webp "access plus 1 month"
+    ExpiresByType image/gif "access plus 1 month"
+    ExpiresByType text/css "access plus 1 week"
+    ExpiresByType application/javascript "access plus 1 week"
+    ExpiresByType application/json "access plus 5 minutes"
+</IfModule>
+
+# PHP settings for production
+<IfModule mod_php.c>
+    php_flag display_errors Off
+    php_flag display_startup_errors Off
+    php_value error_reporting 0
+    php_value upload_max_filesize 10M
+    php_value post_max_size 12M
+    php_value max_execution_time 60
+    php_value max_input_time 60
+    php_value memory_limit 256M
+</IfModule>
+
+<IfModule mod_php8.c>
+    php_flag display_errors Off
+    php_flag display_startup_errors Off
+    php_value error_reporting 0
+    php_value upload_max_filesize 10M
+    php_value post_max_size 12M
+    php_value max_execution_time 60
+    php_value max_input_time 60
+    php_value memory_limit 256M
+</IfModule>

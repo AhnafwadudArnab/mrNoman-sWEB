@@ -1,0 +1,259 @@
+═══════════════════════════════════════════════════════════════════════════════
+                    CPANEL UPLOAD INSTRUCTIONS
+                   ElectrocityBD Flutter + MySQL
+═══════════════════════════════════════════════════════════════════════════════
+
+আপনার কাছে আছে: electrozonebd_complete.zip
+
+এটিতে আছে:
+✅ Flutter Web Build (সব files)
+✅ 5 PHP API Files
+✅ Database Schema
+✅ Configuration Files
+✅ URL Routing (.htaccess)
+
+═══════════════════════════════════════════════════════════════════════════════
+STEP 1: cPanel File Manager খুলুন
+═══════════════════════════════════════════════════════════════════════════════
+
+1. cPanel লগইন করুন:
+   URL: https://cpanel.yourdomain.com (অথবা hosting provider দেওয়া URL)
+   Username: asiment3
+   Password: [আপনার পাসওয়ার্ড]
+
+2. "File Manager" খোঁজুন এবং ক্লিক করুন
+
+3. শীর্ষে folder path দেখবেন, নিশ্চিত করুন এটি:
+   /home/asiment3/electrozonebd.com/
+
+   (public_html এর বাইরে - এটি root folder)
+
+═══════════════════════════════════════════════════════════════════════════════
+STEP 2: electrozonebd_complete.zip Upload করুন
+═══════════════════════════════════════════════════════════════════════════════
+
+1. File Manager এ "Upload" বাটন দেখবেন
+2. electrozonebd_complete.zip select করুন
+3. Upload সম্পূর্ণ হওয়ার জন্য অপেক্ষা করুন
+
+Path হবে:
+/home/asiment3/electrozonebd.com/electrozonebd_complete.zip
+
+═══════════════════════════════════════════════════════════════════════════════
+STEP 3: ZIP Extract করুন
+═══════════════════════════════════════════════════════════════════════════════
+
+1. File Manager এ electrozonebd_complete.zip খোঁজুন
+2. Right-click করুন
+3. "Extract" বা "Uncompress" নির্বাচন করুন
+4. Extract location: /home/asiment3/electrozonebd.com/
+
+অপেক্ষা করুন... ZIP extract হবে
+
+Result: /home/asiment3/electrozonebd.com/electrozonebd/
+
+═══════════════════════════════════════════════════════════════════════════════
+STEP 4: Folder Move করুন (যদি দরকার হয়)
+═══════════════════════════════════════════════════════════════════════════════
+
+Extract এর পর, যদি folder structure এমন হয়:
+/home/asiment3/electrozonebd.com/electrozonebd/electrozonebd/
+
+তাহলে inner electrozonebd folder টি move করুন:
+
+1. File Manager এ /home/asiment3/electrozonebd.com/ যান
+2. Inner "electrozonebd" folder select করুন
+3. Right-click → "Move"
+4. Select destination: /home/asiment3/electrozonebd.com/
+5. Confirm
+
+Final structure হবে:
+/home/asiment3/electrozonebd.com/
+├── electrozonebd/ (এটি delete করতে পারেন)
+├── index.html (Flutter entry point)
+├── assets/
+├── canvaskit/
+├── icons/
+├── backend/
+│   ├── config.php
+│   └── api/
+├── .htaccess
+├── database_schema.sql
+└── README.txt
+
+═══════════════════════════════════════════════════════════════════════════════
+STEP 5: Database Setup করুন
+═══════════════════════════════════════════════════════════════════════════════
+
+1. cPanel এ যান
+2. "MySQL Databases" খোঁজুন
+3. নতুন Database তৈরি করুন:
+   - Name: electrobd (অথবা আপনার পছন্দ অনুযায়ী)
+   - Username: electrobd_user (নতুন user তৈরি করুন)
+   - Password: [strong password]
+   - Add User to Database
+
+4. "phpMyAdmin" খোঁজুন এবং খুলুন
+5. Database select করুন (electrobd)
+6. "Import" ট্যাব ক্লিক করুন
+7. /home/asiment3/electrozonebd.com/database_schema.sql upload করুন
+8. "Go" বাটন ক্লিক করুন
+
+Database import হবে!
+
+═══════════════════════════════════════════════════════════════════════════════
+STEP 6: Config.php Update করুন
+═══════════════════════════════════════════════════════════════════════════════
+
+1. File Manager এ backend/config.php খোঁজুন
+2. Right-click → "Edit" করুন
+3. এই লাইনগুলো খুঁজুন এবং UPDATE করুন:
+
+'db' => [
+    'host' => 'localhost',
+    'name' => 'electrobd',           ← Database name
+    'user' => 'electrobd_user',      ← Database user
+    'pass' => 'your_password',       ← Database password
+]
+
+আপনার credentials এখানে paste করুন যা Step 5 এ তৈরি করেছেন।
+
+4. Save করুন
+
+═══════════════════════════════════════════════════════════════════════════════
+STEP 7: Test করুন
+═══════════════════════════════════════════════════════════════════════════════
+
+Browser খুলুন এবং যান:
+
+http://electrozonebd.com/backend/api/flutter_test.php
+
+এখানে দেখবেন:
+✅ Database Connection Status
+✅ All Tables List
+✅ Sample Data
+✅ Live API Test Results
+
+সবকিছু Green হওয়া উচিত!
+
+═══════════════════════════════════════════════════════════════════════════════
+STEP 8: Flutter App Access করুন
+═══════════════════════════════════════════════════════════════════════════════
+
+Browser খুলুন:
+
+http://electrozonebd.com/
+
+এখানে আপনার Flutter app load হবে! 🎉
+
+═══════════════════════════════════════════════════════════════════════════════
+FOLDER STRUCTURE REFERENCE
+═══════════════════════════════════════════════════════════════════════════════
+
+Extract এর পর যা দেখবেন:
+
+/home/asiment3/electrozonebd.com/
+│
+├── index.html                 ← Flutter app main file
+├── assets/                    ← Flutter images, fonts, etc.
+├── canvaskit/                 ← Flutter web runtime
+├── icons/                     ← App icons
+│
+├── backend/
+│   ├── config.php            ← Database configuration (EDIT করুন)
+│   └── api/
+│       ├── flutter_home_data.php
+│       ├── flutter_products.php
+│       ├── flutter_cart.php
+│       ├── flutter_orders.php
+│       └── flutter_test.php   ← Test করার জন্য
+│
+├── .htaccess                 ← URL routing (don't touch)
+├── database_schema.sql       ← Database structure
+└── README.txt                ← Instructions
+
+═══════════════════════════════════════════════════════════════════════════════
+API ENDPOINTS
+═══════════════════════════════════════════════════════════════════════════════
+
+এর পর আপনি Flutter তে এই URLs ব্যবহার করতে পারবেন:
+
+1. Home Data:
+   http://electrozonebd.com/backend/api/flutter_home_data.php
+
+2. Products:
+   http://electrozonebd.com/backend/api/flutter_products.php?action=list
+
+3. Product Details:
+   http://electrozonebd.com/backend/api/flutter_products.php?action=details&product_id=1
+
+4. Cart:
+   http://electrozonebd.com/backend/api/flutter_cart.php?user_id=1
+
+5. Orders:
+   http://electrozonebd.com/backend/api/flutter_orders.php?user_id=1
+
+═══════════════════════════════════════════════════════════════════════════════
+TROUBLESHOOTING
+═══════════════════════════════════════════════════════════════════════════════
+
+❌ Problem: 404 Not Found
+✅ Solution: Path সঠিক আছে কিনা চেক করুন
+            http://electrozonebd.com/ (not public_html/...)
+
+❌ Problem: Database Connection Error
+✅ Solution: backend/config.php credentials সঠিক আছে কিনা চেক করুন
+            cPanel MySQL Databases থেকে verify করুন
+
+❌ Problem: .htaccess Permission Denied
+✅ Solution: .htaccess এর permission 644 করুন
+            Right-click → Change Permissions → 644
+
+❌ Problem: Flutter App Blank Page
+✅ Solution: Browser console check করুন (F12 → Console)
+            API URL সঠিক আছে কিনা নিশ্চিত করুন
+
+❌ Problem: API Returns Empty Data
+✅ Solution: flutter_test.php visit করুন
+            Database তে data আছে কিনা চেক করুন
+
+═══════════════════════════════════════════════════════════════════════════════
+IMPORTANT NOTES
+═══════════════════════════════════════════════════════════════════════════════
+
+✓ Upload folder: /home/asiment3/electrozonebd.com/ (public_html নয়)
+✓ Database name: electrobd (schema import করবে)
+✓ API files: backend/api/ তে থাকবে
+✓ Config: backend/config.php (edit করতে হবে)
+✓ Test: /backend/api/flutter_test.php এ টেস্ট করুন
+✓ Access: http://electrozonebd.com/ এ app access করুন
+
+═══════════════════════════════════════════════════════════════════════════════
+QUICK CHECKLIST
+═══════════════════════════════════════════════════════════════════════════════
+
+☐ ZIP file download করেছি
+☐ cPanel File Manager খুলেছি
+☐ ZIP upload করেছি
+☐ ZIP extract করেছি
+☐ Database তৈরি করেছি
+☐ database_schema.sql import করেছি
+☐ backend/config.php update করেছি
+☐ flutter_test.php দিয়ে টেস্ট করেছি
+☐ http://electrozonebd.com/ এ app access করেছি
+☐ সবকিছু কাজ করছে! ✅
+
+═══════════════════════════════════════════════════════════════════════════════
+DONE! 🎉
+═══════════════════════════════════════════════════════════════════════════════
+
+আপনার Flutter App এখন Live! 
+
+Questions? Check:
+1. Browser Console (F12)
+2. flutter_test.php
+3. cPanel Error Logs
+
+Happy Coding! 🚀
+
+═══════════════════════════════════════════════════════════════════════════════

@@ -1,0 +1,291 @@
+═══════════════════════════════════════════════════════════════════════════════
+                     🚀 FRESH BUILD - cPanel UPLOAD
+                    ElectrocityBD Flutter Web App
+═══════════════════════════════════════════════════════════════════════════════
+
+আপনার কাছে আছে: electrozonebd_final.zip (Fresh Build)
+
+✅ এই ZIP এ সব কিছু আছে:
+   • Flutter Web Build (সম্পূর্ণ - main.dart.js সহ)
+   • All Assets & Icons
+   • 5 PHP API Files
+   • Database Config
+   • Database Schema
+
+═══════════════════════════════════════════════════════════════════════════════
+⚠️  IMPORTANT: পুরানো BUILD ডিলিট করুন!
+═══════════════════════════════════════════════════════════════════════════════
+
+cPanel এ এই ফোল্ডারগুলো DELETE করুন:
+  ❌ /home/asiment3/electrozonebd.com/electrozonebd/
+  ❌ /home/asiment3/electrozonebd.com/assets/ (পুরানো)
+  ❌ /home/asiment3/electrozonebd.com/canvaskit/ (পুরানো)
+  ❌ /home/asiment3/electrozonebd.com/icons/ (পুরানো)
+
+তারপর নতুন ZIP upload করুন।
+
+═══════════════════════════════════════════════════════════════════════════════
+📋 STEP BY STEP UPLOAD GUIDE
+═══════════════════════════════════════════════════════════════════════════════
+
+STEP 1: cPanel File Manager খুলুন
+───────────────────────────────────
+1. cPanel login করুন
+2. "File Manager" খোঁজুন
+3. Navigate to: /home/asiment3/electrozonebd.com/
+
+STEP 2: পুরানো ফাইল ডিলিট করুন
+───────────────────────────────────
+এই ফোল্ডার/ফাইলগুলো DELETE করুন:
+• electrozonebd/ (folder)
+• assets/ (folder)
+• canvaskit/ (folder)
+• icons/ (folder)
+• index.html (file)
+• main.dart.js (file)
+• flutter_service_worker.js (file)
+
+তবে রাখুন:
+✓ backend/ (folder)
+✓ database_schema.sql
+✓ .htaccess (if exists)
+
+STEP 3: নতুন ZIP Upload করুন
+───────────────────────────────────
+1. "Upload" বাটন ক্লিক করুন
+2. electrozonebd_final.zip select করুন
+3. Upload সম্পূর্ণ হওয়ার অপেক্ষা করুন
+
+STEP 4: ZIP Extract করুন
+───────────────────────────────────
+1. electrozonebd_final.zip খোঁজুন
+2. Right-click → "Extract" করুন
+3. Extract to: /home/asiment3/electrozonebd.com/
+
+Result: সব ফাইল root এ যাবে
+├── index.html ✅
+├── main.dart.js ✅
+├── assets/ ✅
+├── backend/ ✅
+└── ...
+
+STEP 5: backend/config.php Update করুন
+───────────────────────────────────────
+1. backend/config.php খোলুন
+2. এই লাইনগুলো UPDATE করুন:
+
+'db' => [
+    'host' => 'localhost',
+    'name' => 'electrobd',
+    'user' => 'db_username',      ← আপনার DB user
+    'pass' => 'db_password',      ← আপনার DB password
+]
+
+cPanel MySQL Databases থেকে পান!
+
+STEP 6: Browser Clear করুন (IMPORTANT)
+───────────────────────────────────────
+১. Browser Cache Clear করুন:
+   • Chrome: Ctrl+Shift+Delete
+   • Select "All time"
+   • Clear data
+
+২. Hard Refresh করুন:
+   • Windows: Ctrl+F5
+   • Mac: Cmd+Shift+R
+
+STEP 7: Test করুন
+───────────────────────────────────────
+API Test:
+http://electrozonebd.com/backend/api/flutter_test.php
+
+Should see:
+✅ Database Connection Status
+✅ All Tables
+✅ Live API Test
+
+STEP 8: App Access করুন
+───────────────────────────────────────
+Browser এ যান:
+http://electrozonebd.com/
+
+আপনি দেখবেন:
+✅ Home Page Loading...
+✅ Products Display
+✅ Categories
+✅ Cart, Orders, etc.
+
+═══════════════════════════════════════════════════════════════════════════════
+🔧 TROUBLESHOOTING
+═══════════════════════════════════════════════════════════════════════════════
+
+❌ PROBLEM: Still showing "Loading..."
+✅ SOLUTION:
+   1. Hard Refresh: Ctrl+Shift+Delete (clear cache)
+   2. Open Browser Console: F12
+   3. Check for errors
+   4. Check /backend/api/flutter_test.php
+
+❌ PROBLEM: 404 Not Found
+✅ SOLUTION:
+   1. Check path is correct
+   2. Verify .htaccess exists in root
+   3. .htaccess permissions should be 644
+   4. Contact hosting provider to enable mod_rewrite
+
+❌ PROBLEM: Blank white page
+✅ SOLUTION:
+   1. Check browser console (F12)
+   2. Look for JavaScript errors
+   3. Check main.dart.js file size (should be 1-2 MB)
+   4. Verify index.html loads
+
+❌ PROBLEM: API Returns HTML instead of JSON
+✅ SOLUTION:
+   1. Check backend/config.php credentials
+   2. Verify database exists
+   3. Check cPanel MySQL Databases
+   4. Run flutter_test.php to debug
+
+❌ PROBLEM: CORS Error
+✅ SOLUTION:
+   1. This is normal in development
+   2. Production should work fine
+   3. Check API file headers
+
+═══════════════════════════════════════════════════════════════════════════════
+📊 FILE STRUCTURE AFTER EXTRACTION
+═══════════════════════════════════════════════════════════════════════════════
+
+/home/asiment3/electrozonebd.com/
+│
+├── index.html                 ← Flutter Entry Point
+├── main.dart.js              ← Flutter App Code (1-2 MB)
+├── flutter.js                ← Flutter Bootstrap
+├── flutter_bootstrap.js      ← Flutter Bootstrap
+├── flutter_service_worker.js ← Service Worker
+├── flutter.json              ← Configuration
+├── version.json              ← Version Info
+│
+├── assets/                   ← All Images & Fonts
+├── canvaskit/                ← Flutter Web Runtime
+├── icons/                    ← App Icons
+│
+├── backend/
+│   ├── config.php           ← Database Config (EDIT THIS)
+│   ├── services/            ← Database Services
+│   └── api/
+│       ├── flutter_home_data.php
+│       ├── flutter_products.php
+│       ├── flutter_cart.php
+│       ├── flutter_orders.php
+│       └── flutter_test.php  ← Test Page
+│
+├── .htaccess                ← URL Rewriting
+├── manifest.json            ← PWA Manifest
+├── favicon.png              ← App Icon
+├── database_schema.sql      ← Database
+└── README.txt               ← Instructions
+
+═══════════════════════════════════════════════════════════════════════════════
+✅ IMPORTANT CHECKLIST
+═══════════════════════════════════════════════════════════════════════════════
+
+Before Upload:
+☐ electrozonebd_final.zip downloaded
+☐ You have cPanel login
+
+During Upload:
+☐ Old files deleted
+☐ New ZIP uploaded
+☐ ZIP extracted to root
+
+After Upload:
+☐ backend/config.php updated with DB credentials
+☐ Database imported (database_schema.sql)
+☐ Browser cache cleared
+☐ Hard refresh done (Ctrl+F5)
+
+Testing:
+☐ /backend/api/flutter_test.php works
+☐ Main site loads (not showing "Loading...")
+☐ Products display
+☐ No console errors
+
+═══════════════════════════════════════════════════════════════════════════════
+🎯 EXPECTED BEHAVIOR
+═══════════════════════════════════════════════════════════════════════════════
+
+✅ Home Page:
+   • Shows Flutter App
+   • Displays banners
+   • Shows products
+   • Categories visible
+
+✅ API Test (/backend/api/flutter_test.php):
+   • Shows "Database Connection: OK"
+   • Lists all tables
+   • Shows sample data
+
+✅ Products Page:
+   • Lists all products
+   • Can search
+   • Can filter by category
+   • Can add to cart
+
+✅ Cart:
+   • Can add items
+   • Can update quantity
+   • Shows total price
+
+✅ Orders:
+   • Can create order
+   • Can view order history
+   • Checkout works
+
+═══════════════════════════════════════════════════════════════════════════════
+⚡ QUICK COMMANDS (if needed)
+═══════════════════════════════════════════════════════════════════════════════
+
+cPanel Terminal (if available):
+
+# Delete old files
+rm -rf /home/asiment3/electrozonebd.com/electrozonebd
+rm -rf /home/asiment3/electrozonebd.com/assets
+rm -rf /home/asiment3/electrozonebd.com/canvaskit
+
+# Extract ZIP
+cd /home/asiment3/electrozonebd.com/
+unzip electrozonebd_final.zip
+
+# Set permissions
+chmod 644 .htaccess
+chmod 755 backend
+chmod 755 backend/api
+chmod 644 backend/config.php
+
+═══════════════════════════════════════════════════════════════════════════════
+📞 SUPPORT
+═══════════════════════════════════════════════════════════════════════════════
+
+If something goes wrong:
+
+1. Check browser console (F12)
+2. Check /backend/api/flutter_test.php
+3. Check cPanel error logs
+4. Verify database credentials
+5. Clear browser cache and hard refresh
+
+═══════════════════════════════════════════════════════════════════════════════
+✨ READY TO DEPLOY!
+═══════════════════════════════════════════════════════════════════════════════
+
+File: electrozonebd_final.zip
+Size: Check your download
+
+Upload location: /home/asiment3/electrozonebd.com/
+Expected result: http://electrozonebd.com/ loads Flutter app
+
+🚀 GOOD LUCK! 🚀
+
+═══════════════════════════════════════════════════════════════════════════════

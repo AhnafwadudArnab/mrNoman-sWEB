@@ -1,0 +1,167 @@
+╔════════════════════════════════════════════════════════════════╗
+║     ELECTROZONEBD DATABASE IMPORT - QUICK CHECKLIST           ║
+╚════════════════════════════════════════════════════════════════╝
+
+DATABASE INFO:
+  Database Name: asiment3_electrobd
+  Database User: asiment3_zones
+  Database Pass: i~B5+W#2nJ2-_X2q
+  Host: localhost
+  Port: 3306
+
+════════════════════════════════════════════════════════════════
+
+IMPORT ORDER (CRITICAL - MUST FOLLOW THIS ORDER):
+
+[ ] STEP 1: Import electrobd_structure.sql
+    Location: databaseMysql/electrobd_structure.sql
+    Contents: Database tables, procedures, constraints
+    Size: ~500 KB
+    
+    Steps:
+    1. Go to phpMyAdmin
+    2. Select database: asiment3_electrobd
+    3. Click Import tab
+    4. Choose file: electrobd_structure.sql
+    5. Click Go
+    6. Wait for success message
+
+[ ] STEP 2: Import electrobd_data.sql
+    Location: databaseMysql/electrobd_data.sql
+    Contents: Products, categories, brands, collections, banners
+    Size: ~5-10 MB
+    
+    Steps:
+    1. Select database: asiment3_electrobd (again)
+    2. Click Import tab
+    3. Choose file: electrobd_data.sql
+    4. Click Go
+    5. Wait for success message (may take 1-2 minutes)
+
+[ ] STEP 3: Import admin_users.sql
+    Location: databaseMysql/admin_users.sql
+    Contents: 3 admin user accounts with hashed passwords
+    Size: ~2 KB
+    
+    Steps:
+    1. Select database: asiment3_electrobd (again)
+    2. Click Import tab
+    3. Choose file: admin_users.sql
+    4. Click Go
+    5. Wait for success message
+
+════════════════════════════════════════════════════════════════
+
+ADMIN LOGIN CREDENTIALS (After importing admin_users.sql):
+
+Admin 1:
+  Email:    adminNoman@electrozonebd.com
+  Password: ElectroAdmin@2026
+
+Admin 2:
+  Email:    superadmin_roz@electrozonebd.com
+  Password: ZoneAdmin@2026
+
+Admin 3:
+  Email:    superadmin@ez.com
+  Password: ZoneAdmin@2078
+
+⚠️  CHANGE PASSWORDS AFTER FIRST LOGIN!
+
+════════════════════════════════════════════════════════════════
+
+VERIFICATION (After all imports):
+
+Run these queries in phpMyAdmin SQL tab:
+
+[ ] Count users:
+    SELECT COUNT(*) FROM users;
+    Expected: 3+
+
+[ ] Count products:
+    SELECT COUNT(*) FROM products;
+    Expected: 100+
+
+[ ] Count categories:
+    SELECT COUNT(*) FROM categories;
+    Expected: 10
+
+[ ] List admins:
+    SELECT email, role FROM users WHERE role='admin';
+    Expected: 3 rows
+
+[ ] Check brands:
+    SELECT COUNT(*) FROM brands;
+    Expected: 40+
+
+════════════════════════════════════════════════════════════════
+
+FILE PATHS ON YOUR COMPUTER:
+
+Structure: c:\Wbsite fixing\electrocitybd_upto\databaseMysql\electrobd_structure.sql
+Data:      c:\Wbsite fixing\electrocitybd_upto\databaseMysql\electrobd_data.sql
+Admins:    c:\Wbsite fixing\electrocitybd_upto\databaseMysql\admin_users.sql
+
+════════════════════════════════════════════════════════════════
+
+PHPYADMIN ACCESS:
+
+URL: https://electrozonebd.com/cpanel
+(or click phpMyAdmin in cPanel dashboard)
+
+Login: Automatic (via cPanel)
+
+Select Database: asiment3_electrobd (left panel)
+
+════════════════════════════════════════════════════════════════
+
+TROUBLESHOOTING:
+
+Problem: Cannot find phpMyAdmin
+Solution: 
+  1. Login to cPanel
+  2. Search "phpMyAdmin" in cPanel search bar
+  3. Or go to: Databases > phpMyAdmin
+
+Problem: "Access Denied" during import
+Solution:
+  1. Verify user asiment3_zones exists
+  2. Check user has all privileges on asiment3_electrobd
+  3. Go to cPanel > MySQL Databases > check privileges
+
+Problem: Import hangs/takes too long
+Solution:
+  1. Split larger files manually (not recommended)
+  2. Contact hosting support
+  3. Try importing during off-peak hours
+
+Problem: "Syntax Error" in SQL
+Solution:
+  1. File may be corrupted
+  2. Download fresh copy from project
+  3. Verify file is UTF-8 encoded
+
+════════════════════════════════════════════════════════════════
+
+AFTER SUCCESSFUL IMPORT:
+
+[ ] Database has 20+ tables
+[ ] Products table has 100+ items
+[ ] Can see admin users in users table
+[ ] Backend uploaded to cPanel (/api folder)
+[ ] Composer installed on cPanel
+[ ] API endpoints accessible
+[ ] Flutter app configured to use cPanel backend
+
+════════════════════════════════════════════════════════════════
+
+NEXT STEPS:
+
+1. ✅ Import database (THIS STEP)
+2. ⏭️  Backend upload to cPanel (already guided)
+3. ⏭️  Composer install on cPanel
+4. ⏭️  Test API health endpoint
+5. ⏭️  Update Flutter app config
+6. ⏭️  Deploy Flutter web app
+
+════════════════════════════════════════════════════════════════

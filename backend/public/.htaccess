@@ -1,0 +1,27 @@
+Options -Indexes
+
+# Allow direct access to uploaded images
+<FilesMatch "\.(jpg|jpeg|png|gif|webp|svg)$">
+    Header always set Access-Control-Allow-Origin "*"
+    Header always set Cache-Control "public, max-age=31536000"
+</FilesMatch>
+
+# Block access to PHP files in uploads folder (security)
+<FilesMatch "^uploads/.*\.php$">
+    Require all denied
+</FilesMatch>
+
+# PHP upload settings
+<IfModule mod_php.c>
+    php_value upload_max_filesize 10M
+    php_value post_max_size 12M
+    php_value max_execution_time 60
+    php_value memory_limit 256M
+</IfModule>
+
+<IfModule mod_php8.c>
+    php_value upload_max_filesize 10M
+    php_value post_max_size 12M
+    php_value max_execution_time 60
+    php_value memory_limit 256M
+</IfModule>
