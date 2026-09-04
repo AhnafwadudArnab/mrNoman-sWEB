@@ -1,0 +1,12 @@
+{
+    "java.configuration.updateBuildConfiguration": "automatic",
+    "chat.tools.terminal.autoApprove": {
+        "flutter": true,
+        "Move-Item": true,
+        "/^node backend/server\\.js$/": {
+            "approve": true,
+            "matchCommandLine": true
+        }
+    },
+    "kiroAgent.configureMCP": "Disabled"
+}
