@@ -1058,7 +1058,7 @@ class _AdminPaymentsPageState extends State<AdminPaymentsPage> {
   String? _getMethodAssetLogo(String? name, String? type) {
     final n = (name ?? '').toLowerCase().trim();
     if (n.contains('bkash') || n.contains('baksh')) {
-      return 'assets/payments/baksh.png';
+      return 'assets/payments/bkash.png';
     }
     if (n.contains('nagad')) {
       return 'assets/payments/nagad.png';
