@@ -690,7 +690,7 @@ class _SslPaymentPageState extends State<SslPaymentPage> {
     if (widget.config.bkashEnabled) {
       methods.add({
         'label': 'bKash',
-        'logo': 'assets/payments/baksh.png',
+        'logo': 'assets/payments/bkash.png',
         'method': PaymentMethod.bkash,
       });
     }

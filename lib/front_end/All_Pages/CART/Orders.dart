@@ -2080,7 +2080,7 @@ class _SubmitOrderPageState extends State<SubmitOrderPage> {
           _buildPaymentMethodCard(
             method: PaymentMethod.bkash,
             title: 'bKash',
-            assetLogo: 'assets/payments/baksh.png',
+            assetLogo: 'assets/payments/bkash.png',
             accentColor: const Color(0xFFE2136E),
           ),
           const SizedBox(height: 10),
@@ -2349,7 +2349,7 @@ class _OnlinePaymentSheetState extends State<_OnlinePaymentSheet> {
     {
       'id': 'bkash',
       'label': 'bKash',
-      'logo': 'assets/payments/baksh.png',
+      'logo': 'assets/payments/bkash.png',
       'color': 0xFFE2136E,
     },
     {
@@ -2844,7 +2844,7 @@ class _OnlinePaymentSheetState extends State<_OnlinePaymentSheet> {
       methods.add({
         'id': 'bkash',
         'label': 'bKash',
-        'logo': 'assets/payments/baksh.png',
+        'logo': 'assets/payments/bkash.png',
         'method': PaymentMethod.bkash,
       });
     if (widget.config.nagadEnabled)
@@ -2990,7 +2990,7 @@ class _PaymentInstructionPageState extends State<_PaymentInstructionPage> {
         ? 'assets/payments/rocket.png'
         : isUpay
         ? 'assets/payments/upay.png'
-        : 'assets/payments/baksh.png';
+        : 'assets/payments/bkash.png';
 
     _receiverNumber = isNagad
         ? widget.config.nagadNumber

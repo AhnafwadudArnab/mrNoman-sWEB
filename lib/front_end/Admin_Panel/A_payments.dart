@@ -758,9 +758,14 @@ class _AdminPaymentsPageState extends State<AdminPaymentsPage> {
   Widget _methodCard(Map<String, dynamic> method) {
     final isEnabled = _isMethodEnabled(method['is_enabled']);
     final account = method['account_number']?.toString() ?? '';
+    final rawIconUrl = method['icon_url']?.toString() ??
+        method['icon']?.toString() ??
+        method['logo']?.toString() ??
+        method['image_url']?.toString();
     final logoAsset = _getMethodAssetLogo(
       method['method_name']?.toString(),
       method['method_type']?.toString(),
+      rawIconUrl,
     );
     final leading = Container(
       width: 48,
@@ -1055,28 +1060,44 @@ class _AdminPaymentsPageState extends State<AdminPaymentsPage> {
     );
   }
 
-  String? _getMethodAssetLogo(String? name, String? type) {
+  String? _getMethodAssetLogo(String? name, String? type, [String? iconUrl]) {
     final n = (name ?? '').toLowerCase().trim();
-    if (n.contains('bkash') || n.contains('baksh')) {
+    final t = (type ?? '').toLowerCase().trim();
+    final u = (iconUrl ?? '').toLowerCase().trim();
+    if (n.contains('bkash') ||
+        n.contains('baksh') ||
+        t.contains('bkash') ||
+        t.contains('baksh') ||
+        u.contains('bkash') ||
+        u.contains('baksh')) {
       return 'assets/payments/bkash.png';
     }
-    if (n.contains('nagad')) {
+    if (n.contains('nagad') || t.contains('nagad') || u.contains('nagad')) {
       return 'assets/payments/nagad.png';
     }
-    if (n.contains('rocket')) {
-      return 'assets/rocket.png';
+    if (n.contains('rocket') || t.contains('rocket') || u.contains('rocket')) {
+      return 'assets/payments/rocket.png';
     }
-    if (n.contains('upay')) {
-      return 'assets/upay.png';
+    if (n.contains('upay') || t.contains('upay') || u.contains('upay')) {
+      return 'assets/payments/upay.png';
     }
-    if (n.contains('visa')) {
+    if (n.contains('paypal') || t.contains('paypal') || u.contains('paypal')) {
+      return 'assets/payments/paypal.jpg';
+    }
+    if (n.contains('visa') || t.contains('visa') || u.contains('visa')) {
       return 'assets/payments/visa.png';
     }
-    if (n.contains('master')) {
+    if (n.contains('master') || t.contains('master') || u.contains('master')) {
       return 'assets/payments/master.png';
     }
-    if (n.contains('amex') || n.contains('american express')) {
+    if (n.contains('amex') ||
+        n.contains('american express') ||
+        t.contains('amex') ||
+        u.contains('amex')) {
       return 'assets/payments/amex.png';
+    }
+    if (u.isNotEmpty && !u.startsWith('http')) {
+      return u.replaceAll('baksh.png', 'bkash.png');
     }
     return null;
   }
