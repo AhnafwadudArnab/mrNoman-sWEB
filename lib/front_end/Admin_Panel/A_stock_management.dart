@@ -1,4 +1,3 @@
-import 'package:electrocitybd1/config/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:electrocitybd1/front_end/pages/home_page.dart';
@@ -75,10 +74,10 @@ class _AdminStockManagementPageState extends State<AdminStockManagementPage> {
             if (stock > 0) return false;
             break;
           case 'LOW_STOCK':
-            if (stock <= 0 || stock > 5) return false;
+            if (stock <= 0 || stock >= 5) return false;
             break;
           case 'IN_STOCK':
-            if (stock <= 5) return false;
+            if (stock < 1) return false;
             break;
         }
       }
@@ -88,7 +87,18 @@ class _AdminStockManagementPageState extends State<AdminStockManagementPage> {
   }
 
   void _showStockUpdateDialog(Map<String, dynamic> product) {
-    final productId = product['product_id'];
+    final int productId = int.tryParse(
+      product['product_id']?.toString() ?? product['id']?.toString() ?? '',
+    ) ?? 0;
+    if (productId <= 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Invalid product ID'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
     final productName = product['product_name'] ?? 'Unknown';
     final currentStock =
         int.tryParse(product['stock_quantity']?.toString() ?? '0') ?? 0;
@@ -114,26 +124,30 @@ class _AdminStockManagementPageState extends State<AdminStockManagementPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: Colors.blue.shade900,
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: Colors.blue.shade700),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
                     ),
-                    child: Wrap(
-                      spacing: 12,
-                      runSpacing: 8,
-                      alignment: WrapAlignment.spaceBetween,
-                      crossAxisAlignment: WrapCrossAlignment.center,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFEFF6FF),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: const Color(0xFFBFDBFE)),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         const Text(
                           'Current Stock:',
-                          style: TextStyle(color: AppColors.grey300),
+                          style: TextStyle(
+                            color: Color(0xFF1E40AF),
+                            fontWeight: FontWeight.w600,
+                            fontSize: 14,
+                          ),
                         ),
                         Text(
                           '$currentStock units',
                           style: const TextStyle(
-                            color: AdminTheme.textPrimary,
+                            color: Color(0xFF1D4ED8),
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
                           ),
@@ -144,7 +158,11 @@ class _AdminStockManagementPageState extends State<AdminStockManagementPage> {
                   const SizedBox(height: 16),
                   const Text(
                     'Operation Type:',
-                    style: TextStyle(color: AppColors.grey300, fontSize: 14),
+                    style: TextStyle(
+                      color: Color(0xFF374151),
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                   const SizedBox(height: 8),
                   Row(
@@ -288,14 +306,41 @@ class _AdminStockManagementPageState extends State<AdminStockManagementPage> {
           ? currentStock + quantity
           : currentStock - quantity;
 
+      // Optimistic local state update
+      setState(() {
+        for (final p in _products) {
+          final pid = int.tryParse(
+            p['product_id']?.toString() ?? p['id']?.toString() ?? '',
+          ) ?? 0;
+          if (pid == productId) {
+            p['stock_quantity'] = newStock;
+            break;
+          }
+        }
+        _applyFilters();
+      });
+
       // Update product stock via API
       await ApiService.updateProduct(productId, {'stock_quantity': newStock});
 
-      // Reload products
-      await _loadProducts();
-      if (mounted) context.read<ProductRefreshNotifier>().refresh();
+      // Reload products with fresh data
+      final response = await ApiService.getProducts(
+        limit: 200,
+        fresh: true,
+        useCache: false,
+      );
+      final List<dynamic> productList = response is List
+          ? response
+          : (response is Map ? (response['products'] as List? ?? []) : []);
 
       if (mounted) {
+        setState(() {
+          _products = productList
+              .map((e) => Map<String, dynamic>.from(e as Map))
+              .toList();
+          _applyFilters();
+        });
+        context.read<ProductRefreshNotifier>().refresh();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
@@ -319,13 +364,13 @@ class _AdminStockManagementPageState extends State<AdminStockManagementPage> {
 
   Color _getStockStatusColor(int stock) {
     if (stock <= 0) return Colors.red;
-    if (stock <= 5) return Colors.orange;
+    if (stock < 5) return Colors.orange;
     return Colors.green;
   }
 
   String _getStockStatusText(int stock) {
     if (stock <= 0) return 'OUT OF STOCK';
-    if (stock <= 5) return 'LOW STOCK';
+    if (stock < 5) return 'LOW STOCK';
     return 'IN STOCK';
   }
 
@@ -374,7 +419,7 @@ class _AdminStockManagementPageState extends State<AdminStockManagementPage> {
               children: [
                 IconButton(
                   onPressed: _loadProducts,
-                  icon: const Icon(Icons.refresh, color: Color(0xFF7C3AED)),
+                  icon: const Icon(Icons.refresh, color: AdminTheme.brand),
                   tooltip: 'Refresh',
                 ),
                 TextButton.icon(
@@ -385,13 +430,13 @@ class _AdminStockManagementPageState extends State<AdminStockManagementPage> {
                   ),
                   icon: const Icon(
                     Icons.store,
-                    color: Color(0xFF7C3AED),
+                    color: AdminTheme.brand,
                     size: 20,
                   ),
                   label: const Text(
                     "Back to Store",
                     style: TextStyle(
-                      color: Color(0xFF7C3AED),
+                      color: AdminTheme.brand,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -413,7 +458,10 @@ class _AdminStockManagementPageState extends State<AdminStockManagementPage> {
                 decoration: InputDecoration(
                   hintText: 'Search products...',
                   hintStyle: const TextStyle(color: AdminTheme.textMuted),
-                  prefixIcon: const Icon(Icons.search, color: AdminTheme.textSecondary),
+                  prefixIcon: const Icon(
+                    Icons.search,
+                    color: AdminTheme.textSecondary,
+                  ),
                   filled: true,
                   fillColor: AdminTheme.surface,
                   border: OutlineInputBorder(
@@ -484,7 +532,7 @@ class _AdminStockManagementPageState extends State<AdminStockManagementPage> {
         Expanded(
           child: _loading
               ? const Center(
-                  child: CircularProgressIndicator(color: Color(0xFF7C3AED)),
+                  child: CircularProgressIndicator(color: AdminTheme.brand),
                 )
               : _filteredProducts.isEmpty
               ? const Center(
@@ -509,92 +557,154 @@ class _AdminStockManagementPageState extends State<AdminStockManagementPage> {
                     return Card(
                       color: cardBg,
                       margin: const EdgeInsets.only(bottom: 12),
-                      child: ListTile(
-                        contentPadding: const EdgeInsets.all(16),
-                        leading: Container(
-                          width: 60,
-                          height: 60,
-                          decoration: BoxDecoration(
-                            color: AdminTheme.surface,
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: product['image_url'] != null
-                              ? ClipRRect(
+                      clipBehavior: Clip.antiAlias,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: InkWell(
+                        onTap: () => _showStockUpdateDialog(product),
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: LayoutBuilder(
+                            builder: (context, constraints) {
+                              final isNarrow = constraints.maxWidth < 580;
+                              final imageWidget = Container(
+                                width: 64,
+                                height: 64,
+                                decoration: BoxDecoration(
+                                  color: AdminTheme.surface,
                                   borderRadius: BorderRadius.circular(8),
-                                  child: Image.network(
-                                    ImageResolver.resolveUrl(
-                                      product['image_url'].toString(),
-                                    ),
-                                    fit: BoxFit.cover,
-                                    errorBuilder: (_, __, ___) => const Icon(
-                                      Icons.image,
-                                      color: Color(0x1F000000),
-                                    ),
-                                  ),
-                                )
-                              : const Icon(
-                                  Icons.image,
-                                  color: Color(0x1F000000),
                                 ),
-                        ),
-                        title: Text(
-                          product['product_name'] ?? 'Unknown',
-                          style: const TextStyle(
-                            color: AdminTheme.textPrimary,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        subtitle: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const SizedBox(height: 4),
-                            Text(
-                              'Price: ?${product['price'] ?? '0'}',
-                              style: const TextStyle(
-                                color: AdminTheme.textMuted,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Row(
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 8,
-                                    vertical: 4,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: statusColor,
-                                    borderRadius: BorderRadius.circular(4),
-                                    border: Border.all(color: statusColor),
-                                  ),
-                                  child: Text(
-                                    statusText,
-                                    style: TextStyle(
-                                      color: statusColor,
-                                      fontSize: 12,
+                                child: product['image_url'] != null
+                                    ? ClipRRect(
+                                        borderRadius: BorderRadius.circular(8),
+                                        child: Image.network(
+                                          ImageResolver.resolveUrl(
+                                            product['image_url'].toString(),
+                                          ),
+                                          fit: BoxFit.cover,
+                                          errorBuilder: (_, __, ___) =>
+                                              const Icon(
+                                                Icons.image,
+                                                color: Color(0x1F000000),
+                                              ),
+                                        ),
+                                      )
+                                    : const Icon(
+                                        Icons.image,
+                                        color: Color(0x1F000000),
+                                      ),
+                              );
+
+                              final detailsWidget = Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    product['product_name'] ?? 'Unknown',
+                                    style: const TextStyle(
+                                      color: AdminTheme.textPrimary,
                                       fontWeight: FontWeight.bold,
+                                      fontSize: 15,
                                     ),
                                   ),
-                                ),
-                                const SizedBox(width: 8),
-                                Text(
-                                  '$stock units',
-                                  style: TextStyle(
-                                    color: statusColor,
-                                    fontWeight: FontWeight.bold,
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    'Price: \u09F3${product['price'] ?? '0'}',
+                                    style: const TextStyle(
+                                      color: AdminTheme.textMuted,
+                                      fontSize: 13,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 6),
+                                  Wrap(
+                                    spacing: 8,
+                                    runSpacing: 6,
+                                    crossAxisAlignment:
+                                        WrapCrossAlignment.center,
+                                    children: [
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 8,
+                                          vertical: 4,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: statusColor,
+                                          borderRadius: BorderRadius.circular(
+                                            4,
+                                          ),
+                                        ),
+                                        child: Text(
+                                          statusText,
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ),
+                                      Text(
+                                        '$stock units',
+                                        style: TextStyle(
+                                          color: statusColor,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 13,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              );
+
+                              final buttonWidget = ElevatedButton.icon(
+                                onPressed: () =>
+                                    _showStockUpdateDialog(product),
+                                icon: const Icon(Icons.inventory, size: 18),
+                                label: const Text('Update Stock'),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: AdminTheme.brand,
+                                  foregroundColor: Colors.white,
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 14,
+                                    vertical: 11,
+                                  ),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8),
                                   ),
                                 ),
-                              ],
-                            ),
-                          ],
-                        ),
-                        trailing: ElevatedButton.icon(
-                          onPressed: () => _showStockUpdateDialog(product),
-                          icon: const Icon(Icons.inventory, size: 18),
-                          label: const Text('Update Stock'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF7C3AED),
-                            foregroundColor: AdminTheme.textPrimary,
+                              );
+
+                              if (isNarrow) {
+                                return Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        imageWidget,
+                                        const SizedBox(width: 14),
+                                        Expanded(child: detailsWidget),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 12),
+                                    SizedBox(
+                                      width: double.infinity,
+                                      child: buttonWidget,
+                                    ),
+                                  ],
+                                );
+                              }
+
+                              return Row(
+                                children: [
+                                  imageWidget,
+                                  const SizedBox(width: 14),
+                                  Expanded(child: detailsWidget),
+                                  const SizedBox(width: 12),
+                                  buttonWidget,
+                                ],
+                              );
+                            },
                           ),
                         ),
                       ),

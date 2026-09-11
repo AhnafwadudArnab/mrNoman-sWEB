@@ -23,7 +23,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
   Map<String, dynamic>? _dashboardStats;
   bool _statsLoading = true;
   String? _adminName;
-  String _selectedPeriod = 'Last 8 Days';
+  String _selectedPeriod = 'Today';
 
   @override
   void initState() {
@@ -459,6 +459,27 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
             height: 200,
             child: LineChart(
               LineChartData(
+                lineTouchData: LineTouchData(
+                  enabled: true,
+                  handleBuiltInTouches: true,
+                  touchTooltipData: LineTouchTooltipData(
+                    getTooltipColor: (touchedSpot) => const Color(0xFF1E293B),
+                    fitInsideHorizontally: true,
+                    fitInsideVertically: true,
+                    getTooltipItems: (touchedSpots) {
+                      return touchedSpots.map((spot) {
+                        return LineTooltipItem(
+                          'Day ${spot.x.toInt() + 1}\n৳${spot.y.toStringAsFixed(0)}',
+                          const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 12,
+                          ),
+                        );
+                      }).toList();
+                    },
+                  ),
+                ),
                 gridData: FlGridData(show: true),
                 titlesData: FlTitlesData(
                   leftTitles: AxisTitles(
@@ -732,7 +753,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                 ),
                 child: const Text(
                   'All Time',
-                  style: const TextStyle(color: Colors.white, fontSize: 12),
+                  style: TextStyle(color: Colors.white, fontSize: 12),
                 ),
               ),
             ],

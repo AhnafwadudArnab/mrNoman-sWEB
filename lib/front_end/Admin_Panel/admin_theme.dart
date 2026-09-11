@@ -17,7 +17,9 @@ class AdminTheme {
   static const Color darkDivider = Color(0xFF21262D);
   static const Color darkTextPrimary = Color(0xFFE6EDF3);
   static const Color darkTextSecondary = Color(0xFF8B949E);
-  static const Color darkTextMuted = Color(0xFF484F58);
+  // Keep supporting copy readable on the charcoal surfaces.  The old value
+  // was intentionally subtle, but fell below a readable contrast level.
+  static const Color darkTextMuted = Color(0xFF9DA7B3);
 
   // -- LIGHT MODE PALETTE ---------------------------------
   static const Color lightBg = Color(0xFFFAFAFB);
@@ -30,15 +32,41 @@ class AdminTheme {
   static const Color lightTextMuted = Color(0xFF6B7280);
 
   // -- Shared Colors (both modes) -------------------------
-  // Premium Purple Theme (Changed from Orange)
-  static const Color brand = Color(0xFF7C3AED); // Deep Purple/Indigo
-  static const Color brandLight = Color(0xFFA78BFA); // Light Purple
-  static const Color brandDim = Color(0x267C3AED); // Transparent Purple
-  static const Color success = Color(0xFF3FB950);
-  static const Color warning = Color(0xFFD29922);
-  static const Color error = Color(0xFFF85149);
-  static const Color info = Color(0xFF58A6FF);
-  static const Color purple = Color(0xFFBC8CFF);
+  // Professional blue admin theme
+  static const Color brand = Color(0xFF2563EB); // Professional blue
+  static const Color brandLight = Color(0xFF3B82F6); // Lighter blue
+  static const Color brandDim = Color(0x1F2563EB); // Transparent blue
+  // Darker semantic hues keep both badge labels and icon-only states legible
+  // against the panel's white and pale-tint surfaces.
+  static const Color success = Color(0xFF087A54);
+  static const Color warning = Color(0xFFB45309);
+  static const Color error = Color(0xFFDC2626);
+  static const Color info = Color(0xFF007C91);
+
+  // -- SIDEBAR (Altezza dark style) -----------------------
+  /// Main sidebar background — dark charcoal
+  static const Color sidebarBg = Color(0xFF2B2B3B);
+
+  /// Slightly darker strip used for the header area
+  static const Color sidebarHeaderBg = Color(0xFF252534);
+
+  /// Active item pill — brand blue (matches admin panel)
+  static const Color sidebarActive = Color(0xFF2563EB);
+
+  /// Text / icon colour on top of the slate blue active pill
+  static const Color sidebarActiveText = Color(0xFFFFFFFF);
+
+  /// Inactive nav item labels and icons
+  static const Color sidebarInactive = Color(0xFFB0B0C8);
+
+  /// Section header labels (CRM, CLIENTS …)
+  static const Color sidebarSection = Color(0xFF6B6B88);
+
+  /// Subtle separator between sections / bottom bar
+  static const Color sidebarDivider = Color(0xFF3A3A50);
+
+  /// Badge background (unread count)
+  static const Color sidebarBadge = Color(0xFFE53935);
 
   // -- Default (Light Mode) - Changed from Dark ----
   static const Color bg = lightBg;
@@ -54,17 +82,17 @@ class AdminTheme {
   static Color statusColor(String status) {
     switch (status.toLowerCase()) {
       case 'pending':
-        return const Color(0xFFD29922);
+        return const Color(0xFFF59E0B);
       case 'processing':
-        return const Color(0xFF58A6FF);
+        return const Color(0xFF06B6D4);
       case 'shipped':
-        return const Color(0xFFBC8CFF);
+        return const Color(0xFF8B5CF6);
       case 'delivered':
-        return const Color(0xFF3FB950);
+        return const Color(0xFF10B981);
       case 'cancelled':
-        return const Color(0xFFF85149);
+        return const Color(0xFFEF4444);
       default:
-        return const Color(0xFF8B949E);
+        return const Color(0xFF6B7280);
     }
   }
 

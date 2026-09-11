@@ -473,17 +473,17 @@ class _AllCollectionsPageState extends State<AllCollectionsPage> {
   }
 
   void _navigate(Map<String, dynamic> collection) {
+    final rawId = collection['collection_id'] ?? collection['id'];
+    final colId = rawId is int
+        ? rawId
+        : int.tryParse(rawId?.toString() ?? '');
     Navigator.push(
       context,
       MaterialPageRoute(
         builder: (_) => CollectionDetailPage(
           collectionName: collection['name'] ?? collection['title'],
           collectionSlug: collection['slug'],
-          collectionId: collection['id'] is int
-              ? collection['id'] as int
-              : (collection['id'] != null
-                    ? int.tryParse(collection['id'].toString())
-                    : null),
+          collectionId: colId,
           icon: widget.getIcon(collection['icon']),
         ),
       ),

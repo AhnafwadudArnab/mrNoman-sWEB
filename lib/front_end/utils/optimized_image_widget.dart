@@ -7,6 +7,7 @@ import 'package:shimmer/shimmer.dart';
 import 'image_resolver.dart';
 
 /// Optimized image widget with caching, progressive loading, and error handling
+/// Includes fallback handling for network errors and CORS issues
 /// Use this instead of Image.network for better performance
 class OptimizedImageWidget extends StatelessWidget {
   final String? imageUrl;

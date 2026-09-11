@@ -15,9 +15,9 @@ class AdminDealsTimerPage extends StatefulWidget {
 }
 
 class _AdminDealsTimerPageState extends State<AdminDealsTimerPage> {
-  static const _cardBg = AdminTheme.surfaceAlt;
+  static const _cardBg = AdminTheme.surface;
   static final _darkBg = AdminTheme.bg;
-  static const _orange = Color(0xFF7C3AED);
+  static const _orange = AdminTheme.brand;
 
   bool _loading = true;
   List<Map<String, dynamic>> _timers = [];
@@ -37,11 +37,14 @@ class _AdminDealsTimerPageState extends State<AdminDealsTimerPage> {
   String? _selectedCategory;
   String? _selectedBrand;
   int? _productStock = 10;
+  List<Map<String, dynamic>> _categoriesList = [];
+  List<Map<String, dynamic>> _brandsList = [];
 
   @override
   void initState() {
     super.initState();
     _loadTimers();
+    _loadCategoriesAndBrands();
     _loadDealsProducts();
     _tick = Timer.periodic(const Duration(seconds: 1), (_) {
       if (mounted) setState(() {});
@@ -111,9 +114,33 @@ class _AdminDealsTimerPageState extends State<AdminDealsTimerPage> {
     }
   }
 
+  Future<void> _loadCategoriesAndBrands() async {
+    try {
+      final catRes = await ApiService.get('/categories');
+      final brandRes = await ApiService.get('/brands');
+      if (mounted) {
+        setState(() {
+          if (catRes is List) {
+            _categoriesList = catRes
+                .whereType<Map>()
+                .map((e) => Map<String, dynamic>.from(e))
+                .toList();
+          }
+          if (brandRes is List) {
+            _brandsList = brandRes
+                .whereType<Map>()
+                .map((e) => Map<String, dynamic>.from(e))
+                .toList();
+          }
+        });
+      }
+    } catch (_) {}
+  }
+
   Future<void> _uploadProduct() async {
-    if (_productNameController.text.isEmpty ||
-        _productPriceController.text.isEmpty) {
+    final name = _productNameController.text.trim();
+    final priceStr = _productPriceController.text.trim();
+    if (name.isEmpty || priceStr.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Please fill in product name and price'),
@@ -123,18 +150,57 @@ class _AdminDealsTimerPageState extends State<AdminDealsTimerPage> {
       return;
     }
 
+    int? catId;
+    if (_selectedCategory != null) {
+      catId = int.tryParse(_selectedCategory!);
+      if (catId == null) {
+        final found = _categoriesList.firstWhere(
+          (c) => c['category_name']?.toString() == _selectedCategory,
+          orElse: () => {},
+        );
+        catId = found['category_id'] is int
+            ? found['category_id']
+            : int.tryParse(found['category_id']?.toString() ?? '');
+      }
+    }
+    catId ??= (_categoriesList.isNotEmpty
+        ? int.tryParse(_categoriesList.first['category_id']?.toString() ?? '1') ?? 1
+        : 1);
+
+    int? brandId;
+    if (_selectedBrand != null) {
+      brandId = int.tryParse(_selectedBrand!);
+      if (brandId == null) {
+        final found = _brandsList.firstWhere(
+          (b) => b['brand_name']?.toString() == _selectedBrand,
+          orElse: () => {},
+        );
+        brandId = found['brand_id'] is int
+            ? found['brand_id']
+            : int.tryParse(found['brand_id']?.toString() ?? '');
+      }
+    }
+
     try {
-      await ApiService.post('/products/create', {
-        'name': _productNameController.text,
-        'price': double.tryParse(_productPriceController.text) ?? 0,
-        'description': _productDescriptionController.text,
-        'image': _productImageController.text,
-        'model': _productModelController.text,
-        'category': _selectedCategory ?? '',
-        'brand': _selectedBrand ?? '',
-        'stock': _productStock ?? 10,
+      final payload = <String, dynamic>{
+        'product_name': name,
+        'price': double.tryParse(priceStr) ?? 0.0,
+        'stock_quantity': _productStock ?? 10,
+        'category_id': catId,
+        if (brandId != null) 'brand_id': brandId,
+        'description': _productDescriptionController.text.trim(),
+        'image_url': _productImageController.text.trim().isNotEmpty
+            ? _productImageController.text.trim()
+            : 'assets/prod/09.png',
         'section': 'Deals of the Day',
-      }, withAuth: true);
+      };
+      if (_selectedTimer != null) {
+        final tid = int.tryParse(_selectedTimer!);
+        if (tid != null) payload['deal_id'] = tid;
+      }
+
+      await ApiService.post('/products', payload, withAuth: true);
+      ApiService.invalidateCache('/products');
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -279,7 +345,7 @@ class _AdminDealsTimerPageState extends State<AdminDealsTimerPage> {
             ElevatedButton(
               style: ElevatedButton.styleFrom(
                 backgroundColor: _orange,
-                foregroundColor: Colors.black,
+                foregroundColor: Colors.white,
               ),
               onPressed: () async {
                 if (titleC.text.trim().isEmpty) return;
@@ -289,6 +355,7 @@ class _AdminDealsTimerPageState extends State<AdminDealsTimerPage> {
                     'description': descC.text.trim(),
                     'end_time': endDt?.toIso8601String() ?? '',
                   });
+                  ApiService.invalidateCache('/deals_timer');
                   if (dialogCtx.mounted) Navigator.pop(dialogCtx);
                   if (mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
@@ -358,7 +425,10 @@ class _AdminDealsTimerPageState extends State<AdminDealsTimerPage> {
                   children: [
                     const Text(
                       'Active',
-                      style: TextStyle(color: Color(0xFFE0E0E0)),
+                      style: TextStyle(
+                        color: Color(0xFF111827),
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                     const Spacer(),
                     Switch(
@@ -379,7 +449,7 @@ class _AdminDealsTimerPageState extends State<AdminDealsTimerPage> {
             ElevatedButton(
               style: ElevatedButton.styleFrom(
                 backgroundColor: _orange,
-                foregroundColor: Colors.black,
+                foregroundColor: Colors.white,
               ),
               onPressed: () async {
                 try {
@@ -389,6 +459,7 @@ class _AdminDealsTimerPageState extends State<AdminDealsTimerPage> {
                     'end_time': endDt?.toIso8601String() ?? '',
                     'is_active': isActive,
                   });
+                  ApiService.invalidateCache('/deals_timer');
                   if (dialogCtx.mounted) Navigator.pop(dialogCtx);
                   if (mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
@@ -447,6 +518,7 @@ class _AdminDealsTimerPageState extends State<AdminDealsTimerPage> {
     if (ok != true) return;
     try {
       await ApiService.delete('/deals_timer/$id');
+      ApiService.invalidateCache('/deals_timer');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -487,23 +559,28 @@ class _AdminDealsTimerPageState extends State<AdminDealsTimerPage> {
   }) => Container(
     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
     decoration: BoxDecoration(
-      color: _darkBg,
+      color: const Color(0xFFF9FAFB),
       borderRadius: BorderRadius.circular(8),
+      border: Border.all(color: AdminTheme.border),
     ),
     child: Row(
       children: [
-        const Icon(Icons.schedule, color: Color(0x42000000), size: 18),
+        const Icon(Icons.schedule, color: Color(0xFF6B7280), size: 18),
         const SizedBox(width: 8),
         Expanded(
           child: Text(
             label,
-            style: const TextStyle(color: AdminTheme.textMuted, fontSize: 13),
+            style: const TextStyle(
+              color: Color(0xFF374151),
+              fontSize: 13,
+              fontWeight: FontWeight.w500,
+            ),
           ),
         ),
         TextButton(onPressed: onPick, child: const Text('Pick')),
         if (onClear != null)
           IconButton(
-            icon: const Icon(Icons.close, size: 16, color: Color(0x42000000)),
+            icon: const Icon(Icons.close, size: 16, color: Color(0xFF6B7280)),
             onPressed: onClear,
           ),
       ],
@@ -513,20 +590,37 @@ class _AdminDealsTimerPageState extends State<AdminDealsTimerPage> {
   Widget _countdownChip(Duration d) {
     final expired = d == Duration.zero;
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
-        color: expired ? Colors.red : _orange,
+        color: expired ? const Color(0xFFEF4444) : AdminTheme.brand,
         borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: expired ? Colors.red : _orange),
+        boxShadow: [
+          BoxShadow(
+            color: (expired ? Colors.red : AdminTheme.brand).withOpacity(0.18),
+            blurRadius: 4,
+            offset: const Offset(0, 1),
+          ),
+        ],
       ),
-      child: Text(
-        expired ? 'Expired' : _fmtDuration(d),
-        style: TextStyle(
-          color: expired ? Colors.red : _orange,
-          fontWeight: FontWeight.bold,
-          fontSize: 13,
-          fontFamily: 'monospace',
-        ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            expired ? Icons.error_outline : Icons.schedule,
+            size: 13,
+            color: Colors.white,
+          ),
+          const SizedBox(width: 5),
+          Text(
+            expired ? 'Expired' : _fmtDuration(d),
+            style: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.w700,
+              fontSize: 12,
+              fontFamily: 'monospace',
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -737,22 +831,17 @@ class _AdminDealsTimerPageState extends State<AdminDealsTimerPage> {
                                       ),
                                     ),
                                     items: [
-                                      DropdownMenuItem(
+                                      const DropdownMenuItem(
                                         value: null,
-                                        child: const Text('Select Category'),
+                                        child: Text('Select Category'),
                                       ),
-                                      DropdownMenuItem(
-                                        value: 'Air Fryers',
-                                        child: const Text('Air Fryers'),
-                                      ),
-                                      DropdownMenuItem(
-                                        value: 'Mixers',
-                                        child: const Text('Mixers'),
-                                      ),
-                                      DropdownMenuItem(
-                                        value: 'Fans',
-                                        child: const Text('Fans'),
-                                      ),
+                                      ..._categoriesList.map((cat) {
+                                        final name = cat['category_name']?.toString() ?? 'Category';
+                                        return DropdownMenuItem<String?>(
+                                          value: name,
+                                          child: Text(name),
+                                        );
+                                      }).toList(),
                                     ],
                                     onChanged: (value) {
                                       setState(() => _selectedCategory = value);
@@ -788,22 +877,17 @@ class _AdminDealsTimerPageState extends State<AdminDealsTimerPage> {
                                       ),
                                     ),
                                     items: [
-                                      DropdownMenuItem(
+                                      const DropdownMenuItem(
                                         value: null,
-                                        child: const Text('Select Brand'),
+                                        child: Text('Select Brand'),
                                       ),
-                                      DropdownMenuItem(
-                                        value: 'Samsung',
-                                        child: const Text('Samsung'),
-                                      ),
-                                      DropdownMenuItem(
-                                        value: 'LG',
-                                        child: const Text('LG'),
-                                      ),
-                                      DropdownMenuItem(
-                                        value: 'AV',
-                                        child: const Text('AV'),
-                                      ),
+                                      ..._brandsList.map((brand) {
+                                        final name = brand['brand_name']?.toString() ?? 'Brand';
+                                        return DropdownMenuItem<String?>(
+                                          value: name,
+                                          child: Text(name),
+                                        );
+                                      }).toList(),
                                     ],
                                     onChanged: (value) {
                                       setState(() => _selectedBrand = value);
@@ -853,32 +937,32 @@ class _AdminDealsTimerPageState extends State<AdminDealsTimerPage> {
                                   fit: BoxFit.cover,
                                   errorBuilder: (context, error, stackTrace) =>
                                       const Icon(
-                                        Icons.image,
-                                        color: Color(0xFFE0E0E0),
-                                        size: 50,
+                                        Icons.image_outlined,
+                                        color: Color(0xFF9CA3AF),
+                                        size: 44,
                                       ),
                                 )
                               : const Icon(
-                                  Icons.image,
-                                  color: Color(0xFFE0E0E0),
-                                  size: 50,
+                                  Icons.image_outlined,
+                                  color: Color(0xFF9CA3AF),
+                                  size: 44,
                                 ),
                         ),
                         const SizedBox(height: 12),
-                        ElevatedButton(
+                        OutlinedButton.icon(
                           onPressed: () async {
-                            // File picker would go here
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(
                                 content: Text('Image URL upload coming soon'),
                               ),
                             );
                           },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFFE0E0E0),
-                            foregroundColor: AdminTheme.textPrimary,
+                          icon: const Icon(Icons.upload_outlined, size: 16),
+                          label: const Text('Upload Image'),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: const Color(0xFF374151),
+                            side: const BorderSide(color: Color(0xFFD1D5DB)),
                           ),
-                          child: const Text('Upload Image'),
                         ),
                         const SizedBox(height: 12),
                         TextFormField(
@@ -891,7 +975,7 @@ class _AdminDealsTimerPageState extends State<AdminDealsTimerPage> {
                             hintText: 'or paste Image URL',
                             hintStyle: const TextStyle(
                               color: AdminTheme.textSecondary,
-                              fontSize: 11,
+                            fontSize: 11,
                             ),
                             fillColor: fieldBg,
                             filled: true,
@@ -916,7 +1000,7 @@ class _AdminDealsTimerPageState extends State<AdminDealsTimerPage> {
                   onPressed: _uploadProduct,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: _orange,
-                    foregroundColor: Colors.black,
+                    foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
@@ -973,14 +1057,14 @@ class _AdminDealsTimerPageState extends State<AdminDealsTimerPage> {
               child: Padding(
                 padding: const EdgeInsets.symmetric(vertical: 32),
                 child: Column(
-                  children: [
+                  children: const [
                     Icon(
                       Icons.shopping_bag_outlined,
                       size: 48,
-                      color: Colors.white12,
+                      color: Color(0xFFD1D5DB),
                     ),
-                    const SizedBox(height: 12),
-                    const Text(
+                    SizedBox(height: 12),
+                    Text(
                       'No products yet',
                       style: TextStyle(color: AdminTheme.textSecondary, fontSize: 14),
                     ),
@@ -1000,7 +1084,8 @@ class _AdminDealsTimerPageState extends State<AdminDealsTimerPage> {
                   decoration: BoxDecoration(
                     color: _cardBg,
                     borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: _orange, width: 1),
+                    border: Border.all(color: AdminTheme.border, width: 1),
+                    boxShadow: AdminTheme.shadowSm,
                   ),
                   padding: const EdgeInsets.all(12),
                   child: Row(
@@ -1025,9 +1110,9 @@ class _AdminDealsTimerPageState extends State<AdminDealsTimerPage> {
                           height: 60,
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(8),
-                            color: AdminTheme.textSecondary,
+                            color: const Color(0xFFE5E7EB),
                           ),
-                          child: const Icon(Icons.image, color: Colors.white),
+                          child: const Icon(Icons.image, color: Color(0xFF9CA3AF)),
                         ),
                       const SizedBox(width: 12),
                       Expanded(
@@ -1037,7 +1122,7 @@ class _AdminDealsTimerPageState extends State<AdminDealsTimerPage> {
                             Text(
                               product['name']?.toString() ?? 'N/A',
                               style: const TextStyle(
-                                color: AdminTheme.textPrimary,
+                                color: Color(0xFF111827),
                                 fontWeight: FontWeight.bold,
                                 fontSize: 14,
                               ),
@@ -1046,25 +1131,25 @@ class _AdminDealsTimerPageState extends State<AdminDealsTimerPage> {
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              'Price: ?${product['price']?.toString() ?? '0'}',
+                              'Price: ৳${product['price']?.toString() ?? '0'}',
                               style: const TextStyle(
-                                color: _orange,
-                                fontWeight: FontWeight.w600,
-                                fontSize: 12,
+                                color: AdminTheme.brand,
+                                fontWeight: FontWeight.w700,
+                                fontSize: 13,
                               ),
                             ),
                           ],
                         ),
                       ),
                       IconButton(
-                        icon: const Icon(Icons.edit, color: _orange, size: 18),
+                        icon: const Icon(Icons.edit_outlined, color: Color(0xFF4B5563), size: 18),
                         onPressed: () {},
                         tooltip: 'Edit',
                       ),
                       IconButton(
                         icon: const Icon(
-                          Icons.delete,
-                          color: Colors.red,
+                          Icons.delete_outline,
+                          color: Color(0xFFEF4444),
                           size: 18,
                         ),
                         onPressed: () {},
@@ -1084,20 +1169,20 @@ class _AdminDealsTimerPageState extends State<AdminDealsTimerPage> {
     child: Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Icon(Icons.timer_outlined, size: 72, color: Colors.white12),
+        const Icon(Icons.timer_outlined, size: 72, color: Color(0xFFD1D5DB)),
         const SizedBox(height: 16),
         const Text(
           'No timers yet',
           style: TextStyle(
-            color: AdminTheme.textSecondary,
+            color: Color(0xFF111827),
             fontSize: 18,
             fontWeight: FontWeight.bold,
           ),
         ),
         const SizedBox(height: 8),
-         Text(
+        const Text(
           'Add a countdown timer for your deals',
-          style: TextStyle(color: AdminTheme.textSecondary, fontSize: 14),
+          style: TextStyle(color: Color(0xFF4B5563), fontSize: 14),
         ),
         const SizedBox(height: 24),
         ElevatedButton.icon(
@@ -1106,7 +1191,7 @@ class _AdminDealsTimerPageState extends State<AdminDealsTimerPage> {
           label: const Text('Add Timer'),
           style: ElevatedButton.styleFrom(
             backgroundColor: _orange,
-            foregroundColor: Colors.black,
+            foregroundColor: Colors.white,
           ),
         ),
       ],
@@ -1123,37 +1208,43 @@ class _AdminDealsTimerPageState extends State<AdminDealsTimerPage> {
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
         color: _cardBg,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: isActive ? _orange : AdminTheme.border,
-          width: 2,
+          color: isActive ? AdminTheme.brand.withOpacity(0.35) : AdminTheme.border,
+          width: 1,
         ),
-        boxShadow: isActive
-            ? [
-                BoxShadow(
-                  color: _orange,
-                  blurRadius: 12,
-                  offset: const Offset(0, 4),
-                ),
-              ]
-            : null,
+        boxShadow: [
+          const BoxShadow(
+            color: Color(0x0A000000),
+            blurRadius: 8,
+            offset: Offset(0, 2),
+          ),
+          if (isActive)
+            BoxShadow(
+              color: AdminTheme.brand.withOpacity(0.06),
+              blurRadius: 10,
+              offset: const Offset(0, 3),
+            ),
+        ],
       ),
       child: Padding(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(18),
         child: Row(
           children: [
             Container(
-              width: 48,
-              height: 48,
+              width: 44,
+              height: 44,
               decoration: BoxDecoration(
-                color: isActive ? _orange : AdminTheme.textSecondary,
+                color: isActive ? const Color(0xFFEFF6FF) : const Color(0xFFF3F4F6),
                 borderRadius: BorderRadius.circular(10),
-                border: isActive ? Border.all(color: _orange) : null,
+                border: Border.all(
+                  color: isActive ? const Color(0xFFBFDBFE) : const Color(0xFFE5E7EB),
+                ),
               ),
               child: Icon(
-                Icons.timer,
-                color: isActive ? _orange : AdminTheme.textSecondary,
-                size: 26,
+                Icons.timer_outlined,
+                color: isActive ? AdminTheme.brand : const Color(0xFF6B7280),
+                size: 22,
               ),
             ),
             const SizedBox(width: 16),
@@ -1167,28 +1258,45 @@ class _AdminDealsTimerPageState extends State<AdminDealsTimerPage> {
                         child: Text(
                           timer['title'] ?? 'Timer',
                           style: const TextStyle(
-                            color: AdminTheme.textPrimary,
+                            color: Color(0xFF111827),
                             fontSize: 16,
-                            fontWeight: FontWeight.bold,
+                            fontWeight: FontWeight.w700,
                           ),
                         ),
                       ),
                       Container(
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 3,
+                          horizontal: 9,
+                          vertical: 4,
                         ),
                         decoration: BoxDecoration(
-                          color: isActive ? Colors.green : Colors.red,
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: Text(
-                          isActive ? 'Active' : 'Inactive',
-                          style: TextStyle(
-                            color: isActive ? Colors.green : Colors.red,
-                            fontSize: 11,
-                            fontWeight: FontWeight.bold,
+                          color: isActive ? const Color(0xFFDCFCE7) : const Color(0xFFFEE2E2),
+                          borderRadius: BorderRadius.circular(6),
+                          border: Border.all(
+                            color: isActive ? const Color(0xFF86EFAC) : const Color(0xFFFCA5A5),
                           ),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Container(
+                              width: 6,
+                              height: 6,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: isActive ? const Color(0xFF16A34A) : const Color(0xFFDC2626),
+                              ),
+                            ),
+                            const SizedBox(width: 5),
+                            Text(
+                              isActive ? 'Active' : 'Inactive',
+                              style: TextStyle(
+                                color: isActive ? const Color(0xFF15803D) : const Color(0xFFB91C1C),
+                                fontSize: 11,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ],
@@ -1198,8 +1306,9 @@ class _AdminDealsTimerPageState extends State<AdminDealsTimerPage> {
                     Text(
                       timer['description'],
                       style: const TextStyle(
-                        color: AdminTheme.textSecondary,
+                        color: Color(0xFF4B5563),
                         fontSize: 13,
+                        fontWeight: FontWeight.w400,
                       ),
                     ),
                   ],
@@ -1208,16 +1317,17 @@ class _AdminDealsTimerPageState extends State<AdminDealsTimerPage> {
                     children: [
                       if (endDt != null) ...[
                         const Icon(
-                          Icons.event,
-                          color: Color(0x42000000),
+                          Icons.event_outlined,
+                          color: Color(0xFF6B7280),
                           size: 14,
                         ),
                         const SizedBox(width: 4),
                         Text(
                           'Ends: ${_fmtDateTime(endDt)}',
                           style: const TextStyle(
-                            color: Color(0x42000000),
+                            color: Color(0xFF4B5563),
                             fontSize: 12,
+                            fontWeight: FontWeight.w500,
                           ),
                         ),
                         const SizedBox(width: 12),
@@ -1227,7 +1337,7 @@ class _AdminDealsTimerPageState extends State<AdminDealsTimerPage> {
                         const Text(
                           'No end time set',
                           style: TextStyle(
-                            color: Color(0x1F000000),
+                            color: Color(0xFF9CA3AF),
                             fontSize: 12,
                           ),
                         ),
@@ -1243,7 +1353,7 @@ class _AdminDealsTimerPageState extends State<AdminDealsTimerPage> {
                   onPressed: () => _showEditDialog(timer),
                   icon: const Icon(
                     Icons.edit_outlined,
-                    color: Colors.blue,
+                    color: Color(0xFF4B5563),
                     size: 20,
                   ),
                   tooltip: 'Edit',
@@ -1252,7 +1362,7 @@ class _AdminDealsTimerPageState extends State<AdminDealsTimerPage> {
                   onPressed: () => _deleteTimer(timer),
                   icon: const Icon(
                     Icons.delete_outline,
-                    color: Colors.red,
+                    color: Color(0xFFEF4444),
                     size: 20,
                   ),
                   tooltip: 'Delete',
@@ -1267,7 +1377,7 @@ class _AdminDealsTimerPageState extends State<AdminDealsTimerPage> {
 
   @override
   Widget build(BuildContext context) {
-    final content = SingleChildScrollView(
+    final bodyContent = SingleChildScrollView(
       child: Column(
         children: [
           AdminPageHeader(
@@ -1281,7 +1391,7 @@ class _AdminDealsTimerPageState extends State<AdminDealsTimerPage> {
                   Text(
                     'Deals Timer',
                     style: TextStyle(
-                      color: AdminTheme.textPrimary,
+                      color: Color(0xFF111827),
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
                     ),
@@ -1303,7 +1413,7 @@ class _AdminDealsTimerPageState extends State<AdminDealsTimerPage> {
                     label: const Text('Add Timer'),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: _orange,
-                      foregroundColor: Colors.black,
+                      foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(
                         horizontal: 20,
                         vertical: 12,
@@ -1354,6 +1464,33 @@ class _AdminDealsTimerPageState extends State<AdminDealsTimerPage> {
           // Products List Section - Last
           _buildDealsProductsList(),
         ],
+      ),
+    );
+
+    final content = Theme(
+      data: ThemeData(
+        useMaterial3: true,
+        brightness: Brightness.light,
+        scaffoldBackgroundColor: AdminTheme.bg,
+        cardColor: AdminTheme.surface,
+        canvasColor: AdminTheme.surface,
+        colorScheme: const ColorScheme.light(
+          primary: AdminTheme.brand,
+          secondary: AdminTheme.brandLight,
+          surface: AdminTheme.surface,
+          onSurface: AdminTheme.textPrimary,
+        ),
+        textTheme: ThemeData.light().textTheme.apply(
+          bodyColor: AdminTheme.textPrimary,
+          displayColor: AdminTheme.textPrimary,
+        ),
+      ),
+      child: DefaultTextStyle(
+        style: const TextStyle(
+          color: AdminTheme.textPrimary,
+          fontFamily: 'Roboto',
+        ),
+        child: bodyContent,
       ),
     );
 

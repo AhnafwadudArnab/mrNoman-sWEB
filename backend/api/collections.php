@@ -38,7 +38,14 @@ switch ($method) {
             jsonResponse($col);
         }
 
-        $stmt = $db->query("SELECT * FROM collections WHERE is_active = 1 ORDER BY display_order ASC, created_at DESC");
+        $stmt = $db->query("
+            SELECT col.*,
+                (SELECT COUNT(*) FROM collection_products cp WHERE cp.collection_id = col.collection_id) AS product_count,
+                (SELECT COUNT(*) FROM collection_items ci WHERE ci.collection_id = col.collection_id) AS item_count
+            FROM collections col
+            WHERE col.is_active = 1
+            ORDER BY col.display_order ASC, col.created_at DESC
+        ");
         $collections = $stmt->fetchAll();
 
         foreach ($collections as &$col) {
@@ -46,7 +53,7 @@ switch ($method) {
             $stmt2->execute([$col['collection_id']]);
             $col['items'] = $stmt2->fetchAll();
         }
-        jsonResponse(['collections' => $collections]);
+        jsonResponse(['collections' => $collections, 'id' => null]);
         break;
 
     case 'POST':

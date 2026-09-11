@@ -234,7 +234,7 @@ class _AdminBrandingLogoPageState extends State<AdminBrandingLogoPage> {
   @override
   Widget build(BuildContext context) {
     const cardBg = AdminTheme.surfaceAlt;
-    const brandOrange = Color(0xFF7C3AED);
+    const brandOrange = Color(0xFF4D6787);
 
     if (_loading) {
       return const Center(child: CircularProgressIndicator());
@@ -265,7 +265,7 @@ class _AdminBrandingLogoPageState extends State<AdminBrandingLogoPage> {
                 label: const Text('Add Logo'),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: brandOrange,
-                  foregroundColor: Colors.black,
+                  foregroundColor: Colors.white,
                 ),
               ),
             ],
@@ -324,7 +324,7 @@ class _AdminBrandingLogoPageState extends State<AdminBrandingLogoPage> {
                         label: const Text('Add Brand Logo'),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: brandOrange,
-                          foregroundColor: Colors.black,
+                          foregroundColor: Colors.white,
                         ),
                       ),
                     ],

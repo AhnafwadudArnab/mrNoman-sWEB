@@ -8,5 +8,6 @@
             "matchCommandLine": true
         }
     },
-    "kiroAgent.configureMCP": "Disabled"
+    "kiroAgent.configureMCP": "Disabled",
+    "git.ignoreLimitWarning": true
 }

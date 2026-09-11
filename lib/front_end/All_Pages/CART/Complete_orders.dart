@@ -103,7 +103,7 @@ class _OrderCompletedPageState extends State<OrderCompletedPage> {
                       crossAxisAlignment: pw.CrossAxisAlignment.start,
                       children: [
                         pw.Text(
-                          '? ElectroCityBD',
+                          'ElectroCityBD',
                           style: pw.TextStyle(
                             color: PdfColors.white,
                             fontSize: 26,
@@ -112,7 +112,7 @@ class _OrderCompletedPageState extends State<OrderCompletedPage> {
                         ),
                         pw.SizedBox(height: 8),
                         pw.Text(
-                          'electrocitybd14@gmail.com',
+                          'ahnafwadudarnab@gmail.com',
                           style: const pw.TextStyle(
                             color: PdfColors.white,
                             fontSize: 12,
@@ -120,7 +120,7 @@ class _OrderCompletedPageState extends State<OrderCompletedPage> {
                         ),
                         pw.SizedBox(height: 4),
                         pw.Text(
-                          '+880 1X XXX XXX XXX',
+                          '01840-658317',
                           style: const pw.TextStyle(
                             color: PdfColors.white,
                             fontSize: 12,
@@ -346,7 +346,7 @@ class _OrderCompletedPageState extends State<OrderCompletedPage> {
                   crossAxisAlignment: pw.CrossAxisAlignment.center,
                   children: [
                     pw.Text(
-                      '? Thank you for shopping with ElectroCityBD!',
+                      'Thank you for shopping with ElectroCityBD!',
                       style: pw.TextStyle(
                         fontSize: 12,
                         fontWeight: pw.FontWeight.bold,
@@ -365,7 +365,7 @@ class _OrderCompletedPageState extends State<OrderCompletedPage> {
                     ),
                     pw.SizedBox(height: 4),
                     pw.Text(
-                      '?? electrocitybd14@gmail.com | ?? +880 1X XXX XXX XXX',
+                      'Email: ahnafwadudarnab@gmail.com | Phone: 01840-658317',
                       style: const pw.TextStyle(
                         fontSize: 10,
                         color: PdfColors.black,
@@ -538,15 +538,15 @@ class _OrderCompletedPageState extends State<OrderCompletedPage> {
                       const Text(
                         'Your order is completed!',
                         style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.grey300,
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF0F172A),
                         ),
                       ),
                       const SizedBox(height: 6),
-                      Text(
+                      const Text(
                         'Thank you. Your Order has been received.',
-                        style: TextStyle(color: AppColors.grey300, fontSize: 14),
+                        style: TextStyle(color: Color(0xFF475569), fontSize: 14),
                       ),
                       const SizedBox(height: 16),
                       Container(
@@ -589,7 +589,7 @@ class _OrderCompletedPageState extends State<OrderCompletedPage> {
                         icon: Icons.local_shipping_outlined,
                         color: const Color(0xFF1B4D3E),
                         title: 'Free Shipping',
-                        subtitle: 'Free shipping for order above ?5000',
+                        subtitle: 'Free shipping for order above ৳5000',
                       ),
                       _buildFeatureItem(
                         icon: Icons.payment_outlined,
@@ -600,7 +600,7 @@ class _OrderCompletedPageState extends State<OrderCompletedPage> {
                       _buildFeatureItem(
                         icon: Icons.headset_mic_outlined,
                         color: const Color(0xFF1B4D3E),
-                        title: '24?7 Support',
+                        title: '24/7 Support',
                         subtitle: 'We support online all days.',
                       ),
                     ],

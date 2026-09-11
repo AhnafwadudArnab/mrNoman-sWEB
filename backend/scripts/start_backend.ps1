@@ -4,12 +4,16 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
-$php = 'C:\xampp\php\php.exe'
+$phpCandidates = @(
+    'C:\php\php.exe',
+    'C:\xampp\php\php.exe'
+)
+$php = $phpCandidates | Where-Object { Test-Path $_ } | Select-Object -First 1
 $backendRoot = Split-Path -Parent $PSScriptRoot
 $docRoot = Join-Path $backendRoot 'public'
 $router = Join-Path $backendRoot 'router.php'
 
-if (-not (Test-Path $php)) {
+if (-not $php) {
     # Fallback: try plain 'php' from PATH
     $phpFallback = 'php'
     try {

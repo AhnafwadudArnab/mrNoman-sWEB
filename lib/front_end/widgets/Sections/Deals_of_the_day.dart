@@ -239,7 +239,8 @@ class _DealsOfTheDayState extends State<DealsOfTheDay> {
     final price = _parsePrice(p['price']);
     final oldPrice = price * 1.15;
     final imageUrl = ImageResolver.resolveUrl(p['image_url'] as String? ?? '');
-    final stockQty = int.tryParse(p['stock_quantity']?.toString() ?? '0') ?? 0;
+    final rawStock = int.tryParse(p['stock_quantity']?.toString() ?? '0') ?? 0;
+    final stockQty = _isTimerActive ? rawStock : 0;
 
     return ProductData(
       id: 'deal_db_${p['product_id'] ?? index}',
@@ -261,11 +262,12 @@ class _DealsOfTheDayState extends State<DealsOfTheDay> {
   ProductData _buildProductDataFromAdmin(Map<String, dynamic> p, int index) {
     final price = _parsePrice(p['price']);
     final oldPrice = price * 1.15;
-    final stockQty =
+    final rawStock =
         int.tryParse(
           p['stock_quantity']?.toString() ?? p['stock']?.toString() ?? '0',
         ) ??
         0;
+    final stockQty = _isTimerActive ? rawStock : 0;
     final images = <String>[];
     if (p['imageUrl'] != null && (p['imageUrl'] as String).isNotEmpty) {
       images.add(ImageResolver.resolveUrl(p['imageUrl'] as String));
@@ -445,7 +447,8 @@ class _DealsOfTheDayState extends State<DealsOfTheDay> {
             const SizedBox(height: 12),
 
             // Product cards list with navigation (like hero banner)
-            SizedBox(
+            if (_isTimerActive)
+              SizedBox(
               height: 120,
               child: Row(
                 children: [
@@ -666,6 +669,7 @@ class _DealsOfTheDayState extends State<DealsOfTheDay> {
     required VoidCallback onTap,
     Widget? imageWidget,
     VoidCallback? onAddToCart,
+    bool isOutOfStock = false,
   }) {
     return GestureDetector(
       onTap: onTap,
@@ -766,33 +770,39 @@ class _DealsOfTheDayState extends State<DealsOfTheDay> {
               ),
             ),
             IconButton(
-              onPressed:
-                  onAddToCart ??
-                  () async {
-                    final productId = title
-                        .toLowerCase()
-                        .replaceAll(RegExp(r'[^a-z0-9]+'), '-')
-                        .replaceAll(RegExp(r'^-|-$'), '');
+              onPressed: isOutOfStock
+                  ? null
+                  : (onAddToCart ??
+                      () async {
+                        final productId = title
+                            .toLowerCase()
+                            .replaceAll(RegExp(r'[^a-z0-9]+'), '-')
+                            .replaceAll(RegExp(r'^-|-$'), '');
 
-                    await context.read<CartProvider>().addToCart(
-                      productId: 'deal-$productId',
-                      name: title,
-                      price: _parsePrice(price),
-                      imageUrl: imagePath,
-                      category: 'Deals of the Day',
-                    );
+                        await context.read<CartProvider>().addToCart(
+                          productId: 'deal-$productId',
+                          name: title,
+                          price: _parsePrice(price),
+                          imageUrl: imagePath,
+                          category: 'Deals of the Day',
+                        );
 
-                    if (!mounted) return;
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('$title added to cart'),
-                        duration: const Duration(milliseconds: 900),
-                      ),
-                    );
-                  },
-              icon: const Icon(Icons.add_shopping_cart, size: 20),
-              color: const Color(0xFF123456),
-              tooltip: 'Add to cart',
+                        if (!mounted) return;
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('$title added to cart'),
+                            duration: const Duration(milliseconds: 900),
+                          ),
+                        );
+                      }),
+              icon: Icon(
+                isOutOfStock
+                    ? Icons.remove_shopping_cart
+                    : Icons.add_shopping_cart,
+                size: 20,
+              ),
+              color: isOutOfStock ? Colors.grey : const Color(0xFF123456),
+              tooltip: isOutOfStock ? 'Out of stock' : 'Add to cart',
               padding: EdgeInsets.zero,
               constraints: const BoxConstraints(minWidth: 34, minHeight: 34),
             ),

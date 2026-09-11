@@ -168,6 +168,12 @@ class _AdminBannersPageState extends State<AdminBannersPage> {
   bool _sidebarProductsLoading = false;
   List<Map<String, dynamic>> _sidebarProducts = [];
   final Set<String> _sidebarSelectedProductIds = {};
+  final List<TextEditingController> _trustTitleControllers = [
+    TextEditingController(text: 'Official Warranty'),
+    TextEditingController(text: '24/7 Tech Support'),
+    TextEditingController(text: 'Fast Island-wide Delivery'),
+  ];
+  final List<String> _trustIconKeys = ['shield', 'headset', 'truck'];
 
   int? _editingHeroIndex;
   int? _midEditingIndex;
@@ -298,6 +304,12 @@ class _AdminBannersPageState extends State<AdminBannersPage> {
     _sidebarSelectedProductIds
       ..clear()
       ..addAll(bp.sidebarProductIds);
+    if (bp.trustBadges.isNotEmpty) {
+      for (int i = 0; i < bp.trustBadges.length && i < 3; i++) {
+        _trustTitleControllers[i].text = bp.trustBadges[i]['title'] ?? '';
+        _trustIconKeys[i] = bp.trustBadges[i]['icon'] ?? 'shield';
+      }
+    }
     _loadSidebarProducts();
     if (mounted) setState(() {});
   }
@@ -322,6 +334,12 @@ class _AdminBannersPageState extends State<AdminBannersPage> {
     _sidebarSelectedProductIds
       ..clear()
       ..addAll(bp.sidebarProductIds);
+    if (bp.trustBadges.isNotEmpty) {
+      for (int i = 0; i < bp.trustBadges.length && i < 3; i++) {
+        _trustTitleControllers[i].text = bp.trustBadges[i]['title'] ?? '';
+        _trustIconKeys[i] = bp.trustBadges[i]['icon'] ?? 'shield';
+      }
+    }
     _loadSidebarProducts();
     if (mounted) setState(() {});
   }
@@ -337,6 +355,9 @@ class _AdminBannersPageState extends State<AdminBannersPage> {
     _sidebarTitleController.dispose();
     _sidebarSubtitleController.dispose();
     _sidebarButtonController.dispose();
+    for (final c in _trustTitleControllers) {
+      c.dispose();
+    }
     super.dispose();
   }
 
@@ -427,6 +448,8 @@ class _AdminBannersPageState extends State<AdminBannersPage> {
                 _buildMidSection(),
                 const SizedBox(height: 28),
                 _buildSidebarPromoSection(),
+                const SizedBox(height: 28),
+                _buildTrustBadgesSection(),
                 const SizedBox(height: 24),
               ],
             ),
@@ -1208,6 +1231,305 @@ class _AdminBannersPageState extends State<AdminBannersPage> {
                   foregroundColor: AdminTheme.textPrimary,
                 ),
                 child: const Text('Save Sidebar Promo'),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildTrustBadgesSection() {
+    return Consumer<BannerProvider>(
+      builder: (context, bp, _) {
+        _ensureSyncedFromProvider(bp);
+
+        return Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: cardBg,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: AdminTheme.border),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  const Icon(
+                    Icons.verified_user_outlined,
+                    color: Color(0xFF2563EB),
+                    size: 22,
+                  ),
+                  const SizedBox(width: 10),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Feature / Trust Badges',
+                        style: TextStyle(
+                          color: AdminTheme.textPrimary,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        'Customize customer assurance badges shown on storefront category sidebar (Pic 5)',
+                        style: TextStyle(
+                          color: AdminTheme.textSecondary,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  final isNarrow = constraints.maxWidth < 750;
+
+                  final editorForm = Column(
+                    children: [
+                      for (int i = 0; i < 3; i++) ...[
+                        Container(
+                          margin: const EdgeInsets.only(bottom: 12),
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: darkBg,
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: AdminTheme.border),
+                          ),
+                          child: Row(
+                            children: [
+                              Container(
+                                width: 36,
+                                height: 36,
+                                decoration: BoxDecoration(
+                                  color: Colors.amber.withOpacity(0.15),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: Icon(
+                                  getTrustIcon(_trustIconKeys[i]),
+                                  color: Colors.amber[700],
+                                  size: 18,
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                flex: 3,
+                                child: TextField(
+                                  controller: _trustTitleControllers[i],
+                                  style: const TextStyle(
+                                    color: AdminTheme.textPrimary,
+                                    fontSize: 13,
+                                  ),
+                                  decoration: InputDecoration(
+                                    labelText: 'Badge ${i + 1} Title',
+                                    labelStyle: TextStyle(
+                                      color: AdminTheme.textSecondary,
+                                      fontSize: 12,
+                                    ),
+                                    isDense: true,
+                                    contentPadding: const EdgeInsets.symmetric(
+                                      horizontal: 10,
+                                      vertical: 10,
+                                    ),
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(6),
+                                    ),
+                                  ),
+                                  onChanged: (_) => setState(() {}),
+                                ),
+                              ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                flex: 2,
+                                child: DropdownButtonFormField<String>(
+                                  value: _trustIconKeys[i],
+                                  dropdownColor: darkBg,
+                                  style: const TextStyle(
+                                    color: AdminTheme.textPrimary,
+                                    fontSize: 12,
+                                  ),
+                                  decoration: InputDecoration(
+                                    labelText: 'Icon',
+                                    labelStyle: TextStyle(
+                                      color: AdminTheme.textSecondary,
+                                      fontSize: 12,
+                                    ),
+                                    isDense: true,
+                                    contentPadding: const EdgeInsets.symmetric(
+                                      horizontal: 10,
+                                      vertical: 8,
+                                    ),
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(6),
+                                    ),
+                                  ),
+                                  items: kAvailableTrustIcons.keys.map((k) {
+                                    return DropdownMenuItem(
+                                      value: k,
+                                      child: Row(
+                                        children: [
+                                          Icon(
+                                            kAvailableTrustIcons[k],
+                                            size: 16,
+                                            color: Colors.amber[700],
+                                          ),
+                                          const SizedBox(width: 6),
+                                          Text(k),
+                                        ],
+                                      ),
+                                    );
+                                  }).toList(),
+                                  onChanged: (val) {
+                                    if (val != null) {
+                                      setState(() => _trustIconKeys[i] = val);
+                                    }
+                                  },
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                      const SizedBox(height: 8),
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: ElevatedButton.icon(
+                          onPressed: () async {
+                            final badges = [
+                              {
+                                'title': _trustTitleControllers[0].text.trim(),
+                                'icon': _trustIconKeys[0],
+                              },
+                              {
+                                'title': _trustTitleControllers[1].text.trim(),
+                                'icon': _trustIconKeys[1],
+                              },
+                              {
+                                'title': _trustTitleControllers[2].text.trim(),
+                                'icon': _trustIconKeys[2],
+                              },
+                            ];
+                            final ok = await bp.saveTrustBadges(badges);
+                            if (ok && mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Trust badges saved successfully!'),
+                                  backgroundColor: Colors.green,
+                                ),
+                              );
+                            }
+                          },
+                          icon: const Icon(Icons.save_rounded, size: 16),
+                          label: const Text('Save Trust Badges'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF2563EB),
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 18,
+                              vertical: 12,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  );
+
+                  final previewBox = Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Live Sidebar Preview',
+                        style: TextStyle(
+                          color: AdminTheme.textSecondary,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Container(
+                        width: 260,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 14,
+                        ),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF1E293B),
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: Colors.white12),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.2),
+                              blurRadius: 10,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: Column(
+                          children: [
+                            for (int i = 0; i < 3; i++) ...[
+                              Padding(
+                                padding: const EdgeInsets.symmetric(vertical: 4),
+                                child: Row(
+                                  children: [
+                                    Icon(
+                                      getTrustIcon(_trustIconKeys[i]),
+                                      color: Colors.amber[400],
+                                      size: 18,
+                                    ),
+                                    const SizedBox(width: 10),
+                                    Expanded(
+                                      child: Text(
+                                        _trustTitleControllers[i].text.isEmpty
+                                            ? 'Badge ${i + 1}'
+                                            : _trustTitleControllers[i].text,
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              if (i < 2)
+                                const Divider(
+                                  height: 14,
+                                  color: Colors.white12,
+                                  thickness: 1,
+                                ),
+                            ],
+                          ],
+                        ),
+                      ),
+                    ],
+                  );
+
+                  if (isNarrow) {
+                    return Column(
+                      children: [
+                        editorForm,
+                        const SizedBox(height: 20),
+                        previewBox,
+                      ],
+                    );
+                  }
+
+                  return Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(flex: 3, child: editorForm),
+                      const SizedBox(width: 24),
+                      Expanded(flex: 2, child: previewBox),
+                    ],
+                  );
+                },
               ),
             ],
           ),

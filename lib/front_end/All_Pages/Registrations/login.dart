@@ -12,6 +12,8 @@ import '../../pages/Profiles/Wishlist_provider.dart';
 import 'forgot_password.dart';
 import 'signup.dart';
 import 'admin_login.dart';
+import '../../Admin_Panel/Admin_sidebar.dart';
+import '../../Admin_Panel/A_customers.dart';
 
 class LogIn extends StatefulWidget {
   const LogIn({super.key});
@@ -73,7 +75,10 @@ class _LogInState extends State<LogIn> {
       await AuthSession.saveUserData(userData);
       await AuthSession.saveToken(token);
       await ApiService.saveToken(token);
-      await AuthSession.setAdmin(false);
+
+      final bool isAdmin =
+          (userMap['role']?.toString().toLowerCase() == 'admin');
+      await AuthSession.setAdmin(isAdmin);
       await AuthSession.setLoggedIn(true);
 
       try {
@@ -103,6 +108,24 @@ class _LogInState extends State<LogIn> {
       }
 
       if (!mounted) return;
+
+      if (isAdmin) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Admin login successful!'),
+            behavior: SnackBarBehavior.floating,
+            backgroundColor: Colors.white,
+          ),
+        );
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(
+            builder: (_) =>
+                const AdminLayoutPage(initialItem: AdminSidebarItem.dashboard),
+          ),
+          (route) => false,
+        );
+        return;
+      }
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(

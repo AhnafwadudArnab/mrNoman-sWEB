@@ -11,7 +11,7 @@ import '../../widgets/app_drawer.dart';
 import '../../widgets/footer.dart';
 import '../../widgets/header.dart';
 import '../Profiles/Wishlist_provider.dart';
-import 'all_products_template.dart';
+import 'package:electrocitybd1/front_end/pages/Templates/all_products_template.dart';
 
 class UniversalProductDetails extends StatefulWidget {
   final ProductData product;
@@ -369,7 +369,7 @@ class _UniversalProductDetailsState extends State<UniversalProductDetails>
         widget.product.additionalInfo['stock_quantity'];
     final stockQuantity = int.tryParse(stockInfo?.toString() ?? '0') ?? 0;
     final isInStock = stockQuantity > 0;
-    final isLowStock = stockQuantity > 0 && stockQuantity <= 5;
+    final isLowStock = stockQuantity > 0 && stockQuantity < 5;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -538,19 +538,80 @@ class _UniversalProductDetailsState extends State<UniversalProductDetails>
             desktop: 15,
           ),
         ),
-        Text(
-          "Tk ${widget.product.priceBDT.toStringAsFixed(0)}",
-          style: TextStyle(
-            fontSize: r.value(
-              smallMobile: 20.0,
-              mobile: 20.0,
-              tablet: 24.0,
-              smallDesktop: 25.0,
-              desktop: 26.0,
-            ),
-            color: Colors.black,
-            fontWeight: FontWeight.w500,
-          ),
+        Builder(
+          builder: (_) {
+            double? reg = widget.product.regularPrice;
+            if (reg == null) {
+              final raw = widget.product.additionalInfo['regular_price'] ??
+                  widget.product.additionalInfo['Original Price'] ??
+                  widget.product.additionalInfo['regularPrice'];
+              if (raw != null) {
+                final cleaned = raw.toString().replaceAll(RegExp(r'[^0-9.]'), '');
+                reg = double.tryParse(cleaned);
+              }
+            }
+            final hasDiscount = reg != null && reg > widget.product.priceBDT;
+            final discountPercent = hasDiscount
+                ? (((reg - widget.product.priceBDT) / reg) * 100).round()
+                : 0;
+
+            return Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Text(
+                  "৳${widget.product.priceBDT.toStringAsFixed(0)}",
+                  style: TextStyle(
+                    fontSize: r.value(
+                      smallMobile: 22.0,
+                      mobile: 22.0,
+                      tablet: 26.0,
+                      smallDesktop: 28.0,
+                      desktop: 30.0,
+                    ),
+                    color: const Color(0xFFEF4444),
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                if (hasDiscount) ...[
+                  const SizedBox(width: 10),
+                  Text(
+                    "৳${reg.toStringAsFixed(0)}",
+                    style: TextStyle(
+                      fontSize: r.value(
+                        smallMobile: 16.0,
+                        mobile: 16.0,
+                        tablet: 18.0,
+                        smallDesktop: 19.0,
+                        desktop: 20.0,
+                      ),
+                      color: const Color(0xFF94A3B8),
+                      decoration: TextDecoration.lineThrough,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFEF4444).withOpacity(0.12),
+                      borderRadius: BorderRadius.circular(6),
+                      border: Border.all(
+                        color: const Color(0xFFEF4444).withOpacity(0.25),
+                      ),
+                    ),
+                    child: Text(
+                      "-$discountPercent%",
+                      style: const TextStyle(
+                        color: Color(0xFFEF4444),
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ],
+              ],
+            );
+          },
         ),
         SizedBox(
           height: r.value(

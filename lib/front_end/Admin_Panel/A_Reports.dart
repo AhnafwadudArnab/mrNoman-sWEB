@@ -17,7 +17,7 @@ class AdminReportsPage extends StatefulWidget {
 class _AdminReportsPageState extends State<AdminReportsPage> {
   static final _darkBg = AdminTheme.bg;
   static final _cardBg = AdminTheme.surfaceAlt;
-  static final _orange = Color(0xFF7C3AED);
+  static final _orange = AdminTheme.brand;
 
   bool _loading = true;
   String? _error;
@@ -174,7 +174,7 @@ class _AdminReportsPageState extends State<AdminReportsPage> {
           label: const Text('Retry'),
           style: ElevatedButton.styleFrom(
             backgroundColor: _orange,
-            foregroundColor: Colors.black,
+            foregroundColor: Colors.white,
           ),
         ),
       ],
@@ -194,7 +194,7 @@ class _AdminReportsPageState extends State<AdminReportsPage> {
         final stats = [
           _statCard(
             'Total Revenue',
-            '?${_toDouble(summary['total_revenue']).toStringAsFixed(0)}',
+            '৳${_toDouble(summary['total_revenue']).toStringAsFixed(0)}',
             Icons.attach_money,
             Colors.green,
             fullWidth: isMobile,
@@ -208,7 +208,7 @@ class _AdminReportsPageState extends State<AdminReportsPage> {
           ),
           _statCard(
             'Avg Order Value',
-            '?${_toDouble(summary['avg_order_value']).toStringAsFixed(0)}',
+            '৳${_toDouble(summary['avg_order_value']).toStringAsFixed(0)}',
             Icons.trending_up,
             _orange,
             fullWidth: isMobile,
@@ -217,7 +217,7 @@ class _AdminReportsPageState extends State<AdminReportsPage> {
             'New Customers',
             '$newCustomers',
             Icons.person_add,
-            Colors.purple,
+            Color(0xFF4D6787),
             fullWidth: isMobile,
           ),
         ];
@@ -400,7 +400,7 @@ class _AdminReportsPageState extends State<AdminReportsPage> {
                     ),
                   ),
                   Text(
-                    '?${total.toStringAsFixed(0)}',
+                    '৳${total.toStringAsFixed(0)}',
                     style: TextStyle(
                       color: color,
                       fontWeight: FontWeight.bold,
@@ -480,7 +480,7 @@ class _AdminReportsPageState extends State<AdminReportsPage> {
                     ),
                   ),
                   Text(
-                    '?${_toDouble(p['revenue']).toStringAsFixed(0)}',
+                    '৳${_toDouble(p['revenue']).toStringAsFixed(0)}',
                     style: TextStyle(
                       color: _orange,
                       fontWeight: FontWeight.bold,
@@ -587,7 +587,7 @@ class _AdminReportsPageState extends State<AdminReportsPage> {
                     SizedBox(
                       width: 120,
                       child: Text(
-                        '?${_toDouble(d['revenue']).toStringAsFixed(0)}',
+                        '৳${_toDouble(d['revenue']).toStringAsFixed(0)}',
                         style: TextStyle(
                           color: _orange,
                           fontWeight: FontWeight.bold,

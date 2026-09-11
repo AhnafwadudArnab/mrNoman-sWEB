@@ -151,14 +151,14 @@ void adminLog(String message) {
 /// Debug error log
 void adminLogError(String message, dynamic error) {
   if (kDebugMode) {
-    debugPrint('[AdminPanel] ? $message: $error');
+    debugPrint('[AdminPanel] ✗ $message: $error');
   }
 }
 
 /// Debug success log
 void adminLogSuccess(String message) {
   if (kDebugMode) {
-    debugPrint('[AdminPanel] ? $message');
+    debugPrint('[AdminPanel] ✓ $message');
   }
 }
 

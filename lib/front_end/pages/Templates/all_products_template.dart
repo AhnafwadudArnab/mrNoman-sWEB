@@ -3,6 +3,7 @@ class ProductData {
   final String name;
   final String category;
   final double priceBDT;
+  final double? regularPrice;
   final List<String> images;
   final String description;
   final Map<String, String> additionalInfo;
@@ -12,6 +13,7 @@ class ProductData {
     required this.name,
     required this.category,
     required this.priceBDT,
+    this.regularPrice,
     required this.images,
     required this.description,
     required this.additionalInfo,

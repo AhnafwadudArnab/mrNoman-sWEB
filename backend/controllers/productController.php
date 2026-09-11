@@ -155,6 +155,7 @@ class ProductController {
         $this->product->product_name = $data['product_name'];
         $this->product->description = $data['description'] ?? '';
         $this->product->price = $price;
+        $this->product->regular_price = isset($data['regular_price']) && $data['regular_price'] !== '' && (float)$data['regular_price'] > 0 ? (float)$data['regular_price'] : null;
         $this->product->stock_quantity = $stock;
         $this->product->image_url = $data['image_url'] ?? '';
         
@@ -215,6 +216,7 @@ class ProductController {
         $this->product->product_name = $data['product_name'] ?? $existing['product_name'];
         $this->product->description = $data['description'] ?? $existing['description'];
         $this->product->price = $data['price'] ?? $existing['price'];
+        $this->product->regular_price = isset($data['regular_price']) ? ((float)$data['regular_price'] > 0 ? (float)$data['regular_price'] : null) : ($existing['regular_price'] ?? null);
         $this->product->stock_quantity = isset($data['stock_quantity']) ? (int)$data['stock_quantity'] : (int)$existing['stock_quantity'];
         $this->product->image_url = $data['image_url'] ?? $existing['image_url'];
         

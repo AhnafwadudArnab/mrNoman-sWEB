@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 
-import 'package:electrocitybd1/front_end/Admin_Panel/admin_theme.dart';
-
 enum AdminSidebarItem {
   dashboard,
   orders,
   carts,
   products,
+  productList,
+  stockManagement,
   collections,
   brands,
   payments,
@@ -25,7 +25,33 @@ enum AdminSidebarItem {
   sslSettings,
 }
 
-class AdminSidebar extends StatelessWidget {
+// ─── Section model ────────────────────────────────────────────────────────────
+class _SidebarSection {
+  final String label;
+  final List<_SidebarEntry> items;
+  bool expanded;
+  _SidebarSection({
+    required this.label,
+    required this.items,
+    this.expanded = true,
+  });
+}
+
+class _SidebarEntry {
+  final AdminSidebarItem item;
+  final IconData icon;
+  final String label;
+  final int? badge; // red badge count (null = hidden)
+  const _SidebarEntry({
+    required this.item,
+    required this.icon,
+    required this.label,
+    this.badge,
+  });
+}
+
+// ─── Sidebar widget ───────────────────────────────────────────────────────────
+class AdminSidebar extends StatefulWidget {
   final AdminSidebarItem selected;
   final ValueChanged<AdminSidebarItem> onItemSelected;
   final double sidebarWidth;
@@ -38,236 +64,181 @@ class AdminSidebar extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
-    final brandOrange = AdminTheme.brand;
-    final darkBg = AdminTheme.surface;
-    final darkSurface = AdminTheme.surface;
-    final darkBorder = AdminTheme.border;
-    const Color activeBackground = Color(0x1A7C3AED);
-    final inactiveGrey = AdminTheme.textSecondary;
-    final textPrimary = AdminTheme.textPrimary;
+  State<AdminSidebar> createState() => _AdminSidebarState();
+}
 
+class _AdminSidebarState extends State<AdminSidebar> {
+  // ── Color palette (Altezza dark style) ──────────────────────────────────────
+  static const Color _bg = Color(0xFF2B2B3B); // main sidebar bg
+  static const Color _bgHeader = Color(0xFF252534); // slightly darker header
+  // Use the same accessible blue as primary actions throughout the panel.
+  static const Color _activePurple = Color(0xFF2563EB);
+  static const Color _activeText = Color(0xFFFFFFFF); // white text on purple
+  static const Color _inactiveText = Color(0xFFB0B0C8); // light grey labels
+  static const Color _sectionLabel = Color(0xFF6B6B88); // muted section headers
+  static const Color _divider = Color(0xFF3A3A50); // subtle divider
+  static const Color _badgeBg = Color(0xFFE53935); // red badge
+
+  // ── Section definitions ─────────────────────────────────────────────────────
+  late final List<_SidebarSection> _sections = [
+    _SidebarSection(
+      label: 'STORE',
+      items: [
+        const _SidebarEntry(
+          item: AdminSidebarItem.dashboard,
+          icon: Icons.grid_view_rounded,
+          label: 'Dashboard',
+        ),
+        const _SidebarEntry(
+          item: AdminSidebarItem.viewStore,
+          icon: Icons.store_outlined,
+          label: 'View Store',
+        ),
+      ],
+    ),
+    _SidebarSection(
+      label: 'CATALOGUE',
+      items: [
+        const _SidebarEntry(
+          item: AdminSidebarItem.products,
+          icon: Icons.add_box_outlined,
+          label: 'Upload Product',
+        ),
+        const _SidebarEntry(
+          item: AdminSidebarItem.productList,
+          icon: Icons.list_alt_rounded,
+          label: 'Product List',
+        ),
+        const _SidebarEntry(
+          item: AdminSidebarItem.stockManagement,
+          icon: Icons.inventory_rounded,
+          label: 'Stock Management',
+        ),
+        const _SidebarEntry(
+          item: AdminSidebarItem.collections,
+          icon: Icons.category_outlined,
+          label: 'Collections',
+        ),
+        const _SidebarEntry(
+          item: AdminSidebarItem.brands,
+          icon: Icons.business_outlined,
+          label: 'Brands',
+        ),
+      ],
+    ),
+    _SidebarSection(
+      label: 'SALES',
+      items: [
+        const _SidebarEntry(
+          item: AdminSidebarItem.orders,
+          icon: Icons.shopping_bag_outlined,
+          label: 'Orders',
+        ),
+        const _SidebarEntry(
+          item: AdminSidebarItem.carts,
+          icon: Icons.shopping_cart_outlined,
+          label: 'Abandoned Carts',
+        ),
+        const _SidebarEntry(
+          item: AdminSidebarItem.payments,
+          icon: Icons.account_balance_wallet_outlined,
+          label: 'Payments',
+        ),
+        const _SidebarEntry(
+          item: AdminSidebarItem.discounts,
+          icon: Icons.confirmation_number_outlined,
+          label: 'Discounts',
+        ),
+        const _SidebarEntry(
+          item: AdminSidebarItem.deals,
+          icon: Icons.local_offer_outlined,
+          label: 'Deals',
+        ),
+        const _SidebarEntry(
+          item: AdminSidebarItem.promotions,
+          icon: Icons.campaign_outlined,
+          label: 'Promotions',
+        ),
+      ],
+    ),
+    _SidebarSection(
+      label: 'MARKETING',
+      items: [
+        const _SidebarEntry(
+          item: AdminSidebarItem.banners,
+          icon: Icons.dashboard_customize_outlined,
+          label: 'Banners',
+        ),
+      ],
+    ),
+    _SidebarSection(
+      label: 'LOGISTICS',
+      items: [
+        const _SidebarEntry(
+          item: AdminSidebarItem.deliverySettings,
+          icon: Icons.local_shipping_outlined,
+          label: 'Delivery',
+        ),
+        const _SidebarEntry(
+          item: AdminSidebarItem.sslSettings,
+          icon: Icons.payment_outlined,
+          label: 'SSL Commerz',
+        ),
+      ],
+    ),
+    _SidebarSection(
+      label: 'ANALYTICS',
+      expanded: false,
+      items: [
+        const _SidebarEntry(
+          item: AdminSidebarItem.reports,
+          icon: Icons.analytics_outlined,
+          label: 'Reports',
+        ),
+      ],
+    ),
+    _SidebarSection(
+      label: 'SYSTEM & HELP',
+      expanded: true,
+      items: [
+        const _SidebarEntry(
+          item: AdminSidebarItem.help,
+          icon: Icons.help_outline_rounded,
+          label: 'Help & Support',
+        ),
+      ],
+    ),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
     return Container(
-      width: sidebarWidth,
-      decoration: BoxDecoration(
-        color: darkSurface,
-        border: Border(right: BorderSide(color: darkBorder, width: 1)),
-      ),
+      width: widget.sidebarWidth,
+      color: _bg,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SizedBox(height: 32),
+          // ── Header ──────────────────────────────────────────────────────────
+          _buildHeader(context),
 
-          /// LOGO + BACK BUTTON SECTION
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Row(
-              children: [
-                // Back button
-                InkWell(
-                  onTap: () {
-                    if (Navigator.of(context).canPop()) {
-                      Navigator.of(context).pop();
-                    }
-                  },
-                  borderRadius: BorderRadius.circular(8),
-                  child: Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: AdminTheme.surfaceAlt,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Icon(
-                      Icons.arrow_back,
-                      size: 18,
-                      color: inactiveGrey,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Container(
-                  padding: const EdgeInsets.all(4),
-                  decoration: BoxDecoration(
-                    color: brandOrange,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: const Icon(Icons.bolt, color: Colors.white, size: 16),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Text(
-                    'Admin Panel',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: textPrimary,
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          const SizedBox(height: 40),
-
-          /// MENU ITEMS
+          // ── Scrollable menu ─────────────────────────────────────────────────
           Expanded(
             child: SingleChildScrollView(
+              padding: const EdgeInsets.only(bottom: 12),
               child: Column(
-                children: [
-                  _buildSidebarItem(
-                    item: AdminSidebarItem.dashboard,
-                    icon: Icons.grid_view_rounded,
-                    label: 'Dashboard',
-                    onItemSelected: onItemSelected,
-                    activeColor: brandOrange,
-                    activeBg: activeBackground,
-                    inactiveColor: inactiveGrey,
-                  ),
-                  _buildSidebarItem(
-                    item: AdminSidebarItem.orders,
-                    icon: Icons.shopping_bag_outlined,
-                    label: 'Orders',
-                    onItemSelected: onItemSelected,
-                    activeColor: brandOrange,
-                    activeBg: activeBackground,
-                    inactiveColor: inactiveGrey,
-                  ),
-                  _buildSidebarItem(
-                    item: AdminSidebarItem.products,
-                    icon: Icons.inventory_2_outlined,
-                    label: 'Products',
-                    onItemSelected: onItemSelected,
-                    activeColor: brandOrange,
-                    activeBg: activeBackground,
-                    inactiveColor: inactiveGrey,
-                  ),
-                  _buildSidebarItem(
-                    item: AdminSidebarItem.collections,
-                    icon: Icons.category_outlined,
-                    label: 'Collections',
-                    onItemSelected: onItemSelected,
-                    activeColor: brandOrange,
-                    activeBg: activeBackground,
-                    inactiveColor: inactiveGrey,
-                  ),
-                  _buildSidebarItem(
-                    item: AdminSidebarItem.brands,
-                    icon: Icons.business_outlined,
-                    label: 'Brands',
-                    onItemSelected: onItemSelected,
-                    activeColor: brandOrange,
-                    activeBg: activeBackground,
-                    inactiveColor: inactiveGrey,
-                  ),
-                  // carts menu removed per requirement
-                  _buildSidebarItem(
-                    item: AdminSidebarItem.payments,
-                    icon: Icons.account_balance_wallet_outlined,
-                    label: 'Payments',
-                    onItemSelected: onItemSelected,
-                    activeColor: brandOrange,
-                    activeBg: activeBackground,
-                    inactiveColor: inactiveGrey,
-                  ),
-                  _buildSidebarItem(
-                    item: AdminSidebarItem.deliverySettings,
-                    icon: Icons.local_shipping_outlined,
-                    label: 'Delivery',
-                    onItemSelected: onItemSelected,
-                    activeColor: brandOrange,
-                    activeBg: activeBackground,
-                    inactiveColor: inactiveGrey,
-                  ),
-                  _buildSidebarItem(
-                    item: AdminSidebarItem.sslSettings,
-                    icon: Icons.payment_outlined,
-                    label: 'SSL Commerz',
-                    onItemSelected: onItemSelected,
-                    activeColor: brandOrange,
-                    activeBg: activeBackground,
-                    inactiveColor: inactiveGrey,
-                  ),
-                  _buildSidebarItem(
-                    item: AdminSidebarItem.discounts,
-                    icon: Icons.confirmation_number_outlined,
-                    label: 'Discounts',
-                    onItemSelected: onItemSelected,
-                    activeColor: brandOrange,
-                    activeBg: activeBackground,
-                    inactiveColor: inactiveGrey,
-                  ),
-
-                  _buildSidebarItem(
-                    item: AdminSidebarItem.dealsTimer,
-                    icon: Icons.timer_outlined,
-                    label: 'Deals Timer',
-                    onItemSelected: onItemSelected,
-                    activeColor: brandOrange,
-                    activeBg: activeBackground,
-                    inactiveColor: inactiveGrey,
-                  ),
-                  // _buildSidebarItem(
-                  //   item: AdminSidebarItem.flashSales,
-                  //   icon: Icons.flash_on_outlined,
-                  //   label: 'Flash_Sales',
-                  //   onItemSelected: onItemSelected,
-                  //   activeColor: brandOrange,
-                  //   activeBg: activeBackground,
-                  //   inactiveColor: inactiveGrey,
-                  // ),
-                  _buildSidebarItem(
-                    item: AdminSidebarItem.promotions,
-                    icon: Icons.campaign_outlined,
-                    label: 'Promotions',
-                    onItemSelected: onItemSelected,
-                    activeColor: brandOrange,
-                    activeBg: activeBackground,
-                    inactiveColor: inactiveGrey,
-                  ),
-                  _buildSidebarItem(
-                    item: AdminSidebarItem.banners,
-                    icon: Icons.dashboard_customize_outlined,
-                    label: 'Banners',
-                    onItemSelected: onItemSelected,
-                    activeColor: brandOrange,
-                    activeBg: activeBackground,
-                    inactiveColor: inactiveGrey,
-                  ),
-                  _buildSidebarItem(
-                    item: AdminSidebarItem.viewStore,
-                    icon: Icons.store_outlined,
-                    label: 'View Store',
-                    onItemSelected: onItemSelected,
-                    activeColor: brandOrange,
-                    activeBg: activeBackground,
-                    inactiveColor: inactiveGrey,
-                  ),
-                  _buildSidebarItem(
-                    item: AdminSidebarItem.reports,
-                    icon: Icons.analytics_outlined,
-                    label: 'Reports',
-                    onItemSelected: onItemSelected,
-                    activeColor: brandOrange,
-                    activeBg: activeBackground,
-                    inactiveColor: inactiveGrey,
-                  ),
-                ],
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: _sections.map((s) => _buildSection(s)).toList(),
               ),
             ),
           ),
 
-          /// BOTTOM SECTION (Settings/Logout)
-          const Divider(height: 1),
-          _buildSidebarItem(
+          // ── Bottom divider + Settings ───────────────────────────────────────
+          Container(height: 1, color: _divider),
+          const SizedBox(height: 4),
+          _buildItem(
             item: AdminSidebarItem.settings,
             icon: Icons.settings_outlined,
             label: 'Settings',
-            onItemSelected: onItemSelected,
-            activeColor: brandOrange,
-            activeBg: activeBackground,
-            inactiveColor: inactiveGrey,
           ),
           const SizedBox(height: 16),
         ],
@@ -275,54 +246,202 @@ class AdminSidebar extends StatelessWidget {
     );
   }
 
-  Widget _buildSidebarItem({
+  // ── Header ──────────────────────────────────────────────────────────────────
+  Widget _buildHeader(BuildContext context) {
+    return Container(
+      color: _bgHeader,
+      padding: const EdgeInsets.fromLTRB(16, 20, 12, 20),
+      child: Row(
+        children: [
+          // Brand icon circle
+          Container(
+            width: 38,
+            height: 38,
+            decoration: BoxDecoration(
+              color: _activePurple,
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: const Icon(Icons.bolt, color: _activeText, size: 22),
+          ),
+          const SizedBox(width: 12),
+          // Title
+          const Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'ElectroCity',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 0.3,
+                  ),
+                ),
+                Text(
+                  'ADMIN',
+                  style: TextStyle(
+                    color: _sectionLabel,
+                    fontSize: 10,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: 1.4,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          // Back / collapse button
+          InkWell(
+            onTap: () {
+              if (Navigator.of(context).canPop()) {
+                Navigator.of(context).pop();
+              }
+            },
+            borderRadius: BorderRadius.circular(8),
+            child: Container(
+              padding: const EdgeInsets.all(6),
+              decoration: BoxDecoration(
+                color: const Color(0xFF3A3A52),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Icon(
+                Icons.keyboard_backspace_rounded,
+                size: 18,
+                color: _inactiveText,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ── Section block ────────────────────────────────────────────────────────────
+  Widget _buildSection(_SidebarSection section) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 20),
+        // Section label row (clickable to expand/collapse)
+        GestureDetector(
+          onTap: () => setState(() => section.expanded = !section.expanded),
+          behavior: HitTestBehavior.opaque,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Row(
+              children: [
+                Icon(
+                  section.expanded
+                      ? Icons.keyboard_arrow_up_rounded
+                      : Icons.keyboard_arrow_down_rounded,
+                  size: 14,
+                  color: _sectionLabel,
+                ),
+                const SizedBox(width: 6),
+                Text(
+                  section.label,
+                  style: const TextStyle(
+                    color: _sectionLabel,
+                    fontSize: 10,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 1.4,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        // Items (animated expand/collapse)
+        AnimatedCrossFade(
+          duration: const Duration(milliseconds: 200),
+          crossFadeState: section.expanded
+              ? CrossFadeState.showFirst
+              : CrossFadeState.showSecond,
+          firstChild: Column(
+            children: section.items
+                .map(
+                  (e) => _buildItem(
+                    item: e.item,
+                    icon: e.icon,
+                    label: e.label,
+                    badge: e.badge,
+                  ),
+                )
+                .toList(),
+          ),
+          secondChild: const SizedBox.shrink(),
+        ),
+      ],
+    );
+  }
+
+  // ── Single nav item ──────────────────────────────────────────────────────────
+  Widget _buildItem({
     required AdminSidebarItem item,
     required IconData icon,
     required String label,
-    required ValueChanged<AdminSidebarItem> onItemSelected,
-    required Color activeColor,
-    required Color activeBg,
-    required Color inactiveColor,
+    int? badge,
   }) {
-    final bool isSelected = item == selected;
+    final bool isActive = item == widget.selected;
 
-    return Material(
-      color: Colors.transparent,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-        height: 50,
-        decoration: BoxDecoration(
-          color: isSelected ? activeBg : Colors.transparent,
-          borderRadius: BorderRadius.circular(10),
-        ),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(10),
         child: InkWell(
           borderRadius: BorderRadius.circular(10),
-          onTap: () => onItemSelected(item),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
+          onTap: () => widget.onItemSelected(item),
+          splashColor: _activePurple.withOpacity(0.12),
+          highlightColor: _activePurple.withOpacity(0.06),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 180),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
+            decoration: BoxDecoration(
+              color: isActive ? _activePurple : Colors.transparent,
+              borderRadius: BorderRadius.circular(10),
+            ),
             child: Row(
               children: [
                 Icon(
                   icon,
-                  color: isSelected ? activeColor : inactiveColor,
-                  size: 22,
+                  size: 20,
+                  color: isActive ? _activeText : _inactiveText,
                 ),
-                const SizedBox(width: 16),
+                const SizedBox(width: 14),
                 Expanded(
                   child: Text(
                     label,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
-                      color: isSelected ? activeColor : inactiveColor,
-                      fontWeight: isSelected
-                          ? FontWeight.bold
-                          : FontWeight.w500,
-                      fontSize: 15,
+                      fontSize: 14,
+                      fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
+                      color: isActive ? _activeText : _inactiveText,
                     ),
                   ),
                 ),
+                // Badge
+                if (badge != null)
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 6,
+                      vertical: 2,
+                    ),
+                    decoration: BoxDecoration(
+                      color: _badgeBg,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      '$badge',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
               ],
             ),
           ),

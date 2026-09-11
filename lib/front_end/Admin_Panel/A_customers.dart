@@ -9,10 +9,8 @@ import 'package:electrocitybd1/front_end/Admin_Panel/A_branding_logo.dart';
 import 'package:electrocitybd1/front_end/Admin_Panel/A_carts.dart';
 import 'package:electrocitybd1/front_end/Admin_Panel/A_collections.dart';
 import 'package:electrocitybd1/front_end/Admin_Panel/A_deals.dart';
-import 'package:electrocitybd1/front_end/Admin_Panel/A_deals_timer.dart';
 import 'package:electrocitybd1/front_end/Admin_Panel/A_delivery_settings.dart';
 import 'package:electrocitybd1/front_end/Admin_Panel/A_discounts.dart';
-import 'package:electrocitybd1/front_end/Admin_Panel/A_flash_sales.dart';
 import 'package:electrocitybd1/front_end/Admin_Panel/A_promotions.dart';
 import 'package:electrocitybd1/front_end/Admin_Panel/A_orders.dart';
 import 'package:electrocitybd1/front_end/Admin_Panel/A_products.dart';
@@ -21,6 +19,8 @@ import 'package:electrocitybd1/front_end/Admin_Panel/admin_dashboard_page.dart';
 import 'package:electrocitybd1/front_end/pages/home_page.dart';
 import 'package:electrocitybd1/front_end/Admin_Panel/A_payments.dart';
 import 'package:electrocitybd1/front_end/Admin_Panel/A_ssl_settings.dart';
+import 'package:electrocitybd1/front_end/Admin_Panel/A_stock_management.dart';
+import 'package:electrocitybd1/front_end/Admin_Panel/admin_update_product.dart';
 import 'package:electrocitybd1/front_end/Admin_Panel/admin_scaffold.dart';
 
 /// Provides sidebar navigation to any embedded admin page via context.
@@ -101,6 +101,10 @@ class _AdminLayoutPageState extends State<AdminLayoutPage> {
         return const AdminOrdersPage(embedded: true);
       case AdminSidebarItem.products:
         return const AdminProductUploadPage(embedded: true);
+      case AdminSidebarItem.productList:
+        return const AdminUpdateProductPage();
+      case AdminSidebarItem.stockManagement:
+        return const AdminStockManagementPage(embedded: true);
       case AdminSidebarItem.collections:
         return const AdminCollectionsPage(embedded: true);
       case AdminSidebarItem.brands:
@@ -114,13 +118,12 @@ class _AdminLayoutPageState extends State<AdminLayoutPage> {
       case AdminSidebarItem.discounts:
         return const AdminDiscountPage(embedded: true);
       case AdminSidebarItem.deals:
-        return const AdminDealsPage(embedded: true);
       case AdminSidebarItem.dealsTimer:
-        return const AdminDealsTimerPage(embedded: true);
+        return const AdminDealsPage(embedded: true);
       case AdminSidebarItem.featuredBrands:
         return const AdminBrandingLogoPage(embedded: true);
       case AdminSidebarItem.flashSales:
-        return const AdminFlashSalesPage(embedded: true);
+        return const AdminProductUploadPage(embedded: true);
       case AdminSidebarItem.promotions:
         return const AdminPromotionsPage(embedded: true);
       case AdminSidebarItem.banners:

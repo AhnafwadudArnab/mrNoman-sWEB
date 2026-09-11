@@ -71,17 +71,7 @@ if ($method === 'POST') {
         $rehash->execute();
     }
     
-    // Block admin accounts from using regular login — they must use /auth/admin-login
-    if ($user['role'] === 'admin') {
-        RateLimitMiddleware::recordFailedLogin($clientIP);
-        Logger::logAuth('admin_login_via_regular', $user['user_id'], $email, false);
-        Logger::logSecurity('admin_blocked_regular_login', ['email' => $email]);
-        http_response_code(403);
-        echo json_encode(['message' => 'Admin accounts must use the Admin Login button.']);
-        exit;
-    }
-
-    // For admin login, verify role is admin
+    // For admin login attempt flag, verify role is admin if specified
     if ($isAdminAttempt && $user['role'] !== 'admin') {
         RateLimitMiddleware::recordFailedLogin($clientIP);
         Logger::logAuth('admin_login_denied', $user['user_id'], $email, false);

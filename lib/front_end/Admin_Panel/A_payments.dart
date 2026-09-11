@@ -546,7 +546,7 @@ class _AdminPaymentsPageState extends State<AdminPaymentsPage> {
             _metricTile('Enabled', '$enabledCount', Icons.verified_outlined),
             _metricTile(
               'Inside Dhaka',
-              '?${_insideDhakaCtrl.text}',
+              '\u09F3${_insideDhakaCtrl.text}',
               Icons.location_city,
             ),
           ];
@@ -713,7 +713,7 @@ class _AdminPaymentsPageState extends State<AdminPaymentsPage> {
           controller: controller,
           keyboardType: TextInputType.number,
           style: const TextStyle(color: AdminTheme.textPrimary),
-          decoration: _fieldDecoration(hint: hint, icon: icon, prefix: '?'),
+          decoration: _fieldDecoration(hint: hint, icon: icon, prefix: '\u09F3'),
         ),
       ],
     );
@@ -758,17 +758,38 @@ class _AdminPaymentsPageState extends State<AdminPaymentsPage> {
   Widget _methodCard(Map<String, dynamic> method) {
     final isEnabled = _isMethodEnabled(method['is_enabled']);
     final account = method['account_number']?.toString() ?? '';
+    final logoAsset = _getMethodAssetLogo(
+      method['method_name']?.toString(),
+      method['method_type']?.toString(),
+    );
     final leading = Container(
-      width: 46,
-      height: 46,
+      width: 48,
+      height: 48,
       decoration: BoxDecoration(
-        color: isEnabled ? _brandOrange : _fieldBg,
+        color: Colors.white,
         borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: isEnabled ? _brandOrange : AdminTheme.border,
+          width: isEnabled ? 1.5 : 1,
+        ),
       ),
-      child: Icon(
-        _getMethodIcon(method['method_type']),
-        color: isEnabled ? _brandOrange : Color(0x42000000),
-      ),
+      padding: const EdgeInsets.all(4),
+      child: logoAsset != null
+          ? ClipRRect(
+              borderRadius: BorderRadius.circular(6),
+              child: Image.asset(
+                logoAsset,
+                fit: BoxFit.contain,
+                errorBuilder: (_, __, ___) => Icon(
+                  _getMethodIcon(method['method_type']),
+                  color: isEnabled ? _brandOrange : const Color(0x42000000),
+                ),
+              ),
+            )
+          : Icon(
+              _getMethodIcon(method['method_type']),
+              color: isEnabled ? _brandOrange : const Color(0x42000000),
+            ),
     );
     final details = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1032,6 +1053,32 @@ class _AdminPaymentsPageState extends State<AdminPaymentsPage> {
         borderSide: const BorderSide(color: _brandOrange),
       ),
     );
+  }
+
+  String? _getMethodAssetLogo(String? name, String? type) {
+    final n = (name ?? '').toLowerCase().trim();
+    if (n.contains('bkash') || n.contains('baksh')) {
+      return 'assets/payments/baksh.png';
+    }
+    if (n.contains('nagad')) {
+      return 'assets/payments/nagad.png';
+    }
+    if (n.contains('rocket')) {
+      return 'assets/rocket.png';
+    }
+    if (n.contains('upay')) {
+      return 'assets/upay.png';
+    }
+    if (n.contains('visa')) {
+      return 'assets/payments/visa.png';
+    }
+    if (n.contains('master')) {
+      return 'assets/payments/master.png';
+    }
+    if (n.contains('amex') || n.contains('american express')) {
+      return 'assets/payments/amex.png';
+    }
+    return null;
   }
 
   IconData _getMethodIcon(String? type) {

@@ -12,9 +12,6 @@ class ImageResolver {
   static const String _assetPrefix = 'asset:';
 
   static String _activeImageBaseUrl() {
-    // Images are served from /api/uploads/... on the backend.
-    // Use the full API base URL (including /api) so that
-    // /uploads/img.jpg ? https://electrozonebd.com/api/uploads/img.jpg
     final activeApiBase = ApiService.overrideBaseUrl;
     if (activeApiBase != null && activeApiBase.isNotEmpty) {
       return activeApiBase; // already includes /api
@@ -38,14 +35,11 @@ class ImageResolver {
   }
 
   /// Normalises legacy upload URL variants that may be stored in the DB or
-  /// returned by the old backend config. All variants map to
-  /// https://host/public/uploads/filename  (the new canonical).
+  /// returned by the old backend config.
   static String _fixMissingApiSegment(String url) {
-    // Already correct new canonical: https://host/public/uploads/...
     if (RegExp(r'^https?://[^/]+/public/uploads/').hasMatch(url)) {
       return url;
     }
-    // Legacy: https://host/api/public/uploads/... ? strip /api prefix
     final withApiPublic = RegExp(r'^(https?://[^/]+)/api/public/uploads/(.+)$');
     if (withApiPublic.hasMatch(url)) {
       return url.replaceFirstMapped(
@@ -53,7 +47,6 @@ class ImageResolver {
         (m) => '${m.group(1)}/public/uploads/${m.group(2)}',
       );
     }
-    // Legacy: https://host/api/uploads/... ? strip /api prefix
     final withApiUploads = RegExp(r'^(https?://[^/]+)/api/uploads/(.+)$');
     if (withApiUploads.hasMatch(url)) {
       return url.replaceFirstMapped(
@@ -61,7 +54,6 @@ class ImageResolver {
         (m) => '${m.group(1)}/public/uploads/${m.group(2)}',
       );
     }
-    // Legacy: https://host/uploads/... ? add /public prefix
     final bareUploads = RegExp(r'^(https?://[^/]+)/uploads/(.+)$');
     if (bareUploads.hasMatch(url)) {
       return url.replaceFirstMapped(
@@ -72,45 +64,36 @@ class ImageResolver {
     return url;
   }
 
-  /// Returns the production host (e.g. https://electrozonebd.com) regardless
-  /// of whether the app is running in debug/local mode. Uploaded images always
-  /// live on the production server, never on the local dev server.
+  static String _activeHost() {
+    final activeBase = ApiService.overrideBaseUrl;
+    if (activeBase != null && activeBase.isNotEmpty) {
+      return activeBase.replaceAll(RegExp(r'/api$'), '');
+    }
+    final base = AppConstants.baseUrl.replaceAll(RegExp(r'/api$'), '');
+    return base;
+  }
+
+  /// Returns the appropriate host for assets and images.
   static String _productionHost() {
     const String _productionUrl = 'https://electrozonebd.com';
     final activeBase = ApiService.overrideBaseUrl;
     if (activeBase != null && activeBase.isNotEmpty) {
       final host = activeBase.replaceAll(RegExp(r'/api$'), '');
-      // Flutter Web debug runs the app and API on different localhost ports.
-      // Mid-banner files are served as static images, so that cross-origin
-      // localhost request does not receive the API CORS headers. These
-      // bundled banner files are deployed on the production host, which is
-      // also the correct source for previewing them during local web work.
-      if (!host.contains('localhost') &&
-          !host.contains('127.0.0.1') &&
-          !host.contains('10.0.2.2')) {
-        return host;
-      }
-      return _productionUrl;
+      return host;
     }
     final base = AppConstants.baseUrl.replaceAll(RegExp(r'/api$'), '');
     if (base.contains('localhost') ||
         base.contains('10.0.2.2') ||
         base.contains('127.0.0.1')) {
-      return _productionUrl;
+      return base;
     }
-    return base;
+    return _productionUrl;
   }
 
   /// Normalises any upload path variant to the canonical URL exposed by the
-  /// active API base, e.g. https://electrozonebd.com/public/uploads/filename
-  ///
-  /// DB stores:  /public/uploads/img_xxx.png  (new canonical ? since config fix)
-  ///             /api/public/uploads/img_xxx.png (legacy ? from old config)
-  ///             /uploads/img_xxx.png (older legacy)
-  /// Working URL: https://electrozonebd.com/public/uploads/img_xxx.png
+  /// active API base, e.g. http://127.0.0.1:8080/public/uploads/filename
   static String _resolveUploadUrl(String imageUrl) {
-    final base = _activeImageBaseUrl(); // e.g. https://electrozonebd.com/api
-    final host = base.replaceAll(RegExp(r'/api$'), '');
+    final host = _activeHost();
 
     // Extract just the filename from any upload path variant
     String filename;
@@ -129,7 +112,7 @@ class ImageResolver {
     final midBannerAsset = _midBannerAssetUrl(filename);
     if (midBannerAsset != null) return midBannerAsset;
 
-    // Canonical: https://electrozonebd.com/public/uploads/filename
+    // Canonical: http://127.0.0.1:8080/public/uploads/filename
     return '$host/public/uploads/$filename';
   }
 
@@ -139,23 +122,19 @@ class ImageResolver {
       raw = raw.substring(_assetPrefix.length);
     }
 
-    // Banner records may contain a plain filename, a relative path, or a URL.
-    // Use the filename for generated mid-banner assets in every case.
     final parsed = Uri.tryParse(raw);
     final path = parsed != null && parsed.path.isNotEmpty ? parsed.path : raw;
     final assetName = path.split('/').last;
     final isMidBannerPath = path.contains('mid-banner-products/');
     if (!assetName.startsWith('mid_banner_') && !isMidBannerPath) return null;
 
-    final bannerName = assetName.substring('mid_banner_'.length);
-    final resolvedName = assetName.startsWith('mid_banner_')
-      ? bannerName
-      : assetName;
-    if (resolvedName.isEmpty) return null;
+    final bannerName = assetName.startsWith('mid_banner_')
+        ? assetName.substring('mid_banner_'.length)
+        : assetName;
+    if (bannerName.isEmpty) return null;
 
-    // On both web and mobile, serve from backend's public folder
-    // This is more reliable than trying to use Flutter assets
-    return '${_productionHost()}/public/assets/mid-banner-products/$resolvedName';
+    // Serve from backend's public assets folder
+    return '${_activeHost()}/public/assets/mid-banner-products/$bannerName';
   }
 
   /// Resolves any image URL string to a fully qualified URL.
@@ -171,7 +150,6 @@ class ImageResolver {
 
     // Already a full URL ? fix any malformed upload paths
     if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
-      // If it's a full URL pointing to an upload path, normalise it too
       final uploadMatch = RegExp(
         r'^https?://[^/]+((/public/uploads/|/api/public/uploads/|/api/uploads/|/uploads/).+)$',
       ).firstMatch(imageUrl);
@@ -185,7 +163,9 @@ class ImageResolver {
     if (imageUrl.startsWith('/public/uploads/') ||
         imageUrl.startsWith('/api/public/uploads/') ||
         imageUrl.startsWith('/api/uploads/') ||
-        imageUrl.startsWith('/uploads/')) {
+        imageUrl.startsWith('/uploads/') ||
+        imageUrl.startsWith('public/uploads/') ||
+        imageUrl.startsWith('uploads/')) {
       return _resolveUploadUrl(imageUrl);
     }
 
@@ -196,9 +176,11 @@ class ImageResolver {
     }
     if (imageUrl.startsWith('/')) return '$base$imageUrl';
 
-    // If it's just a filename, prepend the uploads path
+    // If it's just a filename, check if it's mid_banner or upload
     if (!imageUrl.contains('/')) {
-      final host = base.replaceAll(RegExp(r'/api$'), '');
+      final mid = _midBannerAssetUrl(imageUrl);
+      if (mid != null) return mid;
+      final host = _activeHost();
       return '$host/public/uploads/$imageUrl';
     }
 
@@ -206,39 +188,7 @@ class ImageResolver {
   }
 
   static String _resolveNetworkUrl(String imageUrl) {
-    if (isFlutterAsset(imageUrl)) return imageUrl;
-
-    if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
-      final uploadMatch = RegExp(
-        r'^https?://[^/]+((/public/uploads/|/api/public/uploads/|/api/uploads/|/uploads/).+)$',
-      ).firstMatch(imageUrl);
-      if (uploadMatch != null) {
-        return _resolveUploadUrl(uploadMatch.group(1)!);
-      }
-      return _fixMissingApiSegment(imageUrl);
-    }
-
-    if (imageUrl.startsWith('/public/uploads/') ||
-        imageUrl.startsWith('/api/public/uploads/') ||
-        imageUrl.startsWith('/api/uploads/') ||
-        imageUrl.startsWith('/uploads/')) {
-      return _resolveUploadUrl(imageUrl);
-    }
-
-    final base = _activeImageBaseUrl();
-    if (imageUrl.startsWith('/api/')) {
-      final host = base.replaceAll(RegExp(r'/api$'), '');
-      return '$host$imageUrl';
-    }
-    if (imageUrl.startsWith('/')) return '$base$imageUrl';
-
-    // If it's just a filename, prepend the uploads path
-    if (!imageUrl.contains('/')) {
-      final host = base.replaceAll(RegExp(r'/api$'), '');
-      return '$host/public/uploads/$imageUrl';
-    }
-
-    return '$base/$imageUrl';
+    return resolveUrl(imageUrl);
   }
 
   static String _getAssetPath(String imageUrl) {
@@ -251,7 +201,6 @@ class ImageResolver {
   /// On Flutter Web, asset images must be loaded via absolute URL.
   static String _webAssetUrl(String assetPath) {
     final base = getAppBaseUrl();
-    // Ensure proper asset path - Flutter Web assets are served from /
     return '$base/$assetPath';
   }
 
@@ -271,8 +220,6 @@ class ImageResolver {
 
     if (isFlutterAsset(path)) {
       final assetPath = _getAssetPath(path);
-      // Flutter Web: Image.asset() doesn't work reliably for network-served assets.
-      // Load via absolute network URL instead.
       if (kIsWeb) {
         final networkAssetUrl = _webAssetUrl(assetPath);
         return Image.network(
@@ -352,17 +299,7 @@ class ImageResolver {
       return AssetImage(_getAssetPath(imageUrl));
     }
 
-    if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
-      final uploadMatch = RegExp(
-        r'^https?://[^/]+((/public/uploads/|/api/public/uploads/|/api/uploads/|/uploads/).+)$',
-      ).firstMatch(imageUrl);
-      if (uploadMatch != null) {
-        return NetworkImage(_resolveUploadUrl(uploadMatch.group(1)!));
-      }
-      return NetworkImage(_fixMissingApiSegment(imageUrl));
-    }
-
-    return NetworkImage(_resolveNetworkUrl(imageUrl));
+    return NetworkImage(resolveUrl(imageUrl));
   }
 
   static Widget _placeholderBox({
@@ -384,5 +321,3 @@ class ImageResolver {
     );
   }
 }
-
-

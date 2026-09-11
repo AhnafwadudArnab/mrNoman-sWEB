@@ -242,33 +242,52 @@ class ProductCard extends StatelessWidget {
                       ),
                     const SizedBox(height: 2),
                     Row(
-                      crossAxisAlignment: CrossAxisAlignment.end,
+                      crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
                         Flexible(
                           child: FittedBox(
                             fit: BoxFit.scaleDown,
                             alignment: Alignment.centerLeft,
                             child: Text(
-                              'Tk ${price.toStringAsFixed(2)}',
-                              style: TextStyle(
-                                fontSize: AppDimensions.bodyFont(context),
+                              '৳${price.toStringAsFixed(2)}',
+                              style: const TextStyle(
+                                fontSize: 15,
                                 fontWeight: FontWeight.w800,
-                                color: AppColors.brandOrange,
+                                color: Color(0xFF2563EB),
                               ),
                             ),
                           ),
                         ),
-                        if (originalPrice != null) ...[
+                        if (originalPrice != null && originalPrice! > price) ...[
                           const SizedBox(width: 6),
                           Flexible(
                             child: Text(
-                              'Tk ${originalPrice!.toStringAsFixed(2)}',
+                              '৳${originalPrice!.toStringAsFixed(2)}',
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                fontSize: AppDimensions.smallFont(context),
-                                color: AppColors.grey300,
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: Color(0xFF64748B),
                                 decoration: TextDecoration.lineThrough,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 5,
+                              vertical: 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFFFECEE),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: Text(
+                              '-${discountPercent ?? (((originalPrice! - price) / originalPrice!) * 100).round()}%',
+                              style: const TextStyle(
+                                color: Color(0xFFEF4444),
+                                fontSize: 11,
+                                fontWeight: FontWeight.w700,
                               ),
                             ),
                           ),

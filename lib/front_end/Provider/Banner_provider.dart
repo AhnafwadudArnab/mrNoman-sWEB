@@ -1,9 +1,23 @@
 import 'dart:convert';
 
-import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../utils/api_service.dart';
+
+const Map<String, IconData> kAvailableTrustIcons = {
+  'shield': Icons.verified_user_outlined,
+  'headset': Icons.headset_mic_outlined,
+  'truck': Icons.local_shipping_outlined,
+  'refresh': Icons.replay_outlined,
+  'lock': Icons.lock_outline,
+  'star': Icons.star_border,
+};
+
+IconData getTrustIcon(String? iconName) {
+  if (iconName == null) return Icons.verified_user_outlined;
+  return kAvailableTrustIcons[iconName] ?? Icons.verified_user_outlined;
+}
 
 class BannerProvider extends ChangeNotifier {
   static const String _keyHero = 'electrocity_banner_hero';
@@ -11,18 +25,25 @@ class BannerProvider extends ChangeNotifier {
   static const String _keySidebar = 'electrocity_banner_sidebar';
   static const String _keyFeatured = 'electrocity_featured_brands';
   static const String _keyOffers = 'electrocity_offers_90';
+  static const String _keyTrustBadges = 'electrocity_trust_badges';
 
   List<Map<String, String>> _heroSlides = [];
   List<Map<String, String>> _midBanners = [];
   Map<String, String> _sidebarPromo = {};
   List<String> _featuredBrands = [];
   List<Map<String, String>> _offers90 = [];
+  List<Map<String, String>> _trustBadges = [
+    {'title': 'Official Warranty', 'icon': 'shield'},
+    {'title': '24/7 Tech Support', 'icon': 'headset'},
+    {'title': 'Fast Island-wide Delivery', 'icon': 'truck'},
+  ];
 
   List<Map<String, String>> get heroSlides => List.unmodifiable(_heroSlides);
   List<Map<String, String>> get midBanners => List.unmodifiable(_midBanners);
   Map<String, String> get sidebarPromo => Map.unmodifiable(_sidebarPromo);
   List<String> get featuredBrands => List.unmodifiable(_featuredBrands);
   List<Map<String, String>> get offers90 => List.unmodifiable(_offers90);
+  List<Map<String, String>> get trustBadges => List.unmodifiable(_trustBadges);
 
   bool _loaded = false;
   bool _isLoading = false; // prevent concurrent loads
@@ -149,6 +170,15 @@ class BannerProvider extends ChangeNotifier {
             jsonDecode(sidebarJson) as Map,
           );
         }
+        final trustJson = prefs.getString(_keyTrustBadges);
+        if (trustJson != null) {
+          final decoded = jsonDecode(trustJson);
+          if (decoded is List) {
+            _trustBadges = decoded
+                .map((e) => Map<String, String>.from(e as Map))
+                .toList();
+          }
+        }
       } catch (_) {}
 
       if (!restoredFromCache) {
@@ -256,6 +286,22 @@ class BannerProvider extends ChangeNotifier {
     } catch (e) {
       _offers90 = previous;
       _error = 'Failed to save offers: ${e.toString()}';
+      notifyListeners();
+      return false;
+    }
+  }
+
+  Future<bool> saveTrustBadges(List<Map<String, String>> badges) async {
+    final previous = List<Map<String, String>>.from(_trustBadges);
+    _trustBadges = List.from(badges);
+    notifyListeners();
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(_keyTrustBadges, jsonEncode(_trustBadges));
+      return true;
+    } catch (e) {
+      _trustBadges = previous;
+      _error = 'Failed to save trust badges: ${e.toString()}';
       notifyListeners();
       return false;
     }

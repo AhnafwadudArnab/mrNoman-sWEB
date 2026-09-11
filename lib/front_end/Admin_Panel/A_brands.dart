@@ -28,19 +28,26 @@ class _AdminBrandsPageState extends State<AdminBrandsPage> {
   }
 
   Future<void> _loadBrands() async {
+    if (!mounted) return;
     setState(() {
       _loading = true;
       _error = null;
     });
     try {
       final brands = await ApiService.getBrands();
+      if (!mounted) return;
+
       setState(() {
         _brands = brands
             .map((e) => Map<String, dynamic>.from(e as Map))
             .toList();
         _loading = false;
       });
+
+      // Invalidate cache after loading
+      ApiService.invalidateCache('/brands');
     } catch (e) {
+      if (!mounted) return;
       setState(() {
         _error = e.toString();
         _loading = false;
@@ -64,7 +71,7 @@ class _AdminBrandsPageState extends State<AdminBrandsPage> {
           backgroundColor: AdminTheme.surfaceAlt,
           title: Text(
             brand == null ? 'Add Brand' : 'Edit Brand',
-            style: const TextStyle(color: AdminTheme.textPrimary),
+            style: const TextStyle(color: Colors.black),
           ),
           content: SingleChildScrollView(
             child: Column(
@@ -72,10 +79,10 @@ class _AdminBrandsPageState extends State<AdminBrandsPage> {
               children: [
                 TextField(
                   controller: nameController,
-                  style: const TextStyle(color: AdminTheme.textPrimary),
+                  style: const TextStyle(color: Colors.black),
                   decoration: InputDecoration(
                     labelText: 'Brand Name',
-                    labelStyle: TextStyle(color: AdminTheme.textSecondary),
+                    labelStyle: TextStyle(color: Colors.black),
                     enabledBorder: UnderlineInputBorder(
                       borderSide: BorderSide(color: Color(0x1F000000)),
                     ),
@@ -89,7 +96,7 @@ class _AdminBrandsPageState extends State<AdminBrandsPage> {
                   decoration: BoxDecoration(
                     color: AdminTheme.surface,
                     borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.white12),
+                    border: Border.all(color: AdminTheme.border),
                   ),
                   child: pickedBytes != null
                       ? ClipRRect(
@@ -109,8 +116,8 @@ class _AdminBrandsPageState extends State<AdminBrandsPage> {
                         )
                       : const Center(
                           child: Icon(
-                            Icons.business,
-                            color: AdminTheme.textMuted,
+                            Icons.image,
+                            color: Colors.black,
                             size: 28,
                           ),
                         ),
@@ -121,8 +128,8 @@ class _AdminBrandsPageState extends State<AdminBrandsPage> {
                   width: double.infinity,
                   child: OutlinedButton.icon(
                     style: OutlinedButton.styleFrom(
-                      foregroundColor: const Color(0xFF7C3AED),
-                      side: const BorderSide(color: Color(0xFF7C3AED)),
+                      foregroundColor: Colors.black,
+                      side: const BorderSide(color: Colors.black),
                     ),
                     icon: const Icon(Icons.upload_file),
                     label: Text(
@@ -153,10 +160,7 @@ class _AdminBrandsPageState extends State<AdminBrandsPage> {
                     padding: const EdgeInsets.only(top: 6),
                     child: Text(
                       pickedFileName ?? '',
-                      style: const TextStyle(
-                        color: AdminTheme.textSecondary,
-                        fontSize: 11,
-                      ),
+                      style: const TextStyle(color: Colors.black, fontSize: 11),
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
@@ -170,10 +174,7 @@ class _AdminBrandsPageState extends State<AdminBrandsPage> {
             ),
             TextButton(
               onPressed: () => Navigator.pop(ctx, true),
-              child: const Text(
-                'Save',
-                style: TextStyle(color: Color(0xFF7C3AED)),
-              ),
+              child: const Text('Save', style: TextStyle(color: Colors.black)),
             ),
           ],
         ),
@@ -200,23 +201,24 @@ class _AdminBrandsPageState extends State<AdminBrandsPage> {
       } else {
         await ApiService.updateBrand(brand['brand_id'], data);
       }
-      ApiService.invalidateCache('/brands');
+      if (!mounted) return; // ✅ Check after async
 
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            backgroundColor: Colors.green,
-            content: Text(brand == null ? 'Brand added' : 'Brand updated'),
-          ),
-        );
-        _loadBrands();
-      }
+      // ✅ Invalidate cache after mutation
+      ApiService.invalidateCache('/brands');
+      ApiService.invalidateCache('/products');
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          backgroundColor: Colors.green,
+          content: Text(brand == null ? 'Brand added' : 'Brand updated'),
+        ),
+      );
+      _loadBrands();
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(backgroundColor: Colors.red, content: Text('Error: $e')),
-        );
-      }
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(backgroundColor: Colors.red, content: Text('Error: $e')),
+      );
     }
   }
 
@@ -227,11 +229,11 @@ class _AdminBrandsPageState extends State<AdminBrandsPage> {
         backgroundColor: AdminTheme.surfaceAlt,
         title: const Text(
           'Delete Brand',
-          style: TextStyle(color: AdminTheme.textPrimary),
+          style: TextStyle(color: Colors.black),
         ),
         content: Text(
           'Delete "${brand['brand_name']}"? This will affect ${brand['product_count'] ?? 0} products.',
-          style: const TextStyle(color: AdminTheme.textMuted),
+          style: const TextStyle(color: Colors.black),
         ),
         actions: [
           TextButton(
@@ -249,21 +251,24 @@ class _AdminBrandsPageState extends State<AdminBrandsPage> {
     if (confirm == true) {
       try {
         await ApiService.deleteBrand(brand['brand_id']);
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              backgroundColor: Colors.green,
-              content: Text('Brand deleted'),
-            ),
-          );
-          _loadBrands();
-        }
+        if (!mounted) return; // ✅ Check after async
+
+        // ✅ Invalidate cache after deleting
+        ApiService.invalidateCache('/brands');
+        ApiService.invalidateCache('/products');
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            backgroundColor: Colors.green,
+            content: Text('Brand deleted'),
+          ),
+        );
+        _loadBrands();
       } catch (e) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(backgroundColor: Colors.red, content: Text('Error: $e')),
-          );
-        }
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(backgroundColor: Colors.red, content: Text('Error: $e')),
+        );
       }
     }
   }
@@ -279,7 +284,7 @@ class _AdminBrandsPageState extends State<AdminBrandsPage> {
   Widget build(BuildContext context) {
     final Color darkBg = AdminTheme.bg;
     const Color cardBg = AdminTheme.surfaceAlt;
-    const Color brandOrange = Color(0xFF7C3AED);
+    const Color brandOrange = AdminTheme.brand;
 
     final content = Column(
       children: [
@@ -289,7 +294,7 @@ class _AdminBrandsPageState extends State<AdminBrandsPage> {
             const Text(
               'Brand Management',
               style: TextStyle(
-                color: AdminTheme.textPrimary,
+                color: Colors.black,
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
               ),
@@ -303,7 +308,7 @@ class _AdminBrandsPageState extends State<AdminBrandsPage> {
                   label: const Text('Add Brand'),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: brandOrange,
-                    foregroundColor: AdminTheme.textPrimary,
+                    foregroundColor: Colors.white,
                   ),
                 ),
                 const SizedBox(width: 8),
@@ -335,7 +340,7 @@ class _AdminBrandsPageState extends State<AdminBrandsPage> {
                       const SizedBox(height: 16),
                       Text(
                         _error!,
-                        style: const TextStyle(color: AdminTheme.textMuted),
+                        style: const TextStyle(color: Colors.black),
                       ),
                       const SizedBox(height: 16),
                       ElevatedButton(
@@ -352,7 +357,7 @@ class _AdminBrandsPageState extends State<AdminBrandsPage> {
                     children: [
                       const Text(
                         'No brands yet',
-                        style: TextStyle(color: AdminTheme.textSecondary),
+                        style: TextStyle(color: Colors.black),
                       ),
                       const SizedBox(height: 14),
                       ElevatedButton.icon(
@@ -361,7 +366,7 @@ class _AdminBrandsPageState extends State<AdminBrandsPage> {
                         label: const Text('Add Brand'),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: brandOrange,
-                          foregroundColor: Colors.black,
+                          foregroundColor: Colors.white,
                         ),
                       ),
                     ],
@@ -369,7 +374,9 @@ class _AdminBrandsPageState extends State<AdminBrandsPage> {
                 )
               : LayoutBuilder(
                   builder: (context, constraints) {
-                    final cols = constraints.maxWidth < 400
+                    final cols = constraints.maxWidth < 300
+                        ? 1
+                        : constraints.maxWidth < 400
                         ? 2
                         : constraints.maxWidth < 700
                         ? 3
@@ -427,7 +434,7 @@ class _AdminBrandsPageState extends State<AdminBrandsPage> {
           final title = const Text(
             'Brand Management',
             style: TextStyle(
-              color: AdminTheme.textPrimary,
+              color: Colors.black,
               fontSize: 17,
               fontWeight: FontWeight.bold,
             ),
@@ -443,7 +450,7 @@ class _AdminBrandsPageState extends State<AdminBrandsPage> {
                 label: const Text('Add Brand'),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: brandOrange,
-                  foregroundColor: Colors.black,
+                  foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(
                     horizontal: 14,
                     vertical: 12,
@@ -510,30 +517,26 @@ class _BrandCard extends StatelessWidget {
                       height: double.infinity,
                       placeholder: const Icon(
                         Icons.business,
-                        color: AdminTheme.textMuted,
+                        color: Colors.black,
                         size: 32,
                       ),
                     )
-                  : const Icon(
-                      Icons.business,
-                      color: AdminTheme.textMuted,
-                      size: 32,
-                    ),
+                  : const Icon(Icons.business, color: Colors.black, size: 32),
             ),
           ),
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: Color(0x42000000),
-              border: Border(top: BorderSide(color: Colors.white)),
+              color: AdminTheme.surface,
+              border: const Border(top: BorderSide(color: AdminTheme.border)),
             ),
             child: Column(
               children: [
                 Text(
                   name,
                   style: const TextStyle(
-                    color: AdminTheme.textPrimary,
+                    color: Colors.black,
                     fontWeight: FontWeight.bold,
                   ),
                   textAlign: TextAlign.center,
@@ -543,10 +546,7 @@ class _BrandCard extends StatelessWidget {
                 const SizedBox(height: 4),
                 Text(
                   '$productCount products',
-                  style: const TextStyle(
-                    color: AdminTheme.textSecondary,
-                    fontSize: 12,
-                  ),
+                  style: const TextStyle(color: Colors.black, fontSize: 12),
                 ),
                 const SizedBox(height: 8),
                 Row(

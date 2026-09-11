@@ -155,18 +155,27 @@ class _WhatsAppSupportFabState extends State<_WhatsAppSupportFab>
   }
 
   Future<void> _openWhatsApp(BuildContext context) async {
-    final number = _normalizeWhatsAppNumber(_whatsAppNumber ?? '');
-    if (number.length < 8) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Support WhatsApp number is not configured.'),
-        ),
-      );
+    String? number = _whatsAppNumber;
+    if (number == null || number.isEmpty) {
+      number = await _fetchWhatsAppNumber();
+      if (mounted && number != null) {
+        setState(() => _whatsAppNumber = number);
+      }
+    }
+    final normalized = _normalizeWhatsAppNumber(number ?? '');
+    if (normalized.length < 8) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Support WhatsApp number is not configured.'),
+          ),
+        );
+      }
       return;
     }
 
     final uri = Uri.parse(
-      'https://wa.me/$number?text=${Uri.encodeComponent('Hello Admin, I need help with my ElectroZoneBD order.')}',
+      'https://wa.me/$normalized?text=${Uri.encodeComponent('Hello Admin, I need help with my ElectroZoneBD order.')}',
     );
 
     final opened = await launchUrl(
@@ -185,34 +194,28 @@ class _WhatsAppSupportFabState extends State<_WhatsAppSupportFab>
 
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('WhatsApp chat open ??? ?????? ???')),
+        const SnackBar(content: Text('Could not open WhatsApp chat.')),
       );
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    if (_loading) {
-      return FloatingActionButton(
-        onPressed: null,
-        backgroundColor: const Color(0xFF25D366),
-        mini: true,
-        child: const SizedBox(
-          width: 16,
-          height: 16,
-          child: CircularProgressIndicator(
-            strokeWidth: 2,
-            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-          ),
-        ),
-      );
-    }
-
     return FloatingActionButton.extended(
+      key: const ValueKey('whatsapp_support_fab'),
       onPressed: () => _openWhatsApp(context),
       backgroundColor: const Color(0xFF25D366),
       foregroundColor: Colors.white,
-      icon: const FaIcon(FontAwesomeIcons.whatsapp, size: 20),
+      icon: _loading
+          ? const SizedBox(
+              width: 18,
+              height: 18,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+              ),
+            )
+          : const FaIcon(FontAwesomeIcons.whatsapp, size: 20),
       label: const Text('Help', style: TextStyle(fontWeight: FontWeight.w700)),
     );
   }
@@ -248,6 +251,7 @@ class _MainContentState extends State<_MainContent> {
     _autoSlideTimer?.cancel();
     _autoSlideTimer = Timer.periodic(const Duration(seconds: 4), (_) {
       if (!mounted) return;
+      if (!_pageController.hasClients) return;
       final bp = context.read<BannerProvider>();
       final len = bp.heroSlides.length;
       if (len < 2) return;
@@ -261,6 +265,7 @@ class _MainContentState extends State<_MainContent> {
   }
 
   void _goToPage(int index) {
+    if (!_pageController.hasClients) return;
     _pageController.animateToPage(
       index,
       duration: const Duration(milliseconds: 400),

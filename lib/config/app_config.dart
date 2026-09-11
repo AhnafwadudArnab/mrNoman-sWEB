@@ -21,7 +21,7 @@ class AppConfig {
     // Web debug builds — use local backend for development
     if (kIsWeb) {
       // Local development:
-      return 'http://localhost:8080';
+      return 'http://127.0.0.1:8080';
       // Production (cPanel):
       // return 'https://electrozonebd.com';
     }
@@ -78,8 +78,3 @@ class AppConfig {
     }
   }
 }
-
-
-
-
-

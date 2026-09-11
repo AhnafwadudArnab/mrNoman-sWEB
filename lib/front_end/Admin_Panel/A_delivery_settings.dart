@@ -21,7 +21,7 @@ class AdminDeliverySettingsPage extends StatefulWidget {
 class _AdminDeliverySettingsPageState extends State<AdminDeliverySettingsPage> {
   static const _deliverySettingKey = 'delivery_provider_settings';
   static const _bkashSettingKey = 'bkash_merchant_settings';
-  static const _brandOrange = Color(0xFF7C3AED);
+  static const _brandOrange = AdminTheme.brand;
   static const _cardBg = AdminTheme.surfaceAlt;
   static const _fieldBg = AdminTheme.surfaceAlt;
 
@@ -375,6 +375,290 @@ class _AdminDeliverySettingsPageState extends State<AdminDeliverySettingsPage> {
     );
   }
 
+  Widget _buildProviderLogo(String providerId, {double size = 46}) {
+    switch (providerId.toLowerCase()) {
+      case 'pathao':
+        return Container(
+          width: size,
+          height: size,
+          decoration: BoxDecoration(
+            color: const Color(0xFFE11B22),
+            borderRadius: BorderRadius.circular(10),
+            boxShadow: const [
+              BoxShadow(
+                color: Color(0x28E11B22),
+                blurRadius: 6,
+                offset: Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: const [
+              Icon(Icons.sports_motorsports_rounded, color: Colors.white, size: 20),
+              SizedBox(height: 1),
+              Text(
+                'PATHAO',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 7.5,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 0.8,
+                ),
+              ),
+            ],
+          ),
+        );
+
+      case 'redx':
+        return Container(
+          width: size,
+          height: size,
+          decoration: BoxDecoration(
+            color: const Color(0xFFEE2A24),
+            borderRadius: BorderRadius.circular(10),
+            boxShadow: const [
+              BoxShadow(
+                color: Color(0x28EE2A24),
+                blurRadius: 6,
+                offset: Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Center(
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+              child: const Text(
+                'REDX',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 12.5,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 1.2,
+                ),
+              ),
+            ),
+          ),
+        );
+
+      case 'steadfast':
+        return Container(
+          width: size,
+          height: size,
+          decoration: BoxDecoration(
+            color: const Color(0xFF0F3B60),
+            borderRadius: BorderRadius.circular(10),
+            boxShadow: const [
+              BoxShadow(
+                color: Color(0x280F3B60),
+                blurRadius: 6,
+                offset: Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: const [
+              Icon(Icons.offline_bolt_rounded, color: Color(0xFF00D2FF), size: 19),
+              SizedBox(height: 1),
+              Text(
+                'STEADFAST',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 6.5,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 0.5,
+                ),
+              ),
+            ],
+          ),
+        );
+
+      case 'paperfly':
+        return Container(
+          width: size,
+          height: size,
+          decoration: BoxDecoration(
+            color: const Color(0xFF009FE3),
+            borderRadius: BorderRadius.circular(10),
+            boxShadow: const [
+              BoxShadow(
+                color: Color(0x28009FE3),
+                blurRadius: 6,
+                offset: Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: const [
+              Icon(Icons.send_rounded, color: Colors.white, size: 18),
+              SizedBox(height: 1),
+              Text(
+                'PAPERFLY',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 6.5,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 0.5,
+                ),
+              ),
+            ],
+          ),
+        );
+
+      case 'ecourier':
+        return Container(
+          width: size,
+          height: size,
+          decoration: BoxDecoration(
+            color: const Color(0xFFFF7900),
+            borderRadius: BorderRadius.circular(10),
+            boxShadow: const [
+              BoxShadow(
+                color: Color(0x28FF7900),
+                blurRadius: 6,
+                offset: Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: const [
+              Text(
+                'e',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w900,
+                  fontStyle: FontStyle.italic,
+                  height: 1.0,
+                ),
+              ),
+              Text(
+                'COURIER',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 6.5,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 0.4,
+                ),
+              ),
+            ],
+          ),
+        );
+
+      case 'sundarban':
+        return Container(
+          width: size,
+          height: size,
+          decoration: BoxDecoration(
+            color: const Color(0xFF006837),
+            borderRadius: BorderRadius.circular(10),
+            boxShadow: const [
+              BoxShadow(
+                color: Color(0x28006837),
+                blurRadius: 6,
+                offset: Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: const [
+              Icon(Icons.local_shipping_rounded, color: Color(0xFFFFD200), size: 18),
+              SizedBox(height: 1),
+              Text(
+                'SUNDARBAN',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 6.0,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 0.3,
+                ),
+              ),
+            ],
+          ),
+        );
+
+      case 'sa_paribahan':
+        return Container(
+          width: size,
+          height: size,
+          decoration: BoxDecoration(
+            color: const Color(0xFF8B0000),
+            borderRadius: BorderRadius.circular(10),
+            boxShadow: const [
+              BoxShadow(
+                color: Color(0x288B0000),
+                blurRadius: 6,
+                offset: Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: const [
+              Text(
+                'SA',
+                style: TextStyle(
+                  color: Color(0xFFFFD700),
+                  fontSize: 13,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 1.0,
+                  height: 1.0,
+                ),
+              ),
+              SizedBox(height: 1),
+              Text(
+                'PARIBAHAN',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 6.0,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 0.3,
+                ),
+              ),
+            ],
+          ),
+        );
+
+      case 'in_house':
+      default:
+        return Container(
+          width: size,
+          height: size,
+          decoration: BoxDecoration(
+            color: const Color(0xFF0F766E),
+            borderRadius: BorderRadius.circular(10),
+            boxShadow: const [
+              BoxShadow(
+                color: Color(0x280F766E),
+                blurRadius: 6,
+                offset: Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: const [
+              Icon(Icons.two_wheeler_rounded, color: Colors.white, size: 20),
+              SizedBox(height: 1),
+              Text(
+                'IN-HOUSE',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 6.5,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 0.4,
+                ),
+              ),
+            ],
+          ),
+        );
+    }
+  }
+
   Widget _providerCard(_DeliveryProviderConfig provider) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -391,19 +675,27 @@ class _AdminDeliverySettingsPageState extends State<AdminDeliverySettingsPage> {
       child: LayoutBuilder(
         builder: (context, constraints) {
           final compact = constraints.maxWidth < 520;
-          final icon = Container(
-            width: 42,
-            height: 42,
-            decoration: BoxDecoration(
-              color: provider.enabled
-                  ? _brandOrange
-                  : AdminTheme.border,
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Icon(
-              provider.isApiReady ? Icons.cloud_done : Icons.local_shipping,
-              color: provider.enabled ? _brandOrange : Color(0x42000000),
-            ),
+          final icon = Stack(
+            clipBehavior: Clip.none,
+            children: [
+              _buildProviderLogo(provider.id, size: 46),
+              if (provider.isApiReady)
+                Positioned(
+                  right: -3,
+                  bottom: -3,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.check_circle,
+                      color: Color(0xFF10B981),
+                      size: 15,
+                    ),
+                  ),
+                ),
+            ],
           );
           final title = Expanded(
             child: Column(

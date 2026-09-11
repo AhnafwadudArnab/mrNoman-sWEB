@@ -10,6 +10,7 @@ import 'package:badges/badges.dart' as badges;
 import '../All_Pages/CART/Cart_provider.dart';
 import '../All_Pages/CART/Orders.dart';
 import '../All_Pages/Registrations/login.dart';
+import '../Admin_Panel/A_customers.dart';
 import '../utils/image_resolver.dart';
 import '../Provider/api_ready_notifier.dart';
 import '../Provider/product_refresh_notifier.dart';
@@ -35,6 +36,7 @@ class _HeaderState extends State<Header> {
   bool _loadTriggered = false;
   int _lastRefreshVersion = -1;
   bool _isLoggedIn = false;
+  bool _isAdmin = false;
   List<String> _searchHistory = [];
   bool _showSearchHistory = false;
   bool _isSearchExpanded = false; // New state for mobile search dropdown
@@ -86,7 +88,13 @@ class _HeaderState extends State<Header> {
 
   Future<void> _refreshAuthState() async {
     final loggedIn = await AuthSession.isLoggedIn();
-    if (mounted) setState(() => _isLoggedIn = loggedIn);
+    final admin = await AuthSession.isAdmin();
+    if (mounted) {
+      setState(() {
+        _isLoggedIn = loggedIn;
+        _isAdmin = admin;
+      });
+    }
   }
 
   Future<void> _loadProducts() async {
@@ -624,6 +632,23 @@ class _HeaderState extends State<Header> {
                         }
                       },
                     ),
+                    if (_isAdmin) ...[
+                      SizedBox(width: isMobile ? 2 : (isSmall ? 4 : 12)),
+                      _buildHeaderAction(
+                        icon: Icons.admin_panel_settings_outlined,
+                        label: 'Admin',
+                        showLabel: width > 750,
+                        onTap: () {
+                          Navigator.of(context)
+                              .push(
+                                MaterialPageRoute(
+                                  builder: (_) => const AdminLayoutPage(),
+                                ),
+                              )
+                              .then((_) => _refreshAuthState());
+                        },
+                      ),
+                    ],
                   ],
                 ),
                 if (!isSmall) const SizedBox(width: 20),

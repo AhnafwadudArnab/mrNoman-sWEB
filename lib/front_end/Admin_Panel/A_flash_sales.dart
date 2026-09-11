@@ -19,7 +19,7 @@ class AdminFlashSalesPage extends StatefulWidget {
 class _AdminFlashSalesPageState extends State<AdminFlashSalesPage> {
   final Color darkBg = AdminTheme.bg;
   final Color cardBg = AdminTheme.surfaceAlt;
-  final Color brandOrange = const Color(0xFF7C3AED);
+  final Color brandOrange = AdminTheme.brand;
 
   List<Map<String, dynamic>> _list = [];
   bool _loading = true;
@@ -69,6 +69,9 @@ class _AdminFlashSalesPageState extends State<AdminFlashSalesPage> {
     AdminNav.go(context, item);
   }
 
+  int _getFlashSaleId(Map<String, dynamic> e) =>
+      int.tryParse(e['flash_sale_id']?.toString() ?? e['Flash_Sale_id']?.toString() ?? e['id']?.toString() ?? '') ?? 0;
+
   Future<void> _create() async {
     if (_titleController.text.trim().isEmpty) {
       ScaffoldMessenger.of(
@@ -90,11 +93,12 @@ class _AdminFlashSalesPageState extends State<AdminFlashSalesPage> {
       _titleController.clear();
       _startController.clear();
       _endController.clear();
+      ApiService.invalidateCache('/flash_sales');
       if (mounted)
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             backgroundColor: Colors.green,
-            content: Text('Flash_Sale created'),
+            content: Text('Flash sale created'),
           ),
         );
       if (mounted) context.read<ProductRefreshNotifier>().refresh();
@@ -110,6 +114,7 @@ class _AdminFlashSalesPageState extends State<AdminFlashSalesPage> {
   Future<void> _update(int id, Map<String, dynamic> data) async {
     try {
       await ApiService.updateFlashSale(id, data);
+      ApiService.invalidateCache('/flash_sales');
       if (mounted)
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -130,6 +135,7 @@ class _AdminFlashSalesPageState extends State<AdminFlashSalesPage> {
   Future<void> _delete(int id) async {
     try {
       await ApiService.deleteFlashSale(id);
+      ApiService.invalidateCache('/flash_sales');
       if (mounted)
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -197,7 +203,7 @@ class _AdminFlashSalesPageState extends State<AdminFlashSalesPage> {
           color: cardBg,
           children: [
             const Text(
-              'Flash_Sales ? Start/End time & Active',
+              'Flash_Sales • Start/End time & Active',
               style: TextStyle(color: AdminTheme.textSecondary, fontSize: 14),
             ),
             const SizedBox.shrink(),
@@ -257,7 +263,7 @@ class _AdminFlashSalesPageState extends State<AdminFlashSalesPage> {
                           if (_loading)
                             const Center(
                               child: CircularProgressIndicator(
-                                color: Color(0xFF7C3AED),
+                                color: Color(0xFF4D6787),
                               ),
                             )
                           else
@@ -306,7 +312,7 @@ class _AdminFlashSalesPageState extends State<AdminFlashSalesPage> {
                                                 bottom: 8,
                                               ),
                                               child: Text(
-                                                'Start ? End',
+                                                'Start → End',
                                                 style: TextStyle(
                                                   color: AdminTheme.textSecondary,
                                                   fontWeight: FontWeight.bold,
@@ -355,7 +361,7 @@ class _AdminFlashSalesPageState extends State<AdminFlashSalesPage> {
                                                       vertical: 12,
                                                     ),
                                                 child: Text(
-                                                  '${e['Flash_Sale_id']}',
+                                                  '${_getFlashSaleId(e)}',
                                                   style: const TextStyle(
                                                     color: AdminTheme.textPrimary,
                                                   ),
@@ -379,7 +385,7 @@ class _AdminFlashSalesPageState extends State<AdminFlashSalesPage> {
                                                       vertical: 12,
                                                     ),
                                                 child: Text(
-                                                  '${_fmt(e['start_time'])} ? ${_fmt(e['end_time'])}',
+                                                  '${_fmt(e['start_time'])} → ${_fmt(e['end_time'])}',
                                                   style: TextStyle(
                                                     color: AdminTheme.textSecondary,
                                                     fontSize: 12,
@@ -411,7 +417,7 @@ class _AdminFlashSalesPageState extends State<AdminFlashSalesPage> {
                                                   IconButton(
                                                     icon: const Icon(
                                                       Icons.edit,
-                                                      color: Color(0xFF7C3AED),
+                                                      color: AdminTheme.brand,
                                                       size: 20,
                                                     ),
                                                     onPressed: () =>
@@ -424,7 +430,7 @@ class _AdminFlashSalesPageState extends State<AdminFlashSalesPage> {
                                                       size: 20,
                                                     ),
                                                     onPressed: () => _delete(
-                                                      e['Flash_Sale_id'] as int,
+                                                      _getFlashSaleId(e),
                                                     ),
                                                   ),
                                                 ],
@@ -655,14 +661,14 @@ class _AdminFlashSalesPageState extends State<AdminFlashSalesPage> {
               style: ElevatedButton.styleFrom(backgroundColor: brandOrange),
               onPressed: () {
                 Navigator.pop(ctx);
-                _update(e['Flash_Sale_id'] as int, {
+                _update(_getFlashSaleId(e), {
                   'title': titleC.text.trim(),
                   'start_time': startC.text.trim(),
                   'end_time': endC.text.trim(),
                   'active': active,
                 });
               },
-              child: const Text('Save'),
+              child: const Text('Save', style: TextStyle(color: Colors.white)),
             ),
           ],
         ),

@@ -300,8 +300,10 @@ class ApiService {
     return result;
   }
 
-  /// Adds trailing slash before query string to avoid Apache 301 redirects
+  /// Adds trailing slash before query string to avoid Apache 301 redirects.
   /// Only applies to production (Apache). Local dev server (PHP built-in) doesn't need this.
+  /// NEVER adds a trailing slash after a .php extension — Apache won't route
+  /// "foo.php/" as a PHP file, causing 404s on endpoints with query strings.
   static String _ensureTrailingSlash(String endpoint) {
     // Don't modify for local dev server - PHP built-in server handles it fine
     if (_apiBase().contains('localhost:8000')) {
@@ -313,6 +315,8 @@ class ApiService {
     if (qIdx == -1) return endpoint; // no query string, leave as-is
     final path = endpoint.substring(0, qIdx);
     final query = endpoint.substring(qIdx);
+    // Never add trailing slash after .php extension — it breaks Apache routing
+    if (path.endsWith('.php')) return endpoint;
     // Only add trailing slash if path doesn't already have one
     if (path.endsWith('/')) return endpoint;
     return '$path/$query';
@@ -536,6 +540,7 @@ class ApiService {
     required String product_name,
     required String description,
     required double price,
+    double? regular_price,
     int stock_quantity = 0,
     int? category_id,
     int? brand_id,
@@ -553,6 +558,9 @@ class ApiService {
       request.fields['product_name'] = product_name;
       request.fields['description'] = description;
       request.fields['price'] = price.toString();
+      if (regular_price != null && regular_price > 0) {
+        request.fields['regular_price'] = regular_price.toString();
+      }
       request.fields['stock_quantity'] = stock_quantity.toString();
       if (category_id != null)
         request.fields['category_id'] = category_id.toString();
@@ -916,29 +924,29 @@ class ApiService {
     invalidateCache('/products');
   }
 
-  // --- Flash_Sales API ---
+  // --- Flash Sales API ---
 
   static Future<List<dynamic>> getFlashSales() async {
-    final res = await get('/Flash_Sales', withAuth: false);
+    final res = await get('/flash_sales', withAuth: false);
     return _asList(res);
   }
 
   static Future<void> createFlashSale(Map<String, dynamic> data) async {
-    await post('/Flash_Sales', data);
-    invalidateCache('/products'); // Flash_Sale products cached under /products
-    invalidateCache('/Flash_Sales');
+    await post('/flash_sales', data);
+    invalidateCache('/products');
+    invalidateCache('/flash_sales');
   }
 
   static Future<void> updateFlashSale(int id, Map<String, dynamic> data) async {
-    await put('/Flash_Sales/$id', data);
+    await put('/flash_sales?id=$id', data);
     invalidateCache('/products');
-    invalidateCache('/Flash_Sales');
+    invalidateCache('/flash_sales');
   }
 
   static Future<void> deleteFlashSale(int id) async {
-    await delete('/Flash_Sales/$id');
+    await delete('/flash_sales?id=$id');
     invalidateCache('/products');
-    invalidateCache('/Flash_Sales');
+    invalidateCache('/flash_sales');
   }
 
   // --- Promotions API ---
@@ -968,8 +976,12 @@ class ApiService {
     bool useCache = true,
     int days = 8,
   }) async {
-    return await get('/admin/dashboard?days=$days', useCache: useCache)
-        as Map<String, dynamic>;
+    final result = await get('/admin/dashboard?days=$days', useCache: useCache);
+    if (result is Map<String, dynamic>) return result;
+    if (result is Map) return Map<String, dynamic>.from(result);
+    // Server returned something unexpected — return empty map so the
+    // dashboard renders with zeros rather than crashing.
+    return <String, dynamic>{};
   }
 
   static Future<List<dynamic>> getCustomers() async {
@@ -1055,6 +1067,7 @@ class ApiService {
 
   static Future<void> createCollection(Map<String, dynamic> data) async {
     await post('/collections', data);
+    invalidateCache('/collections');
   }
 
   static Future<void> updateCollection(
@@ -1062,10 +1075,27 @@ class ApiService {
     Map<String, dynamic> data,
   ) async {
     await put('/collections?id=$id', data);
+    invalidateCache('/collections');
   }
 
   static Future<void> deleteCollection(int id) async {
     await delete('/collections?id=$id');
+    invalidateCache('/collections');
+  }
+
+  static Future<void> linkCollectionProduct(int collectionId, int productId) async {
+    await post('/collection-products', {
+      'collection_id': collectionId,
+      'product_id': productId,
+    });
+    invalidateCache('/collection-products');
+    invalidateCache('/collection_products');
+  }
+
+  static Future<void> unlinkCollectionProduct(int collectionId, int productId) async {
+    await delete('/collection-products?collection_id=$collectionId&product_id=$productId');
+    invalidateCache('/collection-products');
+    invalidateCache('/collection_products');
   }
 
   // --- Best Sellers API ---

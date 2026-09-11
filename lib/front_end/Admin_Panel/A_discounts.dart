@@ -20,7 +20,7 @@ class AdminDiscountPage extends StatefulWidget {
 class _AdminDiscountPageState extends State<AdminDiscountPage> {
   final Color darkBg = AdminTheme.bg;
   final Color cardBg = AdminTheme.surfaceAlt;
-  final Color brandOrange = const Color(0xFF7C3AED);
+  final Color brandOrange = AdminTheme.brand;
 
   final TextEditingController _productIdController = TextEditingController();
   final TextEditingController _percentController = TextEditingController();
@@ -47,9 +47,12 @@ class _AdminDiscountPageState extends State<AdminDiscountPage> {
   }
 
   Future<void> _loadDiscounts() async {
+    if (!mounted) return;
     setState(() => _loading = true);
     try {
       final list = await ApiService.getDiscounts();
+      if (!mounted) return;
+
       if (mounted)
         setState(() {
           _discounts = list
@@ -57,7 +60,11 @@ class _AdminDiscountPageState extends State<AdminDiscountPage> {
               .toList();
           _loading = false;
         });
+
+      // Invalidate cache after loading
+      ApiService.invalidateCache('/discounts');
     } catch (e) {
+      if (!mounted) return;
       if (mounted) setState(() => _loading = false);
       if (mounted)
         ScaffoldMessenger.of(context).showSnackBar(
@@ -226,7 +233,7 @@ class _AdminDiscountPageState extends State<AdminDiscountPage> {
     children: [
       const Text(
         "Management / Discounts",
-        style: TextStyle(color: AdminTheme.textSecondary, fontSize: 14),
+        style: TextStyle(color: Colors.black, fontSize: 14),
       ),
       const SizedBox.shrink(),
     ],
@@ -242,7 +249,7 @@ class _AdminDiscountPageState extends State<AdminDiscountPage> {
         const Text(
           "Discounts & Coupons",
           style: TextStyle(
-            color: AdminTheme.textPrimary,
+            color: Colors.black,
             fontSize: 24,
             fontWeight: FontWeight.bold,
           ),
@@ -255,11 +262,11 @@ class _AdminDiscountPageState extends State<AdminDiscountPage> {
               curve: Curves.easeInOut,
             );
           },
-          icon: const Icon(Icons.add, color: AdminTheme.textPrimary),
+          icon: const Icon(Icons.add, color: Colors.black),
           label: const Text("New Campaign"),
           style: ElevatedButton.styleFrom(
             backgroundColor: brandOrange,
-            foregroundColor: AdminTheme.textPrimary,
+            foregroundColor: Colors.white,
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
           ),
         ),
@@ -282,18 +289,12 @@ class _AdminDiscountPageState extends State<AdminDiscountPage> {
 
   Widget _buildDiscountList() {
     return Container(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: cardBg,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: brandOrange, width: 2),
-        boxShadow: [
-          BoxShadow(
-            color: brandOrange,
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        border: Border.all(color: brandOrange.withOpacity(0.4), width: 1),
+        boxShadow: AdminTheme.shadowSm,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -301,7 +302,7 @@ class _AdminDiscountPageState extends State<AdminDiscountPage> {
           const Text(
             "Product Discounts (with validity period)",
             style: TextStyle(
-              color: AdminTheme.textPrimary,
+              color: Colors.black,
               fontSize: 18,
               fontWeight: FontWeight.bold,
             ),
@@ -311,7 +312,7 @@ class _AdminDiscountPageState extends State<AdminDiscountPage> {
             const Center(
               child: Padding(
                 padding: EdgeInsets.all(24),
-                child: CircularProgressIndicator(color: Color(0xFF7C3AED)),
+                child: CircularProgressIndicator(color: Colors.black),
               ),
             )
           else
@@ -332,20 +333,24 @@ class _AdminDiscountPageState extends State<AdminDiscountPage> {
                   children: [
                     TableRow(
                       children: [
-                        _tableCell("PRODUCT", isBold: true, color: AdminTheme.textSecondary),
-                        _tableCell("% OFF", isBold: true, color: AdminTheme.textSecondary),
+                        _tableCell(
+                          "PRODUCT",
+                          isBold: true,
+                          color: Colors.black,
+                        ),
+                        _tableCell("% OFF", isBold: true, color: Colors.black),
                         _tableCell(
                           "VALID FROM",
                           isBold: true,
-                          color: AdminTheme.textSecondary,
+                          color: Colors.black,
                         ),
                         _tableCell(
                           "VALID TO",
                           isBold: true,
-                          color: AdminTheme.textSecondary,
+                          color: Colors.black,
                         ),
-                        _tableCell("STATUS", isBold: true, color: AdminTheme.textSecondary),
-                        _tableCell("", isBold: true, color: AdminTheme.textSecondary),
+                        _tableCell("STATUS", isBold: true, color: Colors.black),
+                        _tableCell("", isBold: true, color: Colors.black),
                       ],
                     ),
                     ..._discounts.map(
@@ -383,7 +388,7 @@ class _AdminDiscountPageState extends State<AdminDiscountPage> {
                                 Text(
                                   _timeLeft(d['valid_from'], d['valid_to']),
                                   style: TextStyle(
-                                    color: AdminTheme.textSecondary,
+                                    color: Colors.black,
                                     fontSize: 11,
                                   ),
                                 ),
@@ -396,8 +401,14 @@ class _AdminDiscountPageState extends State<AdminDiscountPage> {
                               color: Colors.redAccent,
                               size: 20,
                             ),
-                            onPressed: () =>
-                                _deleteDiscount(d['discount_id'] as int),
+                            onPressed: () => _deleteDiscount(
+                              int.tryParse(
+                                    d['discount_id']?.toString() ??
+                                        d['id']?.toString() ??
+                                        '',
+                                  ) ??
+                                  0,
+                            ),
                           ),
                         ],
                       ),
@@ -414,36 +425,34 @@ class _AdminDiscountPageState extends State<AdminDiscountPage> {
   Future<void> _deleteDiscount(int id) async {
     try {
       await ApiService.deleteDiscount(id);
-      if (mounted)
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            backgroundColor: Colors.orange,
-            content: Text('Discount removed'),
-          ),
-        );
+      if (!mounted) return; // ✅ Check after async
+
+      // ✅ Invalidate cache after deleting
+      ApiService.invalidateCache('/discounts');
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          backgroundColor: Colors.orange,
+          content: Text('Discount removed'),
+        ),
+      );
       _loadDiscounts();
     } catch (e) {
-      if (mounted)
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e is ApiException ? e.message : 'Failed')),
-        );
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e is ApiException ? e.message : 'Failed')),
+      );
     }
   }
 
   Widget _buildCreateDiscountForm() {
     return Container(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: cardBg,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: brandOrange, width: 2),
-        boxShadow: [
-          BoxShadow(
-            color: brandOrange,
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        border: Border.all(color: brandOrange.withOpacity(0.4), width: 1),
+        boxShadow: AdminTheme.shadowSm,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -451,7 +460,7 @@ class _AdminDiscountPageState extends State<AdminDiscountPage> {
           const Text(
             "Add product discount",
             style: TextStyle(
-              color: AdminTheme.textPrimary,
+              color: Colors.black,
               fontSize: 18,
               fontWeight: FontWeight.bold,
             ),
@@ -468,7 +477,7 @@ class _AdminDiscountPageState extends State<AdminDiscountPage> {
               Expanded(
                 child: Text(
                   "Apply to all products",
-                  style: TextStyle(color: AdminTheme.textSecondary),
+                  style: TextStyle(color: Colors.black),
                 ),
               ),
             ],
@@ -476,7 +485,7 @@ class _AdminDiscountPageState extends State<AdminDiscountPage> {
           if (!_applyToAll) ...[
             const SizedBox(height: 12),
             _inputLabel("Product ID"),
-          _darkField("e.g. 1", controller: _productIdController),
+            _darkField("e.g. 1", controller: _productIdController),
           ],
           const SizedBox(height: 20),
           _inputLabel("Discount %"),
@@ -487,15 +496,12 @@ class _AdminDiscountPageState extends State<AdminDiscountPage> {
             controller: _validFromController,
             readOnly: true,
             onTap: () => _pickDateTime(_validFromController, isFrom: true),
-            style: const TextStyle(color: AdminTheme.textPrimary, fontSize: 14),
+            style: const TextStyle(color: Colors.black, fontSize: 14),
             decoration: InputDecoration(
               hintText: "Optional",
-              hintStyle: const TextStyle(
-                color: AdminTheme.textMuted,
-                fontSize: 13,
-              ),
+              hintStyle: const TextStyle(color: Colors.black, fontSize: 13),
               filled: true,
-              fillColor: darkBg,
+              fillColor: AdminTheme.surface,
               contentPadding: const EdgeInsets.symmetric(
                 horizontal: 16,
                 vertical: 16,
@@ -506,7 +512,7 @@ class _AdminDiscountPageState extends State<AdminDiscountPage> {
               ),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
-                borderSide: const BorderSide(color: Colors.white),
+                borderSide: const BorderSide(color: AdminTheme.border),
               ),
               suffixIcon: IconButton(
                 onPressed: () =>
@@ -522,15 +528,12 @@ class _AdminDiscountPageState extends State<AdminDiscountPage> {
             controller: _validToController,
             readOnly: true,
             onTap: () => _pickDateTime(_validToController, isFrom: false),
-            style: const TextStyle(color: AdminTheme.textPrimary, fontSize: 14),
+            style: const TextStyle(color: Colors.black, fontSize: 14),
             decoration: InputDecoration(
               hintText: "Optional",
-              hintStyle: const TextStyle(
-                color: AdminTheme.textMuted,
-                fontSize: 13,
-              ),
+              hintStyle: const TextStyle(color: Colors.black, fontSize: 13),
               filled: true,
-              fillColor: darkBg,
+              fillColor: AdminTheme.surface,
               contentPadding: const EdgeInsets.symmetric(
                 horizontal: 16,
                 vertical: 16,
@@ -541,7 +544,7 @@ class _AdminDiscountPageState extends State<AdminDiscountPage> {
               ),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
-                borderSide: const BorderSide(color: Colors.white),
+                borderSide: const BorderSide(color: AdminTheme.border),
               ),
               suffixIcon: IconButton(
                 onPressed: () =>
@@ -556,15 +559,18 @@ class _AdminDiscountPageState extends State<AdminDiscountPage> {
             onPressed: _createDiscount,
             style: ElevatedButton.styleFrom(
               backgroundColor: brandOrange,
-              side: BorderSide(color: brandOrange),
+              foregroundColor: Colors.white,
               minimumSize: const Size(double.infinity, 50),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(8),
               ),
             ),
-            child: Text(
+            child: const Text(
               "Create discount",
-              style: TextStyle(color: brandOrange, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ),
         ],
@@ -613,35 +619,38 @@ class _AdminDiscountPageState extends State<AdminDiscountPage> {
         payload['product_id'] = productId;
       }
       await ApiService.createDiscount(payload);
+      if (!mounted) return; // ✅ Check after async
+
+      // ✅ Invalidate cache after creating
+      ApiService.invalidateCache('/discounts');
+
       _productIdController.clear();
       _percentController.clear();
       _validFromController.clear();
       _validToController.clear();
       setState(() => _applyToAll = false);
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text("Discount created"),
-            backgroundColor: Colors.green,
-          ),
-        );
-        _loadDiscounts();
-      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Discount created"),
+          backgroundColor: Colors.green,
+        ),
+      );
+      _loadDiscounts();
     } catch (e) {
-      if (mounted)
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(e is ApiException ? e.message : 'Failed'),
-            backgroundColor: Colors.red,
-          ),
-        );
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(e is ApiException ? e.message : 'Failed'),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
   }
 
   Widget _tableCell(
     String text, {
     bool isBold = false,
-    Color color = Colors.white,
+    Color color = Colors.black,
   }) => Padding(
     padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 8),
     child: Text(
@@ -668,8 +677,8 @@ class _AdminDiscountPageState extends State<AdminDiscountPage> {
       ),
       child: Text(
         status,
-        style: TextStyle(
-          color: sColor,
+        style: const TextStyle(
+          color: Colors.white,
           fontSize: 11,
           fontWeight: FontWeight.bold,
         ),
@@ -682,7 +691,7 @@ class _AdminDiscountPageState extends State<AdminDiscountPage> {
     child: Text(
       label,
       style: TextStyle(
-        color: AdminTheme.textSecondary,
+        color: Colors.black,
         fontSize: 13,
         fontWeight: FontWeight.w500,
       ),
@@ -692,12 +701,12 @@ class _AdminDiscountPageState extends State<AdminDiscountPage> {
   Widget _darkField(String hint, {TextEditingController? controller}) =>
       TextField(
         controller: controller,
-        style: const TextStyle(color: AdminTheme.textPrimary, fontSize: 14),
+        style: const TextStyle(color: Colors.black, fontSize: 14),
         decoration: InputDecoration(
           hintText: hint,
-          hintStyle: const TextStyle(color: AdminTheme.textMuted, fontSize: 13),
+          hintStyle: const TextStyle(color: Colors.black, fontSize: 13),
           filled: true,
-          fillColor: darkBg,
+          fillColor: AdminTheme.surface,
           contentPadding: const EdgeInsets.symmetric(
             horizontal: 16,
             vertical: 16,
@@ -708,18 +717,8 @@ class _AdminDiscountPageState extends State<AdminDiscountPage> {
           ),
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(8),
-            borderSide: const BorderSide(color: Colors.white),
+            borderSide: const BorderSide(color: AdminTheme.border),
           ),
         ),
       );
 }
-
-
-
-
-
-
-
-
-
-

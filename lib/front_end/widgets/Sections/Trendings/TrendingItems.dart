@@ -181,6 +181,7 @@ class _TrendingItemsState extends State<TrendingItems> {
   }) {
     if (isFromAdmin) {
       final price = _parsePrice(product['price']);
+      final regPrice = product['regular_price'] != null ? _parsePrice(product['regular_price']) : null;
       final stockQty =
           int.tryParse(
             product['stock_quantity']?.toString() ??
@@ -198,11 +199,13 @@ class _TrendingItemsState extends State<TrendingItems> {
         name: product['name'] ?? '',
         category: 'Trending Items',
         priceBDT: price,
+        regularPrice: regPrice,
         images: adminImages,
         description: product['desc'] ?? '',
         additionalInfo: {
           'Category': product['category'] ?? '',
           'stock_quantity': stockQty.toString(),
+          if (regPrice != null) 'regular_price': regPrice.toString(),
         },
       );
     } else {
@@ -211,6 +214,7 @@ class _TrendingItemsState extends State<TrendingItems> {
         name: product.title,
         category: 'Trending Items',
         priceBDT: product.discountedPrice.toDouble(),
+        regularPrice: product.originalPrice.toDouble(),
         images: [product.image],
         description: 'Trending product picked for you.',
         additionalInfo: {
@@ -338,11 +342,17 @@ class _TrendingItemsState extends State<TrendingItems> {
                                   name: dbProduct['product_name'] ?? '',
                                   category: 'Trending Items',
                                   priceBDT: price,
+                                  regularPrice: dbProduct['regular_price'] != null
+                                      ? _parsePrice(dbProduct['regular_price'])
+                                      : null,
                                   images: imageUrl.isNotEmpty ? [imageUrl] : [],
                                   description: dbProduct['description'] ?? '',
                                   additionalInfo: {
                                     'Brand': dbProduct['brand_name'] ?? '',
                                     'stock_quantity': stockQty.toString(),
+                                    if (dbProduct['regular_price'] != null)
+                                      'regular_price':
+                                          '${dbProduct['regular_price']}',
                                     if (dbProduct['rating_avg'] != null)
                                       'rating': '${dbProduct['rating_avg']}',
                                     if (dbProduct['review_count'] != null)
@@ -473,14 +483,51 @@ class _TrendingItemsState extends State<TrendingItems> {
                                                     MainAxisAlignment
                                                         .spaceBetween,
                                                 children: [
-                                                  Text(
-                                                    'Tk ${price.toStringAsFixed(0)}',
-                                                    style: const TextStyle(
-                                                      fontWeight:
-                                                          FontWeight.bold,
-                                                      fontSize: 14,
-                                                      color: Color(0xFF2E3192),
-                                                    ),
+                                                  Builder(
+                                                    builder: (_) {
+                                                      final double? regPrice = dbProduct['regular_price'] != null
+                                                          ? _parsePrice(dbProduct['regular_price'])
+                                                          : null;
+                                                      final bool hasDiscount = regPrice != null && regPrice > price;
+                                                      return Column(
+                                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                                        children: [
+                                                          if (hasDiscount)
+                                                            Text(
+                                                              '৳${regPrice.toStringAsFixed(0)}',
+                                                              style: const TextStyle(
+                                                                decoration: TextDecoration.lineThrough,
+                                                                color: AppColors.grey300,
+                                                                fontSize: 11,
+                                                              ),
+                                                            ),
+                                                          Row(
+                                                            mainAxisSize: MainAxisSize.min,
+                                                            children: [
+                                                              Text(
+                                                                '৳${price.toStringAsFixed(0)}',
+                                                                style: const TextStyle(
+                                                                  fontWeight: FontWeight.bold,
+                                                                  fontSize: 14,
+                                                                  color: Color(0xFF2E3192),
+                                                                ),
+                                                              ),
+                                                              if (hasDiscount) ...[
+                                                                const SizedBox(width: 4),
+                                                                Text(
+                                                                  '-${(((regPrice - price) / regPrice) * 100).round()}%',
+                                                                  style: const TextStyle(
+                                                                    color: Colors.red,
+                                                                    fontSize: 10,
+                                                                    fontWeight: FontWeight.bold,
+                                                                  ),
+                                                                ),
+                                                              ],
+                                                            ],
+                                                          ),
+                                                        ],
+                                                      );
+                                                    },
                                                   ),
                                                   ElevatedButton(
                                                     onPressed: () async {
@@ -734,36 +781,56 @@ class _TrendingItemsState extends State<TrendingItems> {
                                                   MainAxisAlignment
                                                       .spaceBetween,
                                               children: [
-                                                Column(
-                                                  crossAxisAlignment:
-                                                      CrossAxisAlignment.start,
-                                                  children: [
-                                                    Text(
-                                                      isFromAdmin
-                                                          ? 'Tk ${adminProducts[index]['price'] ?? ''}'
-                                                          : 'Tk ${product.originalPrice}',
-                                                      style: const TextStyle(
-                                                        decoration:
-                                                            TextDecoration
-                                                                .lineThrough,
-                                                        color: AppColors.grey300,
-                                                        fontSize: 11,
-                                                      ),
-                                                    ),
-                                                    Text(
-                                                      isFromAdmin
-                                                          ? 'Tk ${_getDiscountedPrice(adminProducts[index]['price'])}'
-                                                          : 'Tk ${product.discountedPrice}',
-                                                      style: const TextStyle(
-                                                        fontWeight:
-                                                            FontWeight.bold,
-                                                        fontSize: 14,
-                                                        color: Color(
-                                                          0xFF2E3192,
+                                                Builder(
+                                                  builder: (_) {
+                                                    final double? prevPrice = isFromAdmin
+                                                        ? (adminProducts[index]['regular_price'] != null
+                                                            ? _parsePrice(adminProducts[index]['regular_price'])
+                                                            : null)
+                                                        : product.originalPrice.toDouble();
+                                                    final double curPrice = isFromAdmin
+                                                        ? _parsePrice(adminProducts[index]['price'])
+                                                        : product.discountedPrice.toDouble();
+                                                    final bool hasDiscount = prevPrice != null && prevPrice > curPrice;
+                                                    return Column(
+                                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                                      children: [
+                                                        if (hasDiscount)
+                                                          Text(
+                                                            '৳${prevPrice.toStringAsFixed(0)}',
+                                                            style: const TextStyle(
+                                                              decoration: TextDecoration.lineThrough,
+                                                              color: AppColors.grey300,
+                                                              fontSize: 11,
+                                                            ),
+                                                          ),
+                                                        Row(
+                                                          mainAxisSize: MainAxisSize.min,
+                                                          children: [
+                                                            Text(
+                                                              '৳${curPrice.toStringAsFixed(0)}',
+                                                              style: const TextStyle(
+                                                                fontWeight: FontWeight.bold,
+                                                                fontSize: 14,
+                                                                color: Color(0xFF2E3192),
+                                                              ),
+                                                            ),
+                                                            if (hasDiscount) ...[
+                                                              const SizedBox(width: 4),
+                                                              Text(
+                                                                '-${(((prevPrice - curPrice) / prevPrice) * 100).round()}%',
+                                                                style: const TextStyle(
+                                                                  color: Colors.red,
+                                                                  fontSize: 10,
+                                                                  fontWeight: FontWeight.bold,
+                                                                ),
+                                                              ),
+                                                            ],
+                                                          ],
                                                         ),
-                                                      ),
-                                                    ),
-                                                  ],
+                                                      ],
+                                                    );
+                                                  },
                                                 ),
                                                 ElevatedButton(
                                                   onPressed: () async {

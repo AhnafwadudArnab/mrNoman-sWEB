@@ -63,23 +63,27 @@ class _CollectionDetailPageState extends State<CollectionDetailPage> {
     });
 
     try {
-      // Load products from API based on collection
-      // Try using collectionId first if available, otherwise use slug as category
-      final res = await ApiService.getProducts(
-        categoryId: widget.collectionId,
-        category: widget.collectionId == null ? widget.collectionSlug : null,
-        limit: 100,
-        fresh: true,
-      );
+      List<dynamic> productsList = [];
+      if (widget.collectionId != null && widget.collectionId! > 0) {
+        try {
+          productsList = await ApiService.getCollectionProducts(widget.collectionId!);
+        } catch (e) {
+          debugPrint('getCollectionProducts error: $e');
+        }
+      }
 
-      // Handle both Map and List responses
-      List<dynamic> productsList;
-      if (res is Map<String, dynamic>) {
-        productsList = (res['products'] as List<dynamic>? ?? []);
-      } else if (res is List) {
-        productsList = List<dynamic>.from(res as Iterable<dynamic>);
-      } else {
-        productsList = [];
+      if (productsList.isEmpty) {
+        final res = await ApiService.getProducts(
+          category: widget.collectionSlug ?? widget.collectionName,
+          search: widget.collectionName,
+          limit: 100,
+          fresh: true,
+        );
+        if (res is Map<String, dynamic>) {
+          productsList = (res['products'] as List<dynamic>? ?? []);
+        } else if (res is List) {
+          productsList = List<dynamic>.from(res as Iterable<dynamic>);
+        }
       }
 
       final list = productsList

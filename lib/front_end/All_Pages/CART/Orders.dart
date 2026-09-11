@@ -19,7 +19,7 @@ import 'Complete_orders.dart';
 import 'cart_models.dart';
 import 'ssl_payment_page.dart';
 
-enum PaymentMethod { bkash, nagad, rocket, upay, cashOnDelivery }
+export 'cart_models.dart' show PaymentMethod;
 
 class SubmitOrderPage extends StatefulWidget {
   final double totalAmount;
@@ -662,91 +662,180 @@ class _SubmitOrderPageState extends State<SubmitOrderPage> {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('? Payment Successful'),
-        content: SingleChildScrollView(
+      builder: (dialogContext) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        backgroundColor: Colors.white,
+        child: Container(
+          constraints: const BoxConstraints(maxWidth: 440),
+          padding: const EdgeInsets.all(24),
           child: Column(
             mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Text(
-                'Method: ${method == PaymentMethod.bkash
-                    ? "bKash"
-                    : method == PaymentMethod.nagad
-                    ? "Nagad"
-                    : method == PaymentMethod.rocket
-                    ? "Rocket"
-                    : method == PaymentMethod.upay
-                    ? "Upay"
-                    : "Cash on Delivery"}',
-                style: const TextStyle(fontWeight: FontWeight.w600),
+              Center(
+                child: Container(
+                  width: 60,
+                  height: 60,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF10B981).withOpacity(0.12),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.check_circle_rounded,
+                    color: Color(0xFF10B981),
+                    size: 38,
+                  ),
+                ),
               ),
-              const SizedBox(height: 16),
-              // Order Summary Breakdown
+              const SizedBox(height: 14),
+              const Text(
+                'Order Confirmed!',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF0F172A),
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                'Your order has been placed successfully via ${method == PaymentMethod.bkash ? "bKash" : method == PaymentMethod.nagad ? "Nagad" : method == PaymentMethod.rocket ? "Rocket" : method == PaymentMethod.upay ? "Upay" : "Cash on Delivery"}.',
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontSize: 13, color: Color(0xFF64748B)),
+              ),
+              const SizedBox(height: 18),
+              // Order Summary Breakdown Card
               Container(
-                padding: const EdgeInsets.all(12),
+                padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
-                  color: AppColors.grey300,
-                  border: Border.all(color: Colors.black26),
-                  borderRadius: BorderRadius.circular(8),
+                  color: const Color(0xFFF8FAFC),
+                  border: Border.all(color: const Color(0xFFE2E8F0)),
+                  borderRadius: BorderRadius.circular(12),
                 ),
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Subtotal
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text('Subtotal:', style: TextStyle(fontSize: 13)),
-                        Text(
-                          '?${(capturedTotal - _couponDiscount - _deliveryCharge).toStringAsFixed(2)}',
-                          style: const TextStyle(fontSize: 13),
+                        const Text(
+                          'Order ID:',
+                          style: TextStyle(fontSize: 12, color: Color(0xFF64748B)),
+                        ),
+                        SelectableText(
+                          orderId ?? 'EC-${DateTime.now().millisecondsSinceEpoch}',
+                          style: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            fontFamily: 'monospace',
+                            color: Color(0xFF0F172A),
+                          ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 8),
-                    // Delivery Charge
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text('Delivery Charge:', style: TextStyle(fontSize: 13)),
-                        Text(
-                          '?${_deliveryCharge.toStringAsFixed(2)}',
-                          style: const TextStyle(fontSize: 13, color: Colors.orange),
-                        ),
-                      ],
-                    ),
-                    // Coupon Discount (if applied)
-                    if (_couponDiscount > 0) ...[
-                      const SizedBox(height: 8),
+                    if (transactionId != null && transactionId.isNotEmpty && transactionId != 'N/A') ...[
+                      const SizedBox(height: 6),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Text('Discount:', style: TextStyle(fontSize: 13)),
-                          Text(
-                            '-?${_couponDiscount.toStringAsFixed(2)}',
-                            style: const TextStyle(fontSize: 13, color: Colors.green),
+                          const Text(
+                            'Transaction ID:',
+                            style: TextStyle(fontSize: 12, color: Color(0xFF64748B)),
+                          ),
+                          SelectableText(
+                            transactionId,
+                            style: const TextStyle(
+                              fontSize: 12,
+                              fontFamily: 'monospace',
+                              color: Color(0xFF0F172A),
+                            ),
                           ),
                         ],
                       ),
                     ],
-                    const SizedBox(height: 8),
-                    const Divider(thickness: 1),
-                    const SizedBox(height: 8),
-                    // Grand Total
+                    const SizedBox(height: 6),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          'Delivery Area:',
+                          style: TextStyle(fontSize: 12, color: Color(0xFF64748B)),
+                        ),
+                        Text(
+                          _isInsideDhaka ? "Inside Dhaka (৳${_insideDhakaCharge.toStringAsFixed(0)})" : "Outside Dhaka (৳${_outsideDhakaCharge.toStringAsFixed(0)})",
+                          style: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                            color: Color(0xFF0F172A),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const Divider(height: 16, thickness: 1, color: Color(0xFFE2E8F0)),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          'Subtotal:',
+                          style: TextStyle(fontSize: 12, color: Color(0xFF64748B)),
+                        ),
+                        Text(
+                          '৳${(capturedTotal - _couponDiscount - _deliveryCharge).toStringAsFixed(2)}',
+                          style: const TextStyle(fontSize: 12, color: Color(0xFF0F172A)),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          'Delivery Charge:',
+                          style: TextStyle(fontSize: 12, color: Color(0xFF64748B)),
+                        ),
+                        Text(
+                          '৳${_deliveryCharge.toStringAsFixed(2)}',
+                          style: const TextStyle(fontSize: 12, color: Color(0xFF2563EB)),
+                        ),
+                      ],
+                    ),
+                    if (_couponDiscount > 0) ...[
+                      const SizedBox(height: 4),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text(
+                            'Coupon Discount:',
+                            style: TextStyle(fontSize: 12, color: Color(0xFF10B981)),
+                          ),
+                          Text(
+                            '-৳${_couponDiscount.toStringAsFixed(2)}',
+                            style: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF10B981),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                    const Divider(height: 16, thickness: 1, color: Color(0xFFE2E8F0)),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         const Text(
                           'Grand Total:',
-                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-                        ),
-                        Text(
-                          '?${_grandTotal.toStringAsFixed(2)}',
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 14,
-                            color: Colors.green,
+                            color: Color(0xFF0F172A),
+                          ),
+                        ),
+                        Text(
+                          '৳${_grandTotal.toStringAsFixed(2)}',
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                            color: Color(0xFF10B981),
                           ),
                         ),
                       ],
@@ -754,63 +843,50 @@ class _SubmitOrderPageState extends State<SubmitOrderPage> {
                   ],
                 ),
               ),
-              const SizedBox(height: 16),
-              SelectableText(
-                'Order ID: ${orderId ?? 'EC-${DateTime.now().millisecondsSinceEpoch}'}',
-                style: const TextStyle(fontSize: 12, fontFamily: 'monospace'),
-              ),
-              const SizedBox(height: 4),
-              SelectableText(
-                'Txn ID: $transactionId',
-                style: const TextStyle(fontSize: 12, fontFamily: 'monospace'),
-              ),
-              const SizedBox(height: 12),
-              Text(
-                'Delivery: $_isInsideDhaka ? "Inside Dhaka" : "Outside Dhaka"',
-                style: const TextStyle(fontSize: 12, color: AppColors.grey300),
-              ),
-              const SizedBox(height: 16),
-              const Text(
-                '? Payment verified and processing your order...',
-                style: TextStyle(
-                  color: Colors.green,
-                  fontWeight: FontWeight.w600,
-                  fontSize: 13,
+              const SizedBox(height: 20),
+              ElevatedButton.icon(
+                onPressed: () {
+                  Navigator.pop(dialogContext);
+                  Navigator.of(context).pushAndRemoveUntil(
+                    MaterialPageRoute(
+                      builder: (_) => OrderCompletedPage(
+                        orderId: orderId ?? '',
+                        paymentMethod: method == PaymentMethod.bkash
+                            ? 'bKash'
+                            : method == PaymentMethod.nagad
+                            ? 'Nagad'
+                            : method == PaymentMethod.rocket
+                            ? 'Rocket'
+                            : method == PaymentMethod.upay
+                            ? 'Upay'
+                            : 'Cash on Delivery',
+                        transactionId: transactionId,
+                        estimatedDelivery: estimatedDelivery,
+                        orderItems: capturedItems,
+                        totalAmount: capturedTotal,
+                      ),
+                    ),
+                    (route) => route.isFirst,
+                  );
+                },
+                icon: const Icon(Icons.receipt_long_rounded, size: 18),
+                label: const Text(
+                  'View Order Details',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF2563EB),
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  elevation: 0,
                 ),
               ),
             ],
           ),
         ),
-        actions: [
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(dialogContext);
-              Navigator.of(context).pushAndRemoveUntil(
-                MaterialPageRoute(
-                  builder: (_) => OrderCompletedPage(
-                    orderId: orderId ?? '',
-                    paymentMethod: method == PaymentMethod.bkash
-                        ? 'bKash'
-                        : method == PaymentMethod.nagad
-                        ? 'Nagad'
-                        : method == PaymentMethod.rocket
-                        ? 'Rocket'
-                        : method == PaymentMethod.upay
-                        ? 'Upay'
-                        : 'Cash on Delivery',
-                    transactionId: transactionId,
-                    estimatedDelivery: estimatedDelivery,
-                    orderItems: capturedItems,
-                    totalAmount: capturedTotal,
-                  ),
-                ),
-                (route) => route.isFirst,
-              );
-            },
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
-            child: const Text('View Order'),
-          ),
-        ],
       ),
     );
   }
@@ -875,7 +951,7 @@ class _SubmitOrderPageState extends State<SubmitOrderPage> {
           ),
           const SizedBox(height: 8),
           Text(
-            'Amount: ?${widget.totalAmount.toStringAsFixed(2)}',
+            'Amount: ৳${widget.totalAmount.toStringAsFixed(2)}',
             style: const TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w600,
@@ -1376,12 +1452,12 @@ class _SubmitOrderPageState extends State<SubmitOrderPage> {
           const SizedBox(height: 8),
           _buildDeliveryRadio(
             label:
-                'Outside Dhaka - ?${_outsideDhakaCharge.toStringAsFixed(0)}TK',
+                'Outside Dhaka - ৳${_outsideDhakaCharge.toStringAsFixed(0)}',
             value: false,
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 8),
           _buildDeliveryRadio(
-            label: 'Inside Dhaka - ?${_insideDhakaCharge.toStringAsFixed(0)}TK',
+            label: 'Inside Dhaka - ৳${_insideDhakaCharge.toStringAsFixed(0)}',
             value: true,
           ),
           const SizedBox(height: 16),
@@ -1396,19 +1472,19 @@ class _SubmitOrderPageState extends State<SubmitOrderPage> {
                 child: Checkbox(
                   value: _agreedToTerms,
                   onChanged: (v) => setState(() => _agreedToTerms = v ?? false),
-                  activeColor: const Color.fromARGB(255, 243, 236, 236),
+                  activeColor: const Color(0xFF2563EB),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(3),
+                    borderRadius: BorderRadius.circular(4),
                   ),
                 ),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: 10),
               Expanded(
                 child: Wrap(
                   children: [
                     const Text(
                       'I agree with the ',
-                      style: TextStyle(fontSize: 12, color: Colors.black),
+                      style: TextStyle(fontSize: 12, color: Color(0xFF334155)),
                     ),
                     GestureDetector(
                       onTap: () =>
@@ -1417,14 +1493,15 @@ class _SubmitOrderPageState extends State<SubmitOrderPage> {
                         'Terms & Conditions',
                         style: TextStyle(
                           fontSize: 12,
-                          color: Colors.blue,
+                          color: Color(0xFF2563EB),
+                          fontWeight: FontWeight.w600,
                           decoration: TextDecoration.underline,
                         ),
                       ),
                     ),
                     const Text(
                       ', ',
-                      style: TextStyle(fontSize: 12, color: Colors.black),
+                      style: TextStyle(fontSize: 12, color: Color(0xFF334155)),
                     ),
                     GestureDetector(
                       onTap: () => _launchPolicyUrl(AppConstants.returnPolicy),
@@ -1432,14 +1509,15 @@ class _SubmitOrderPageState extends State<SubmitOrderPage> {
                         'Return Policy',
                         style: TextStyle(
                           fontSize: 12,
-                          color: Colors.blue,
+                          color: Color(0xFF2563EB),
+                          fontWeight: FontWeight.w600,
                           decoration: TextDecoration.underline,
                         ),
                       ),
                     ),
                     const Text(
                       ', and ',
-                      style: TextStyle(fontSize: 12, color: Colors.black),
+                      style: TextStyle(fontSize: 12, color: Color(0xFF334155)),
                     ),
                     GestureDetector(
                       onTap: () => _launchPolicyUrl(AppConstants.privacyPolicy),
@@ -1447,7 +1525,8 @@ class _SubmitOrderPageState extends State<SubmitOrderPage> {
                         'Privacy Policy',
                         style: TextStyle(
                           fontSize: 12,
-                          color: Colors.blue,
+                          color: Color(0xFF2563EB),
+                          fontWeight: FontWeight.w600,
                           decoration: TextDecoration.underline,
                         ),
                       ),
@@ -1466,48 +1545,66 @@ class _SubmitOrderPageState extends State<SubmitOrderPage> {
     final isSelected = _isInsideDhaka == value;
     return GestureDetector(
       onTap: () => setState(() => _isInsideDhaka = value),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.redLight: AppColors.white,
-          borderRadius: BorderRadius.circular(8),
+          color: isSelected ? const Color(0xFFEFF6FF) : Colors.white,
+          borderRadius: BorderRadius.circular(10),
           border: Border.all(
-            color: isSelected ? const Color.fromARGB(221, 224, 22, 22) : AppColors.grey200,
+            color: isSelected ? const Color(0xFF2563EB) : const Color(0xFFE2E8F0),
             width: isSelected ? 1.5 : 1,
           ),
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                    color: const Color(0xFF2563EB).withOpacity(0.08),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ]
+              : null,
         ),
         child: Row(
           children: [
             Container(
-              width: 18,
-              height: 18,
+              width: 20,
+              height: 20,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: isSelected ? AppColors.black : AppColors.grey200,
+                  color: isSelected ? const Color(0xFF2563EB) : const Color(0xFF94A3B8),
                   width: 2,
                 ),
               ),
               child: isSelected
                   ? Center(
                       child: Container(
-                        width: 8,
-                        height: 8,
+                        width: 10,
+                        height: 10,
                         decoration: const BoxDecoration(
                           shape: BoxShape.circle,
-                          color: AppColors.grey300,
+                          color: Color(0xFF2563EB),
                         ),
                       ),
                     )
                   : null,
             ),
+            const SizedBox(width: 12),
+            Icon(
+              value ? Icons.location_city_rounded : Icons.local_shipping_outlined,
+              size: 20,
+              color: isSelected ? const Color(0xFF2563EB) : const Color(0xFF64748B),
+            ),
             const SizedBox(width: 10),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-                color: AppColors.grey300,
+            Expanded(
+              child: Text(
+                label,
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                  color: isSelected ? const Color(0xFF0F172A) : const Color(0xFF334155),
+                ),
               ),
             ),
           ],
@@ -1993,64 +2090,65 @@ class _SubmitOrderPageState extends State<SubmitOrderPage> {
           const SizedBox(height: 16),
           // Order summary
           Container(
-            padding: const EdgeInsets.all(14),
+            padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: const Color(0x0DFF9800),
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: const Color(0x33FF9800)),
+              color: const Color(0xFFF8FAFC),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: const Color(0xFFE2E8F0)),
             ),
             child: Column(
               children: [
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
+                    const Text(
                       'Subtotal',
-                      style: TextStyle(color: AppColors.grey300, fontSize: 13),
+                      style: TextStyle(color: Color(0xFF64748B), fontSize: 13),
                     ),
                     Text(
-                      '?${widget.totalAmount.toStringAsFixed(2)}',
-                      style: const TextStyle(fontSize: 13),
+                      '৳${widget.totalAmount.toStringAsFixed(2)}',
+                      style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Color(0xFF0F172A)),
                     ),
                   ],
                 ),
                 if (_couponDiscount > 0) ...[
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 6),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
+                      const Text(
                         'Discount',
                         style: TextStyle(
-                          color: Colors.green[600],
+                          color: Color(0xFF10B981),
                           fontSize: 13,
                         ),
                       ),
                       Text(
-                        '-?${_couponDiscount.toStringAsFixed(2)}',
-                        style: TextStyle(
-                          color: Colors.green[600],
+                        '-৳${_couponDiscount.toStringAsFixed(2)}',
+                        style: const TextStyle(
+                          color: Color(0xFF10B981),
+                          fontWeight: FontWeight.bold,
                           fontSize: 13,
                         ),
                       ),
                     ],
                   ),
                 ],
-                const Divider(height: 16),
+                const Divider(height: 18, thickness: 1, color: Color(0xFFE2E8F0)),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
+                    const Text(
                       'Delivery',
-                      style: TextStyle(color: AppColors.grey300, fontSize: 13),
+                      style: TextStyle(color: Color(0xFF64748B), fontSize: 13),
                     ),
                     Text(
-                      '?${_deliveryCharge.toStringAsFixed(0)} (${_isInsideDhaka ? 'Inside Dhaka' : 'Outside Dhaka'})',
-                      style: const TextStyle(fontSize: 13),
+                      '৳${_deliveryCharge.toStringAsFixed(0)} (${_isInsideDhaka ? 'Inside Dhaka' : 'Outside Dhaka'})',
+                      style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: Color(0xFF2563EB)),
                     ),
                   ],
                 ),
-                const Divider(height: 16),
+                const Divider(height: 18, thickness: 1, color: Color(0xFFE2E8F0)),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -2058,15 +2156,16 @@ class _SubmitOrderPageState extends State<SubmitOrderPage> {
                       'Total',
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
-                        fontSize: 15,
+                        fontSize: 16,
+                        color: Color(0xFF0F172A),
                       ),
                     ),
                     Text(
-                      '?${_grandTotal.toStringAsFixed(2)}',
+                      '৳${_grandTotal.toStringAsFixed(2)}',
                       style: const TextStyle(
                         fontWeight: FontWeight.bold,
-                        fontSize: 15,
-                        color: Colors.orange,
+                        fontSize: 18,
+                        color: Color(0xFF2563EB),
                       ),
                     ),
                   ],
@@ -2091,7 +2190,7 @@ class _SubmitOrderPageState extends State<SubmitOrderPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        // COD button ? black like the website
+        // COD button - sleek dark card
         SizedBox(
           width: double.infinity,
           child: ElevatedButton.icon(
@@ -2104,11 +2203,11 @@ class _SubmitOrderPageState extends State<SubmitOrderPage> {
                   }
                 : null,
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF1a1a1a),
+              backgroundColor: const Color(0xFF0F172A),
               foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(vertical: 15),
+              padding: const EdgeInsets.symmetric(vertical: 16),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(6),
+                borderRadius: BorderRadius.circular(10),
               ),
               elevation: 0,
             ),
@@ -2121,30 +2220,29 @@ class _SubmitOrderPageState extends State<SubmitOrderPage> {
                       color: Colors.white,
                     ),
                   )
-                : const Icon(Icons.local_shipping_outlined, size: 18),
+                : const Icon(Icons.local_shipping_outlined, size: 20),
             label: const Text(
-              '????? ?? ?????????? ?????? ????',
-              style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+              'ক্যাশ অন ডেলিভারিতে অর্ডার করুন',
+              style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
             ),
           ),
         ),
-        const SizedBox(height: 6),
-        // Confirmation hint text (green, like the website)
+        const SizedBox(height: 8),
+        // Confirmation hint text
         if (_agreedToTerms)
           const Text(
-            '????? ????? ????? ???? ????? ???????? ???? ???? ??????? ???? ?????',
+            'পণ্য হাতে পেয়ে মূল্য পরিশোধ করুন। সারা দেশে দ্রুত হোম ডেলিভারি!',
             textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 11, color: Color(0xFF2E7D32)),
+            style: TextStyle(fontSize: 12, color: Color(0xFF166534), fontWeight: FontWeight.w500),
           ),
-        const SizedBox(height: 10),
-        // Pay Online button ? red like the website
+        const SizedBox(height: 12),
+        // Pay Online button
         if (hasOnlineMethod)
           SizedBox(
             width: double.infinity,
             child: ElevatedButton.icon(
               onPressed: canProceed
                   ? () {
-                      // Pick the first available online method
                       final method = _config.bkashEnabled
                           ? PaymentMethod.bkash
                           : _config.nagadEnabled
@@ -2157,11 +2255,11 @@ class _SubmitOrderPageState extends State<SubmitOrderPage> {
                     }
                   : null,
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFCC0000),
+                backgroundColor: const Color(0xFF2563EB),
                 foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 15),
+                padding: const EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(6),
+                  borderRadius: BorderRadius.circular(10),
                 ),
                 elevation: 0,
               ),
@@ -2174,7 +2272,7 @@ class _SubmitOrderPageState extends State<SubmitOrderPage> {
                         color: Colors.white,
                       ),
                     )
-                  : const Icon(Icons.credit_card_outlined, size: 18),
+                  : const Icon(Icons.credit_card_outlined, size: 20),
               label: Text(
                 'Pay Online (${[if (_config.bkashEnabled) 'bKash', if (_config.nagadEnabled) 'Nagad', if (_config.rocketEnabled) 'Rocket', if (_config.upayEnabled) 'Upay'].join(', ')}, Internet Banking)',
                 style: const TextStyle(
@@ -2413,11 +2511,11 @@ class _OnlinePaymentSheetState extends State<_OnlinePaymentSheet> {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    '?${widget.grandTotal.toStringAsFixed(2)}',
+                    '৳${widget.grandTotal.toStringAsFixed(2)}',
                     style: const TextStyle(
                       fontSize: 28,
                       fontWeight: FontWeight.bold,
-                      color: AppColors.grey300,
+                      color: Color(0xFF0F172A),
                     ),
                   ),
                 ],
@@ -2430,7 +2528,7 @@ class _OnlinePaymentSheetState extends State<_OnlinePaymentSheet> {
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(6),
-                  border: Border.all(color: AppColors.grey300),
+                  border: Border.all(color: const Color(0xFFCBD5E1)),
                 ),
                 child: const Row(
                   children: [
@@ -2447,13 +2545,13 @@ class _OnlinePaymentSheetState extends State<_OnlinePaymentSheet> {
           ),
         ),
         const SizedBox(height: 20),
-        _leftRow('Payable Amount', '?${widget.grandTotal.toStringAsFixed(2)}'),
+        _leftRow('Payable Amount', '৳${widget.grandTotal.toStringAsFixed(2)}'),
         const Divider(height: 20),
-        _leftRow('Convenience Charge', '?0.00'),
+        _leftRow('Convenience Charge', '৳0.00'),
         const Divider(height: 20),
         _leftRow(
           'Total amount',
-          '?${widget.grandTotal.toStringAsFixed(2)}',
+          '৳${widget.grandTotal.toStringAsFixed(2)}',
           bold: true,
         ),
         const SizedBox(height: 24),
@@ -2604,7 +2702,7 @@ class _OnlinePaymentSheetState extends State<_OnlinePaymentSheet> {
               elevation: 0,
             ),
             child: Text(
-              'Pay ?${widget.grandTotal.toStringAsFixed(2)}',
+              'Pay ৳${widget.grandTotal.toStringAsFixed(2)}',
               style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
           ),
@@ -2994,7 +3092,7 @@ class _PaymentInstructionPageState extends State<_PaymentInstructionPage> {
                         children: [
                           Expanded(
                             child: _boldLine(
-                              'Enter the Amount: ?${widget.amount.toStringAsFixed(0)}',
+                              'Enter the Amount: ৳${widget.amount.toStringAsFixed(0)}',
                             ),
                           ),
                           const SizedBox(width: 6),
@@ -3238,8 +3336,8 @@ class OrderModel {
 
     final totalAmount = o['total_amount'] ?? o['total'];
     final totalStr = totalAmount != null
-        ? '?${_parsePrice(totalAmount).toStringAsFixed(0)}'
-        : '?0';
+        ? '৳${_parsePrice(totalAmount).toStringAsFixed(0)}'
+        : '৳0';
 
     return OrderModel(
       id: (o['order_id'] ?? o['orderId'] ?? '').toString(),

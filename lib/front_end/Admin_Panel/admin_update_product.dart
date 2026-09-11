@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:electrocitybd1/front_end/Admin_Panel/admin_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
@@ -52,14 +53,14 @@ class _AdminUpdateProductPageState extends State<AdminUpdateProductPage> {
         backgroundColor: AdminTheme.surface,
         title: const Text(
           'Set API Base URL',
-          style: TextStyle(color: Colors.white),
+          style: TextStyle(color: AdminTheme.textPrimary),
         ),
         content: TextField(
           controller: controller,
-          style: const TextStyle(color: Colors.white),
+          style: const TextStyle(color: AdminTheme.textPrimary),
           decoration: const InputDecoration(
             hintText: 'https://your-host/api',
-            hintStyle: TextStyle(color: Colors.white38),
+            hintStyle: TextStyle(color: AdminTheme.textMuted),
           ),
         ),
         actions: [
@@ -127,7 +128,7 @@ class _AdminUpdateProductPageState extends State<AdminUpdateProductPage> {
     try {
       debugPrint('?? Loading products from API...');
       final res = await ApiService.getProducts(limit: 200);
-      debugPrint('? API Response type: ${res.runtimeType}');
+      debugPrint('✓ API Response type: ${res.runtimeType}');
 
       // Handle different response formats
       List<dynamic> list = [];
@@ -149,7 +150,7 @@ class _AdminUpdateProductPageState extends State<AdminUpdateProductPage> {
           .map((e) => Map<String, dynamic>.from(e as Map))
           .toList();
 
-      debugPrint('? Loaded ${_dbProducts.length} products');
+      debugPrint('✓ Loaded ${_dbProducts.length} products');
 
       // Load section information for each product
       await _loadProductSections();
@@ -169,7 +170,7 @@ class _AdminUpdateProductPageState extends State<AdminUpdateProductPage> {
         debugPrint('?? Cache save failed: $e');
       }
     } on ApiException catch (e) {
-      debugPrint('? ApiException: ${e.message}');
+      debugPrint('✗ ApiException: ${e.message}');
       bool restored = await _restoreFromCache();
       if (!restored) {
         setState(() {
@@ -178,7 +179,7 @@ class _AdminUpdateProductPageState extends State<AdminUpdateProductPage> {
         });
       }
     } catch (e, stackTrace) {
-      debugPrint('? Error loading products: $e');
+      debugPrint('✗ Error loading products: $e');
       debugPrint('Stack trace: $stackTrace');
       bool restored = await _restoreFromCache();
       if (!restored) {
@@ -230,7 +231,7 @@ class _AdminUpdateProductPageState extends State<AdminUpdateProductPage> {
         product['sections'] = sections;
       }
 
-      debugPrint('? Loaded section information for products');
+      debugPrint('✓ Loaded section information for products');
     } catch (e) {
       debugPrint('?? Failed to load section info: $e');
       // Continue without section info
@@ -266,7 +267,7 @@ class _AdminUpdateProductPageState extends State<AdminUpdateProductPage> {
   @override
   Widget build(BuildContext context) {
     const Color cardBg = AdminTheme.surface;
-    const Color brandOrange = Color(0xFFF59E0B);
+    const Color brandAccent = AdminTheme.brand;
 
     final content = Column(
       children: [
@@ -279,7 +280,7 @@ class _AdminUpdateProductPageState extends State<AdminUpdateProductPage> {
                 child: Text(
                   'Update & Delete Products',
                   style: TextStyle(
-                    color: Colors.white,
+                    color: AdminTheme.textPrimary,
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
                   ),
@@ -287,7 +288,7 @@ class _AdminUpdateProductPageState extends State<AdminUpdateProductPage> {
                 ),
               ),
               IconButton(
-                icon: const Icon(Icons.refresh, color: brandOrange),
+                icon: const Icon(Icons.refresh, color: brandAccent),
                 onPressed: _loading ? null : _loadDbProducts,
                 tooltip: 'Refresh list',
               ),
@@ -297,11 +298,11 @@ class _AdminUpdateProductPageState extends State<AdminUpdateProductPage> {
                   MaterialPageRoute(builder: (_) => const HomePage()),
                   (route) => false,
                 ),
-                icon: const Icon(Icons.store, color: brandOrange, size: 20),
+                icon: const Icon(Icons.store, color: brandAccent, size: 20),
                 label: const Text(
                   'Back to Store',
                   style: TextStyle(
-                    color: brandOrange,
+                    color: brandAccent,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -315,9 +316,9 @@ class _AdminUpdateProductPageState extends State<AdminUpdateProductPage> {
             child: Column(
               children: [
                 TabBar(
-                  labelColor: brandOrange,
+                  labelColor: brandAccent,
                   unselectedLabelColor: AdminTheme.textSecondary,
-                  indicatorColor: brandOrange,
+                  indicatorColor: brandAccent,
                   tabs: const [
                     Tab(text: 'Products in database'),
                     Tab(text: 'Section Products'),
@@ -326,8 +327,8 @@ class _AdminUpdateProductPageState extends State<AdminUpdateProductPage> {
                 Expanded(
                   child: TabBarView(
                     children: [
-                      _buildDbProductsList(context, brandOrange, cardBg),
-                      _buildSectionProductsList(context, brandOrange, cardBg),
+                      _buildDbProductsList(context, brandAccent, cardBg),
+                      _buildSectionProductsList(context, brandAccent, cardBg),
                     ],
                   ),
                 ),
@@ -347,12 +348,12 @@ class _AdminUpdateProductPageState extends State<AdminUpdateProductPage> {
 
   Widget _buildDbProductsList(
     BuildContext context,
-    Color brandOrange,
+    Color brandAccent,
     Color cardBg,
   ) {
     if (_loading) {
       return const Center(
-        child: CircularProgressIndicator(color: Color(0xFFF59E0B)),
+        child: CircularProgressIndicator(color: AdminTheme.brand),
       );
     }
     if (_error != null && _dbProducts.isEmpty) {
@@ -373,11 +374,11 @@ class _AdminUpdateProductPageState extends State<AdminUpdateProductPage> {
           children: [
             Container(
               width: double.infinity,
-              color: Colors.orange,
+              color: AdminTheme.warning.withOpacity(0.15),
               padding: const EdgeInsets.all(8),
               child: const Text(
-                'Backend unavailable ? showing products from website sections',
-                style: TextStyle(color: Colors.orange, fontSize: 12),
+                'Backend unavailable — showing products from website sections',
+                style: TextStyle(color: AdminTheme.warning, fontSize: 12),
                 textAlign: TextAlign.center,
               ),
             ),
@@ -421,7 +422,7 @@ class _AdminUpdateProductPageState extends State<AdminUpdateProductPage> {
                 onPressed: _loadDbProducts,
                 icon: const Icon(Icons.refresh),
                 label: const Text('Retry'),
-                style: ElevatedButton.styleFrom(backgroundColor: brandOrange),
+                style: ElevatedButton.styleFrom(backgroundColor: brandAccent),
               ),
             ],
           ),
@@ -438,7 +439,7 @@ class _AdminUpdateProductPageState extends State<AdminUpdateProductPage> {
     }
     return RefreshIndicator(
       onRefresh: _loadDbProducts,
-      color: brandOrange,
+      color: brandAccent,
       child: ListView.builder(
         padding: const EdgeInsets.all(16),
         itemCount: _dbProducts.length,
@@ -476,7 +477,7 @@ class _AdminUpdateProductPageState extends State<AdminUpdateProductPage> {
 
   Widget _buildSectionProductsList(
     BuildContext context,
-    Color brandOrange,
+    Color brandAccent,
     Color cardBg,
   ) {
     return FutureBuilder<Map<String, List<Map<String, dynamic>>>>(
@@ -484,7 +485,7 @@ class _AdminUpdateProductPageState extends State<AdminUpdateProductPage> {
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(
-            child: CircularProgressIndicator(color: Color(0xFFF59E0B)),
+            child: CircularProgressIndicator(color: AdminTheme.brand),
           );
         }
 
@@ -508,7 +509,7 @@ class _AdminUpdateProductPageState extends State<AdminUpdateProductPage> {
                     icon: const Icon(Icons.refresh),
                     label: const Text('Retry'),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: brandOrange,
+                      backgroundColor: brandAccent,
                     ),
                   ),
                 ],
@@ -533,7 +534,7 @@ class _AdminUpdateProductPageState extends State<AdminUpdateProductPage> {
                   Icon(
                     Icons.inventory_2_outlined,
                     size: 48,
-                    color: Colors.white24,
+                    color: AdminTheme.textMuted,
                   ),
                   const SizedBox(height: 16),
                   const Text(
@@ -545,7 +546,7 @@ class _AdminUpdateProductPageState extends State<AdminUpdateProductPage> {
                   const Text(
                     'Add products to sections like Best Sellers, Trending, etc.',
                     textAlign: TextAlign.center,
-                    style: TextStyle(color: Colors.white38, fontSize: 14),
+                    style: TextStyle(color: AdminTheme.textMuted, fontSize: 14),
                   ),
                 ],
               ),
@@ -555,7 +556,7 @@ class _AdminUpdateProductPageState extends State<AdminUpdateProductPage> {
 
         return RefreshIndicator(
           onRefresh: () async => setState(() {}),
-          color: brandOrange,
+          color: brandAccent,
           child: ListView(
             padding: const EdgeInsets.all(16),
             children: sections.entries.map((entry) {
@@ -574,7 +575,7 @@ class _AdminUpdateProductPageState extends State<AdminUpdateProductPage> {
                         Text(
                           sectionName,
                           style: TextStyle(
-                            color: brandOrange,
+                            color: brandAccent,
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
                           ),
@@ -586,13 +587,13 @@ class _AdminUpdateProductPageState extends State<AdminUpdateProductPage> {
                             vertical: 2,
                           ),
                           decoration: BoxDecoration(
-                            color: brandOrange,
+                            color: brandAccent,
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Text(
                             '${list.length} items',
                             style: TextStyle(
-                              color: brandOrange,
+                              color: brandAccent,
                               fontSize: 12,
                               fontWeight: FontWeight.w600,
                             ),
@@ -695,12 +696,12 @@ class _AdminUpdateProductPageState extends State<AdminUpdateProductPage> {
       }
       sections['Flash_Sale'] = flashProducts;
 
-      debugPrint('? Loaded website sections:');
+      debugPrint('✓ Loaded website sections:');
       sections.forEach((key, value) {
         debugPrint('  - $key: ${value.length} products');
       });
     } catch (e) {
-      debugPrint('? Error loading website sections: $e');
+      debugPrint('✗ Error loading website sections: $e');
       rethrow;
     }
 
@@ -734,7 +735,7 @@ class _DbProductTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     const Color cardBg = AdminTheme.surface;
-    const Color brandOrange = Color(0xFFF59E0B);
+    const Color brandAccent = AdminTheme.brand;
 
     return Card(
       color: cardBg,
@@ -798,14 +799,14 @@ class _DbProductTile extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              '? $price ? ID: $productId${(rating != null && rating!.isNotEmpty) ? ' ? ? $rating' : ''}${(reviews != null && reviews!.isNotEmpty) ? ' ($reviews)' : ''}',
+              '৳ $price • ID: $productId${(rating != null && rating!.isNotEmpty) ? ' • ★ $rating' : ''}${(reviews != null && reviews!.isNotEmpty) ? ' ($reviews)' : ''}',
               style: const TextStyle(color: Colors.green),
             ),
             if (imageUrl.isEmpty)
               const Padding(
                 padding: EdgeInsets.only(top: 2),
                 child: Text(
-                  '? No image ? tap edit to add one',
+                  '• No image — tap edit to add one',
                   style: TextStyle(color: Colors.redAccent, fontSize: 11),
                 ),
               ),
@@ -914,7 +915,7 @@ class _DbProductTile extends StatelessWidget {
         backgroundColor: AdminTheme.surface,
         title: const Text(
           'Update Rating',
-          style: TextStyle(color: Colors.white),
+          style: TextStyle(color: AdminTheme.textPrimary),
         ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
@@ -924,20 +925,20 @@ class _DbProductTile extends StatelessWidget {
               keyboardType: const TextInputType.numberWithOptions(
                 decimal: true,
               ),
-              style: const TextStyle(color: Colors.white),
+              style: const TextStyle(color: AdminTheme.textPrimary),
               decoration: const InputDecoration(
                 hintText: 'Average rating (0-5)',
-                hintStyle: TextStyle(color: Colors.white24),
+                hintStyle: TextStyle(color: AdminTheme.textMuted),
               ),
             ),
             const SizedBox(height: 8),
             TextField(
               controller: cCtrl,
               keyboardType: TextInputType.number,
-              style: const TextStyle(color: Colors.white),
+              style: const TextStyle(color: AdminTheme.textPrimary),
               decoration: const InputDecoration(
                 hintText: 'Review count',
-                hintStyle: TextStyle(color: Colors.white24),
+                hintStyle: TextStyle(color: AdminTheme.textMuted),
               ),
             ),
           ],
@@ -1030,6 +1031,27 @@ class _DbProductTile extends StatelessWidget {
     int? selectedBrandId = productData?['brand_id'] is int
         ? productData!['brand_id'] as int
         : int.tryParse(productData?['brand_id']?.toString() ?? '');
+
+    final categoryIds = categories
+        .map((c) => c['category_id'] is int
+            ? c['category_id'] as int
+            : int.tryParse(c['category_id']?.toString() ?? ''))
+        .whereType<int>()
+        .toSet();
+    if (selectedCategoryId != null && !categoryIds.contains(selectedCategoryId)) {
+      selectedCategoryId = null;
+    }
+
+    final brandIds = brands
+        .map((b) => b['brand_id'] is int
+            ? b['brand_id'] as int
+            : int.tryParse(b['brand_id']?.toString() ?? ''))
+        .whereType<int>()
+        .toSet();
+    if (selectedBrandId != null && !brandIds.contains(selectedBrandId)) {
+      selectedBrandId = null;
+    }
+
     Uint8List? pickedBytes;
     String? pickedFileName;
 
@@ -1040,7 +1062,7 @@ class _DbProductTile extends StatelessWidget {
           backgroundColor: AdminTheme.surface,
           title: Text(
             'Edit: $name',
-            style: const TextStyle(color: Colors.white),
+            style: const TextStyle(color: AdminTheme.textPrimary),
           ),
           content: SingleChildScrollView(
             child: ConstrainedBox(
@@ -1067,10 +1089,15 @@ class _DbProductTile extends StatelessWidget {
                       ),
                       items: categories
                           .map(
-                            (c) => DropdownMenuItem<int>(
-                              value: c['category_id'] as int?,
-                              child: Text(c['category_name']?.toString() ?? ''),
-                            ),
+                            (c) {
+                              final id = c['category_id'] is int
+                                  ? c['category_id'] as int
+                                  : int.tryParse(c['category_id']?.toString() ?? '');
+                              return DropdownMenuItem<int>(
+                                value: id,
+                                child: Text(c['category_name']?.toString() ?? ''),
+                              );
+                            },
                           )
                           .toList(),
                       onChanged: (v) => setS(() => selectedCategoryId = v),
@@ -1087,10 +1114,15 @@ class _DbProductTile extends StatelessWidget {
                       ),
                       items: brands
                           .map(
-                            (b) => DropdownMenuItem<int>(
-                              value: b['brand_id'] as int?,
-                              child: Text(b['brand_name']?.toString() ?? ''),
-                            ),
+                            (b) {
+                              final id = b['brand_id'] is int
+                                  ? b['brand_id'] as int
+                                  : int.tryParse(b['brand_id']?.toString() ?? '');
+                              return DropdownMenuItem<int>(
+                                value: id,
+                                child: Text(b['brand_name']?.toString() ?? ''),
+                              );
+                            },
                           )
                           .toList(),
                       onChanged: (v) => setS(() => selectedBrandId = v),
@@ -1120,8 +1152,8 @@ class _DbProductTile extends StatelessWidget {
                   const SizedBox(height: 8),
                   OutlinedButton.icon(
                     style: OutlinedButton.styleFrom(
-                      foregroundColor: const Color(0xFFF59E0B),
-                      side: const BorderSide(color: Color(0xFFF59E0B)),
+                      foregroundColor: AdminTheme.brand,
+                      side: const BorderSide(color: AdminTheme.brand),
                     ),
                     icon: const Icon(Icons.upload_file),
                     label: Text(
@@ -1156,7 +1188,7 @@ class _DbProductTile extends StatelessWidget {
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFF59E0B),
+                backgroundColor: AdminTheme.brand,
               ),
               onPressed: () => Navigator.pop(ctx, true),
               child: const Text('Save', style: TextStyle(color: Colors.white)),
@@ -1231,12 +1263,12 @@ class _DbProductTile extends StatelessWidget {
       controller: c,
       maxLines: maxLines,
       keyboardType: numeric ? TextInputType.number : TextInputType.text,
-      style: const TextStyle(color: Colors.white),
+      style: const TextStyle(color: AdminTheme.textPrimary),
       decoration: InputDecoration(
         labelText: label,
         labelStyle: const TextStyle(color: AdminTheme.textMuted),
         enabledBorder: const UnderlineInputBorder(
-          borderSide: BorderSide(color: Colors.white24),
+          borderSide: BorderSide(color: AdminTheme.border),
         ),
       ),
     );
@@ -1246,10 +1278,10 @@ class _DbProductTile extends StatelessWidget {
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF151C2C),
+        backgroundColor: AdminTheme.surface,
         title: const Text(
           'Delete product from database?',
-          style: TextStyle(color: Colors.white),
+          style: TextStyle(color: AdminTheme.textPrimary),
         ),
         content: Text(
           'This will remove "$name" from the database. It will no longer appear on the website.',
@@ -1319,7 +1351,7 @@ class _SectionProductTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     const Color cardBg = AdminTheme.surface;
-    const Color brandOrange = Color(0xFFF59E0B);
+    const Color brandAccent = AdminTheme.brand;
     final provider = context.read<AdminProductProvider>();
 
     return Card(
@@ -1361,10 +1393,10 @@ class _SectionProductTile extends StatelessWidget {
         ),
         title: Text(
           name,
-          style: const TextStyle(color: Colors.white, fontSize: 14),
+          style: const TextStyle(color: AdminTheme.textPrimary, fontSize: 14),
         ),
         subtitle: Text(
-          '? $price',
+          '৳ $price',
           style: const TextStyle(color: Colors.green, fontSize: 12),
         ),
         trailing: IconButton(
@@ -1390,7 +1422,7 @@ class _SectionProductTile extends StatelessWidget {
         backgroundColor: AdminTheme.surface,
         title: const Text(
           'Remove from section?',
-          style: TextStyle(color: Colors.white),
+          style: TextStyle(color: AdminTheme.textPrimary),
         ),
         content: Text(
           'Remove "$name" from "$sectionTitle" on the website?',
@@ -1468,10 +1500,10 @@ class _WebsiteSectionProductTile extends StatelessWidget {
         ),
         title: Text(
           name,
-          style: const TextStyle(color: Colors.white, fontSize: 14),
+          style: const TextStyle(color: AdminTheme.textPrimary, fontSize: 14),
         ),
         subtitle: Text(
-          '? $price ? ID: $productId',
+          '৳ $price • ID: $productId',
           style: const TextStyle(color: Colors.green, fontSize: 12),
         ),
         trailing: IconButton(
@@ -1494,7 +1526,7 @@ class _WebsiteSectionProductTile extends StatelessWidget {
         backgroundColor: AdminTheme.surface,
         title: const Text(
           'Remove from section?',
-          style: TextStyle(color: Colors.white),
+          style: TextStyle(color: AdminTheme.textPrimary),
         ),
         content: Text(
           'Remove "$name" from "$sectionName"?\n\nNote: This will remove it from the database section table.',

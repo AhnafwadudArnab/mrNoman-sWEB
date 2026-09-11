@@ -9,6 +9,7 @@ class Product {
     public $product_name;
     public $description;
     public $price;
+    public $regular_price;
     public $stock_quantity;
     public $image_url;
     public $specs;
@@ -228,8 +229,8 @@ class Product {
     
     public function create() {
         $query = "INSERT INTO " . $this->table_name . "
-                  (category_id, brand_id, product_name, description, price, stock_quantity, image_url, specs_json)
-                  VALUES (:category_id, :brand_id, :product_name, :description, :price, :stock, :image, :specs)";
+                  (category_id, brand_id, product_name, description, price, regular_price, stock_quantity, image_url, specs_json)
+                  VALUES (:category_id, :brand_id, :product_name, :description, :price, :regular_price, :stock, :image, :specs)";
         
         $stmt = $this->conn->prepare($query);
         
@@ -238,6 +239,7 @@ class Product {
         $stmt->bindParam(":product_name", $this->product_name);
         $stmt->bindParam(":description", $this->description);
         $stmt->bindParam(":price", $this->price);
+        $stmt->bindParam(":regular_price", $this->regular_price);
         $stmt->bindParam(":stock", $this->stock_quantity);
         $stmt->bindParam(":image", $this->image_url);
         $stmt->bindParam(":specs", $this->specs);
@@ -263,6 +265,7 @@ class Product {
                       product_name = :product_name,
                       description = :description,
                       price = :price,
+                      regular_price = :regular_price,
                       stock_quantity = :stock,
                       image_url = :image
                   WHERE product_id = :product_id";
@@ -274,6 +277,7 @@ class Product {
         $stmt->bindParam(":product_name", $this->product_name);
         $stmt->bindParam(":description", $this->description);
         $stmt->bindParam(":price", $this->price);
+        $stmt->bindParam(":regular_price", $this->regular_price);
         $stmt->bindParam(":stock", $this->stock_quantity);
         $stmt->bindParam(":image", $this->image_url);
         $stmt->bindParam(":product_id", $this->product_id);

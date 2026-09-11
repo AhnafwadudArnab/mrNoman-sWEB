@@ -54,6 +54,9 @@ class CartItem {
   );
 }
 
+enum PaymentMethod { bkash, nagad, rocket, upay, cashOnDelivery }
+
+
 
 
 

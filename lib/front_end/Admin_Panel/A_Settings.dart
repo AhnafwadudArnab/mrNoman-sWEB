@@ -6,10 +6,9 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:electrocitybd1/front_end/All_Pages/CART/Cart_provider.dart';
-import 'package:electrocitybd1/front_end/All_Pages/Registrations/login.dart';
+import 'package:electrocitybd1/front_end/All_Pages/Registrations/admin_login.dart';
 import 'package:electrocitybd1/front_end/utils/api_service.dart';
 import 'package:electrocitybd1/front_end/utils/auth_session.dart';
-import 'package:electrocitybd1/front_end/Provider/language_provider.dart';
 import 'package:electrocitybd1/front_end/Provider/Orders_provider.dart';
 import 'package:electrocitybd1/front_end/pages/Profiles/Wishlist_provider.dart';
 import 'package:electrocitybd1/front_end/Admin_Panel/Admin_sidebar.dart';
@@ -79,7 +78,7 @@ class _AdminSettingsPageState extends State<AdminSettingsPage> {
           ),
           title: Row(
             children: [
-              const Icon(Icons.person, color: Color(0xFF7C3AED), size: 24),
+              const Icon(Icons.person, color: AdminTheme.brand, size: 24),
               const SizedBox(width: 12),
               Text(
                 'Admin Profile',
@@ -146,11 +145,11 @@ class _AdminSettingsPageState extends State<AdminSettingsPage> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-          backgroundColor: AdminTheme.surface,
+        backgroundColor: AdminTheme.surface,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Row(
           children: [
-            const Icon(Icons.lock, color: Color(0xFF7C3AED), size: 24),
+            const Icon(Icons.lock, color: AdminTheme.brand, size: 24),
             const SizedBox(width: 12),
             Text(
               'Change Password',
@@ -257,87 +256,16 @@ class _AdminSettingsPageState extends State<AdminSettingsPage> {
               }
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF7C3AED),
-              foregroundColor: Colors.black,
+              backgroundColor: AdminTheme.brand,
+              foregroundColor: Colors.white,
             ),
-            child: const Text('Change Password'),
+            child: const Text('Save'),
           ),
         ],
       ),
     );
   }
 
-  void _showLanguageDialog(BuildContext context) {
-    final languageProvider = context.read<LanguageProvider>();
-
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: AdminTheme.surface,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Row(
-          children: [
-            const SizedBox(width: 12),
-            Text(
-              'Select Language',
-              style: TextStyle(color: AdminTheme.textPrimary),
-            ),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              leading: const Text('????', style: TextStyle(fontSize: 24)),
-              title: Text(
-                'English',
-                style: TextStyle(color: AdminTheme.textPrimary),
-              ),
-              trailing: languageProvider.isEnglish
-                  ? const Icon(Icons.check, color: Color(0xFF7C3AED))
-                  : null,
-              onTap: () async {
-                await languageProvider.setLanguage('en');
-                if (context.mounted) {
-                  Navigator.pop(ctx);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Language set to English')),
-                  );
-                }
-              },
-            ),
-            ListTile(
-              leading: const Text('????', style: TextStyle(fontSize: 24)),
-              title: Text(
-                '?????',
-                style: TextStyle(color: AdminTheme.textPrimary),
-              ),
-              trailing: languageProvider.isBengali
-                  ? const Icon(Icons.check, color: Color(0xFF7C3AED))
-                  : null,
-              onTap: () async {
-                await languageProvider.setLanguage('bn');
-                if (context.mounted) {
-                  Navigator.pop(ctx);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('???? ??????? ??? ??? ??????'),
-                    ),
-                  );
-                }
-              },
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: Text('Close', style: TextStyle(color: AdminTheme.textSecondary)),
-          ),
-        ],
-      ),
-    );
-  }
 
   void _showAboutDialog(BuildContext context) {
     showDialog(
@@ -350,12 +278,12 @@ class _AdminSettingsPageState extends State<AdminSettingsPage> {
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: const Color(0xFF7C3AED),
+                color: AdminTheme.brand,
                 borderRadius: BorderRadius.circular(8),
               ),
               child: const Icon(
                 Icons.storefront,
-                color: Colors.black,
+                color: Colors.white,
                 size: 24,
               ),
             ),
@@ -368,7 +296,7 @@ class _AdminSettingsPageState extends State<AdminSettingsPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'ElectroZoneBD Admin_Panel',
+              'ElectroZoneBD Admin Panel',
               style: TextStyle(
                 color: AdminTheme.textPrimary,
                 fontSize: 18,
@@ -391,7 +319,7 @@ class _AdminSettingsPageState extends State<AdminSettingsPage> {
             ),
             const SizedBox(height: 16),
             Text(
-              ' 2026 ElectroZoneBD. All rights reserved.',
+              '© 2026 ElectroZoneBD. All rights reserved.',
               style: TextStyle(color: AdminTheme.textSecondary, fontSize: 12),
             ),
           ],
@@ -415,40 +343,77 @@ class _AdminSettingsPageState extends State<AdminSettingsPage> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: AdminTheme.surface,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        backgroundColor: Colors.white,
+        surfaceTintColor: Colors.transparent,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: const BorderSide(color: Color(0xFFE2E8F0)),
+        ),
+        titlePadding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
+        contentPadding: const EdgeInsets.fromLTRB(24, 14, 24, 20),
+        actionsPadding: const EdgeInsets.fromLTRB(24, 0, 24, 20),
         title: Row(
           children: [
-            const Icon(Icons.logout, color: Colors.redAccent, size: 24),
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFEE2E2),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Icon(
+                Icons.logout_rounded,
+                color: Color(0xFFDC2626),
+                size: 22,
+              ),
+            ),
             const SizedBox(width: 12),
-            Text(
+            const Text(
               'Confirm Logout',
-              style: TextStyle(color: AdminTheme.textPrimary),
+              style: TextStyle(
+                color: Color(0xFF0F172A),
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ],
         ),
-        content: Text(
-          'Are you sure you want to log out of the Admin_Panel?',
-          style: TextStyle(color: AdminTheme.textSecondary, fontSize: 14),
+        content: const Text(
+          'Are you sure you want to log out of the Admin Panel? You will need to sign in again with your credentials.',
+          style: TextStyle(
+            color: Color(0xFF64748B),
+            fontSize: 13.5,
+            height: 1.45,
+          ),
         ),
         actions: [
-          TextButton(
+          OutlinedButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: Text(
-              'Cancel',
-              style: TextStyle(color: AdminTheme.textSecondary),
+            style: OutlinedButton.styleFrom(
+              backgroundColor: Colors.white,
+              foregroundColor: const Color(0xFF475569),
+              side: const BorderSide(color: Color(0xFFCBD5E1)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
             ),
+            child: const Text('Cancel', style: TextStyle(fontWeight: FontWeight.w600)),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(ctx, true),
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.redAccent,
-              foregroundColor: AdminTheme.textPrimary,
+              backgroundColor: const Color(0xFFDC2626),
+              foregroundColor: Colors.white,
+              elevation: 0,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(8),
               ),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
             ),
-            child: const Text('Logout'),
+            child: const Text(
+              'Log Out',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
           ),
         ],
       ),
@@ -457,13 +422,15 @@ class _AdminSettingsPageState extends State<AdminSettingsPage> {
     if (confirmed == true && context.mounted) {
       await ApiService.clearToken();
       await AuthSession.clear();
-      await context.read<CartProvider>().switchToGuest();
-      context.read<WishlistProvider>().clearWishlist();
-      context.read<OrdersProvider>().clearForLogout();
+      try {
+        await context.read<CartProvider>().switchToGuest();
+        context.read<WishlistProvider>().clearWishlist();
+        context.read<OrdersProvider>().clearForLogout();
+      } catch (_) {}
       if (context.mounted) {
         Navigator.pushAndRemoveUntil(
           context,
-          MaterialPageRoute(builder: (_) => const LogIn()),
+          MaterialPageRoute(builder: (_) => const AdminLoginPage()),
           (route) => false,
         );
       }
@@ -472,7 +439,7 @@ class _AdminSettingsPageState extends State<AdminSettingsPage> {
 
   Widget _buildSettingsContent(BuildContext context) {
     final Color cardBg = AdminTheme.surfaceAlt;
-    final Color brandOrange = Color(0xFF7C3AED);
+    final Color brandOrange = AdminTheme.brand;
     return Column(
       children: [
         AdminPageHeader(
@@ -502,7 +469,10 @@ class _AdminSettingsPageState extends State<AdminSettingsPage> {
                 const SizedBox(height: 8),
                 Text(
                   'Manage your admin preferences and account.',
-                  style: TextStyle(color: AdminTheme.textSecondary, fontSize: 14),
+                  style: TextStyle(
+                    color: AdminTheme.textSecondary,
+                    fontSize: 14,
+                  ),
                 ),
                 const SizedBox(height: 32),
                 _buildSection(
@@ -555,30 +525,19 @@ class _AdminSettingsPageState extends State<AdminSettingsPage> {
                             value,
                           );
                           setState(() => _emailNotifications = value);
-                          if (mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(
-                                  value
-                                      ? 'Email notifications enabled'
-                                      : 'Email notifications disabled',
-                                ),
-                              ),
-                            );
-                          }
                         },
                       ),
                       onTap: () {},
                     ),
                     const Divider(color: AdminTheme.border, height: 1),
                     _buildSettingsTile(
-                      icon: Icons.campaign_outlined,
+                      icon: Icons.notifications_active_outlined,
                       title: 'Push Notifications',
-                      subtitle: 'Get instant updates on your device',
+                      subtitle: 'Get instant browser alerts',
                       trailing: Switch(
                         value: _pushNotifications,
                         activeColor: brandOrange,
-                        onChanged: _togglePushNotifications,
+                        onChanged: (value) => _togglePushNotifications(value),
                       ),
                       onTap: () {},
                     ),
@@ -588,9 +547,11 @@ class _AdminSettingsPageState extends State<AdminSettingsPage> {
                 _buildSection(
                   cardBg,
                   brandOrange,
-                  icon: Icons.qr_code_2,
+                  icon: Icons.qr_code,
                   title: 'Footer QR Code',
-                  children: [_QRCodeUploadSection()],
+                  children: [
+                    _QRCodeUploadSection(),
+                  ],
                 ),
                 const SizedBox(height: 20),
                 _buildSection(
@@ -598,30 +559,21 @@ class _AdminSettingsPageState extends State<AdminSettingsPage> {
                   brandOrange,
                   icon: Icons.chat,
                   title: 'WhatsApp Support',
-                  children: [const _WhatsAppNumberSection()],
+                  children: const [
+                    _WhatsAppNumberSection(),
+                  ],
                 ),
                 const SizedBox(height: 20),
                 _buildSection(
                   cardBg,
                   brandOrange,
-                  icon: Icons.tune_outlined,
+                  icon: Icons.tune,
                   title: 'General',
                   children: [
                     _buildSettingsTile(
-                      icon: Icons.translate_outlined,
-                      title: 'Language',
-                      subtitle: 'English',
-                      trailing: const Icon(
-                        Icons.chevron_right,
-                        color: Color(0x42000000),
-                      ),
-                      onTap: () => _showLanguageDialog(context),
-                    ),
-                    const Divider(color: AdminTheme.border, height: 1),
-                    _buildSettingsTile(
                       icon: Icons.info_outline,
                       title: 'About',
-                      subtitle: 'ElectroZoneBD Admin v1.0',
+                      subtitle: 'System information and version',
                       trailing: const Icon(
                         Icons.chevron_right,
                         color: Color(0x42000000),
@@ -630,36 +582,60 @@ class _AdminSettingsPageState extends State<AdminSettingsPage> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 32),
-                Center(
-                  child: SizedBox(
-                    width: (MediaQuery.of(context).size.width - 64).clamp(
-                      180.0,
-                      300.0,
-                    ),
-                    height: 52,
-                    child: ElevatedButton.icon(
-                      onPressed: () => _handleLogout(context),
-                      icon: const Icon(Icons.logout, size: 20),
-                      label: const Text(
-                        'Logout',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                        ),
+                const SizedBox(height: 28),
+                Container(
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: const Color(0xFFE2E8F0)),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.02),
+                        blurRadius: 6,
+                        offset: const Offset(0, 2),
                       ),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.redAccent.withAlpha(30),
-                        foregroundColor: Colors.redAccent,
-                        side: const BorderSide(color: Colors.redAccent),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
+                    ],
+                  ),
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(12),
+                      onTap: () => _handleLogout(context),
+                      hoverColor: const Color(0xFFFEF2F2),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(6),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFFEE2E2),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: const Icon(
+                                Icons.logout_rounded,
+                                color: Color(0xFFDC2626),
+                                size: 18,
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            const Text(
+                              'Log Out',
+                              style: TextStyle(
+                                color: Color(0xFFDC2626),
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ),
                   ),
                 ),
-                const SizedBox(height: 32),
+                const SizedBox(height: 40),
               ],
             ),
           ),
@@ -668,25 +644,9 @@ class _AdminSettingsPageState extends State<AdminSettingsPage> {
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final Color darkBg = AdminTheme.bg;
-    if (widget.embedded) {
-      return Material(
-        color: darkBg,
-        child: SizedBox.expand(child: _buildSettingsContent(context)),
-      );
-    }
-    return AdminScaffold(
-      selected: AdminSidebarItem.settings,
-      onItemSelected: (item) => _navigate(context, item),
-      body: _buildSettingsContent(context),
-    );
-  }
-
   Widget _buildSection(
     Color cardBg,
-    Color accent, {
+    Color brandOrange, {
     required IconData icon,
     required String title,
     required List<Widget> children,
@@ -694,17 +654,17 @@ class _AdminSettingsPageState extends State<AdminSettingsPage> {
     return Container(
       decoration: BoxDecoration(
         color: cardBg,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(12),
         border: Border.all(color: AdminTheme.border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
-            padding: const EdgeInsets.fromLTRB(24, 20, 24, 12),
+            padding: const EdgeInsets.fromLTRB(20, 16, 20, 12),
             child: Row(
               children: [
-                Icon(icon, color: accent, size: 20),
+                Icon(icon, color: brandOrange, size: 20),
                 const SizedBox(width: 10),
                 Text(
                   title,
@@ -717,6 +677,7 @@ class _AdminSettingsPageState extends State<AdminSettingsPage> {
               ],
             ),
           ),
+          const Divider(color: AdminTheme.border, height: 1),
           ...children,
         ],
       ),
@@ -747,6 +708,19 @@ class _AdminSettingsPageState extends State<AdminSettingsPage> {
       ),
       trailing: trailing,
       onTap: onTap,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (widget.embedded) {
+      return _buildSettingsContent(context);
+    }
+
+    return AdminScaffold(
+      selected: AdminSidebarItem.settings,
+      onItemSelected: (item) => _navigate(context, item),
+      body: _buildSettingsContent(context),
     );
   }
 }
@@ -940,7 +914,10 @@ class _QRCodeUploadSectionState extends State<_QRCodeUploadSection> {
                 children: [
                   Text(
                     'Current QR Code',
-                    style: TextStyle(color: AdminTheme.textSecondary, fontSize: 12),
+                    style: TextStyle(
+                      color: AdminTheme.textSecondary,
+                      fontSize: 12,
+                    ),
                   ),
                   const SizedBox(height: 4),
                   Text(
@@ -1021,7 +998,7 @@ class _QRCodeUploadSectionState extends State<_QRCodeUploadSection> {
                       color: AdminTheme.textPrimary,
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(
-                        color: const Color(0xFF7C3AED),
+                        color: const Color(0xFF4D6787),
                         width: 2,
                       ),
                     ),
@@ -1082,8 +1059,8 @@ class _QRCodeUploadSectionState extends State<_QRCodeUploadSection> {
                   : const Icon(Icons.cloud_upload),
               label: Text(_uploading ? 'Uploading...' : 'Upload QR Code'),
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF7C3AED),
-                foregroundColor: Colors.black,
+                backgroundColor: const Color(0xFF4D6787),
+                foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
@@ -1238,7 +1215,10 @@ class _WhatsAppNumberSectionState extends State<_WhatsAppNumberSection> {
                 children: [
                   Text(
                     'Current Number',
-                    style: TextStyle(color: AdminTheme.textSecondary, fontSize: 12),
+                    style: TextStyle(
+                      color: AdminTheme.textSecondary,
+                      fontSize: 12,
+                    ),
                   ),
                   const SizedBox(height: 4),
                   Text(

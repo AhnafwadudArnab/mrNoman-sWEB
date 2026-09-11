@@ -197,14 +197,18 @@ if ($segments[0] === 'api') {
     $apiBase = __DIR__ . '/../api';
     $file = null;
 
+    // Normalize endpoint: convert hyphens to underscores for API file lookup
+    $endpoint = isset($segments[1]) ? str_replace('-', '_', $segments[1]) : null;
+    $subEndpoint = isset($segments[2]) ? str_replace('-', '_', $segments[2]) : null;
+
     // Handle routes with IDs (e.g., /api/payment_methods/1 or /api/products/123)
     if (count($segments) >= 3 && is_numeric($segments[2])) {
         $_GET['id'] = $segments[2];
-        $file = $apiBase . '/' . $segments[1] . '.php';
+        $file = $apiBase . '/' . $endpoint . '.php';
     } elseif (count($segments) >= 3) {
-        $file = $apiBase . '/' . $segments[1] . '/' . $segments[2] . '.php';
-    } elseif (count($segments) >= 2) {
-        $file = $apiBase . '/' . $segments[1] . '.php';
+        $file = $apiBase . '/' . $endpoint . '/' . $subEndpoint . '.php';
+    } elseif (count($segments) >= 2 && $endpoint) {
+        $file = $apiBase . '/' . $endpoint . '.php';
     }
 
     if ($file && file_exists($file)) {

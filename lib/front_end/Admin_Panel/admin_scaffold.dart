@@ -54,7 +54,25 @@ class AdminScaffold extends StatelessWidget {
     final surfaceBackground = AdminTheme.surface;
     final brandOrange = AdminTheme.brand;
 
-    return Scaffold(
+    return Theme(
+      data: ThemeData(
+        useMaterial3: true,
+        brightness: Brightness.light,
+        scaffoldBackgroundColor: pageBackground,
+        cardColor: surfaceBackground,
+        canvasColor: surfaceBackground,
+        colorScheme: const ColorScheme.light(
+          primary: AdminTheme.brand,
+          secondary: AdminTheme.brandLight,
+          surface: AdminTheme.surface,
+          onSurface: AdminTheme.textPrimary,
+        ),
+        textTheme: ThemeData.light().textTheme.apply(
+          bodyColor: AdminTheme.textPrimary,
+          displayColor: AdminTheme.textPrimary,
+        ),
+      ),
+      child: Scaffold(
       backgroundColor: pageBackground,
       drawer: isMobile
           ? Drawer(
@@ -112,15 +130,19 @@ class AdminScaffold extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           if (!isMobile)
-            AdminSidebar(
-              sidebarWidth: desktopSidebarWidth,
-              selected: selected,
-              onItemSelected: (item) => _handleItem(context, item),
+            SizedBox(
+              width: desktopSidebarWidth,
+              child: AdminSidebar(
+                sidebarWidth: desktopSidebarWidth,
+                selected: selected,
+                onItemSelected: (item) => _handleItem(context, item),
+              ),
             ),
           Expanded(child: body),
         ],
       ),
-    );
+    ),
+  );
   }
 
   static String _label(AdminSidebarItem item) {
@@ -130,7 +152,11 @@ class AdminScaffold extends StatelessWidget {
       case AdminSidebarItem.orders:
         return 'Orders';
       case AdminSidebarItem.products:
-        return 'Products';
+        return 'Upload Product';
+      case AdminSidebarItem.productList:
+        return 'Product List';
+      case AdminSidebarItem.stockManagement:
+        return 'Stock Management';
       case AdminSidebarItem.collections:
         return 'Collections';
       case AdminSidebarItem.brands:
@@ -169,7 +195,7 @@ class AdminScaffold extends StatelessWidget {
   }
 }
 
-/// Helper widget ? hides the page's own header bar on mobile
+/// Helper widget — hides the page's own header bar on mobile
 /// (since AdminScaffold already shows an AppBar on mobile)
 class AdminPageHeader extends StatelessWidget {
   final List<Widget> children;

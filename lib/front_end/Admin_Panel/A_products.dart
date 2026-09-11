@@ -3,7 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import 'package:electrocitybd1/front_end/All_Pages/Registrations/login.dart';
+import 'package:electrocitybd1/front_end/All_Pages/Registrations/admin_login.dart';
 import 'package:electrocitybd1/front_end/Provider/Admin_product_provider.dart';
 import 'package:electrocitybd1/front_end/Provider/product_refresh_notifier.dart';
 import 'package:electrocitybd1/front_end/pages/home_page.dart';
@@ -43,7 +43,7 @@ class AdminProductUploadPage extends StatelessWidget {
             const Text(
               "Inventory Control & Upload",
               style: TextStyle(
-                color: AdminTheme.textPrimary,
+                color: Colors.black,
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
               ),
@@ -62,13 +62,13 @@ class AdminProductUploadPage extends StatelessWidget {
                   },
                   icon: const Icon(
                     Icons.delete_sweep,
-                    color: Color(0xFF7C3AED),
+                    color: Colors.black,
                     size: 20,
                   ),
                   label: const Text(
                     "Delete Products",
                     style: TextStyle(
-                      color: Color(0xFF7C3AED),
+                      color: Colors.black,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -82,15 +82,11 @@ class AdminProductUploadPage extends StatelessWidget {
                       (route) => false,
                     );
                   },
-                  icon: const Icon(
-                    Icons.store,
-                    color: Color(0xFF7C3AED),
-                    size: 20,
-                  ),
+                  icon: const Icon(Icons.store, color: Colors.black, size: 20),
                   label: const Text(
                     "Back to Store",
                     style: TextStyle(
-                      color: Color(0xFF7C3AED),
+                      color: Colors.black,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -137,7 +133,6 @@ class _SectionSwitcherViewState extends State<_SectionSwitcherView> {
     'Flash_Sale',
     'Tech Part',
     'Others',
-    'Products List',
   ];
 
   static const Map<String, String> _displayToSection = {
@@ -162,7 +157,7 @@ class _SectionSwitcherViewState extends State<_SectionSwitcherView> {
           const Text(
             'Select a Section',
             style: TextStyle(
-              color: AdminTheme.textPrimary,
+              color: Colors.black,
               fontSize: 16,
               fontWeight: FontWeight.bold,
             ),
@@ -181,36 +176,20 @@ class _SectionSwitcherViewState extends State<_SectionSwitcherView> {
             itemBuilder: (context, index) {
               final option = _displayOptions[index];
               final isSelected = _selected == option;
-              final isProductsList = option == 'Products List';
 
               return GestureDetector(
-                onTap: () {
-                  if (isProductsList) {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => const AdminUpdateProductPage(),
-                      ),
-                    );
-                  } else {
-                    setState(() => _selected = option);
-                  }
-                },
+                onTap: () => setState(() => _selected = option),
                 child: Container(
                   decoration: BoxDecoration(
                     color: isSelected ? Colors.blue[50] : Colors.white,
                     border: Border.all(
-                      color: isSelected
-                          ? const Color(0xFF7C3AED)
-                          : AdminTheme.border,
+                      color: isSelected ? Colors.black : AdminTheme.border,
                       width: isSelected ? 2 : 1,
                     ),
                     borderRadius: BorderRadius.circular(12),
                     boxShadow: [
                       BoxShadow(
-                        color: isSelected
-                            ? const Color(0xFF7C3AED)
-                            : Colors.grey.shade200,
+                        color: isSelected ? Colors.black : Colors.grey.shade200,
                         blurRadius: 8,
                         offset: const Offset(0, 2),
                       ),
@@ -220,38 +199,23 @@ class _SectionSwitcherViewState extends State<_SectionSwitcherView> {
                     color: Colors.transparent,
                     child: InkWell(
                       borderRadius: BorderRadius.circular(12),
-                      onTap: () {
-                        if (isProductsList) {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => const AdminUpdateProductPage(),
-                            ),
-                          );
-                        } else {
-                          setState(() => _selected = option);
-                        }
-                      },
+                      onTap: () => setState(() => _selected = option),
                       child: Padding(
                         padding: const EdgeInsets.all(12),
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Icon(
-                              isProductsList ? Icons.list : Icons.local_offer,
+                              Icons.inventory_2_outlined,
                               size: 28,
-                              color: isSelected
-                                  ? const Color(0xFF7C3AED)
-                                  : Colors.grey.shade200,
+                              color: isSelected ? Colors.black : Colors.black,
                             ),
                             const SizedBox(height: 8),
                             Text(
                               option,
                               textAlign: TextAlign.center,
                               style: TextStyle(
-                                color: isSelected
-                                    ? const Color(0xFF7C3AED)
-                                    : AdminTheme.textPrimary,
+                                color: isSelected ? Colors.black : Colors.black,
                                 fontSize: 13,
                                 fontWeight: isSelected
                                     ? FontWeight.w600
@@ -268,8 +232,9 @@ class _SectionSwitcherViewState extends State<_SectionSwitcherView> {
             },
           ),
           const SizedBox(height: 24),
-          if (_selected != 'Products List')
-            _SectionUploadCard(sectionTitle: _displayToSection[_selected]!),
+          _SectionUploadCard(
+            sectionTitle: _displayToSection[_selected] ?? 'Best Sellings',
+          ),
         ],
       ),
     );
@@ -287,6 +252,7 @@ class _SectionUploadCard extends StatefulWidget {
 class _SectionUploadCardState extends State<_SectionUploadCard> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _priceController = TextEditingController();
+  final TextEditingController _regularPriceController = TextEditingController();
   final TextEditingController _descController = TextEditingController();
   final TextEditingController _imageUrlController = TextEditingController();
   final TextEditingController _stockController = TextEditingController(
@@ -378,6 +344,7 @@ class _SectionUploadCardState extends State<_SectionUploadCard> {
   void dispose() {
     _nameController.dispose();
     _priceController.dispose();
+    _regularPriceController.dispose();
     _descController.dispose();
     _imageUrlController.dispose();
     _stockController.dispose();
@@ -445,10 +412,8 @@ class _SectionUploadCardState extends State<_SectionUploadCard> {
 
   Future<void> _loadBrands() async {
     try {
-      // Fetch brands from products endpoint (action=brands) and de-duplicate by name
-      final list =
-          await ApiService.get('/products?action=brands', withAuth: false)
-              as List;
+      // Fetch brands from database via ApiService.getBrands()
+      final list = await ApiService.getBrands();
       if (mounted) {
         setState(() {
           final raw = list
@@ -492,7 +457,7 @@ class _SectionUploadCardState extends State<_SectionUploadCard> {
   @override
   Widget build(BuildContext context) {
     const Color fieldBg = AdminTheme.surface;
-    const Color brandPurple = Color(0xFF7C3AED);
+    const Color brandPurple = AdminTheme.brand;
 
     // Provider Access
     final productProvider = Provider.of<AdminProductProvider>(context);
@@ -522,19 +487,19 @@ class _SectionUploadCardState extends State<_SectionUploadCard> {
               margin: const EdgeInsets.only(top: 12),
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               decoration: BoxDecoration(
-                color: Colors.orange,
-                border: Border.all(color: Colors.orange),
+                color: AdminTheme.info,
+                border: Border.all(color: AdminTheme.info),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Row(
                 children: [
-                  Icon(Icons.info_outline, color: Colors.orange, size: 20),
+                  Icon(Icons.info_outline, color: AdminTheme.info, size: 20),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
                       'Note: A maximum of 4 items can be displayed in this section',
                       style: TextStyle(
-                        color: const Color.fromARGB(255, 14, 13, 13),
+                        color: AdminTheme.textPrimary,
                         fontSize: 13,
                       ),
                     ),
@@ -548,13 +513,28 @@ class _SectionUploadCardState extends State<_SectionUploadCard> {
               final isMobile = constraints.maxWidth < 600;
               final formFields = Column(
                 children: [
-                  _customTextField(_nameController, "Product Name", fieldBg),
+                  _customTextField(_nameController, "Product Name *", fieldBg),
                   const SizedBox(height: 12),
-                  _customTextField(
-                    _priceController,
-                    "Price (BDT)",
-                    fieldBg,
-                    isNumber: true,
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _customTextField(
+                          _priceController,
+                          "Price (BDT) *",
+                          fieldBg,
+                          isNumber: true,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: _customTextField(
+                          _regularPriceController,
+                          "Previous Price (BDT - optional)",
+                          fieldBg,
+                          isNumber: true,
+                        ),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 12),
                   _customTextField(
@@ -575,7 +555,7 @@ class _SectionUploadCardState extends State<_SectionUploadCard> {
                     alignment: Alignment.centerLeft,
                     child: Text(
                       "Product Details",
-                      style: const TextStyle(color: AdminTheme.textMuted),
+                      style: const TextStyle(color: Colors.black),
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -611,15 +591,15 @@ class _SectionUploadCardState extends State<_SectionUploadCard> {
                                   }
                                   return const Center(
                                     child: CircularProgressIndicator(
-                                      color: Color(0xFF6B7280),
+                                      color: AdminTheme.brand,
                                     ),
                                   );
                                 },
                               ),
                             )
-                          : const Icon(
+                          : Icon(
                               Icons.add_a_photo,
-                              color: Color(0xFF6B7280),
+                              color: Colors.black,
                               size: 40,
                             ),
                     ),
@@ -628,13 +608,13 @@ class _SectionUploadCardState extends State<_SectionUploadCard> {
                   DropdownButtonFormField<int>(
                     value: _selectedCategoryId,
                     dropdownColor: fieldBg,
-                    style: const TextStyle(color: AdminTheme.textPrimary),
+                    style: const TextStyle(color: Colors.black),
                     decoration: InputDecoration(
                       filled: true,
                       fillColor: fieldBg,
                       border: InputBorder.none,
                       labelText: 'Category',
-                      labelStyle: TextStyle(color: Color(0xFF6B7280)),
+                      labelStyle: TextStyle(color: Colors.black),
                     ),
                     items: _loadingCategories
                         ? []
@@ -654,13 +634,13 @@ class _SectionUploadCardState extends State<_SectionUploadCard> {
                   DropdownButtonFormField<int>(
                     value: _selectedBrandId,
                     dropdownColor: fieldBg,
-                    style: const TextStyle(color: AdminTheme.textPrimary),
+                    style: const TextStyle(color: Colors.black),
                     decoration: InputDecoration(
                       filled: true,
                       fillColor: fieldBg,
                       border: InputBorder.none,
                       labelText: 'Brand',
-                      labelStyle: TextStyle(color: AdminTheme.textSecondary),
+                      labelStyle: TextStyle(color: Colors.black),
                     ),
                     items: _brands
                         .map(
@@ -708,7 +688,7 @@ class _SectionUploadCardState extends State<_SectionUploadCard> {
                   Expanded(
                     child: Text(
                       'Show in Tech Part (home page section)',
-                      style: TextStyle(color: AdminTheme.textSecondary),
+                      style: TextStyle(color: Colors.black),
                     ),
                   ),
                 ],
@@ -727,14 +707,14 @@ class _SectionUploadCardState extends State<_SectionUploadCard> {
                     height: 24,
                     width: 24,
                     child: CircularProgressIndicator(
-                      color: AdminTheme.textPrimary,
+                      color: Colors.white,
                       strokeWidth: 2,
                     ),
                   )
                 : Text(
                     "Publish to ${widget.sectionTitle}",
                     style: const TextStyle(
-                      color: AdminTheme.textPrimary,
+                      color: Colors.white,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -748,7 +728,7 @@ class _SectionUploadCardState extends State<_SectionUploadCard> {
             ),
             Text(
               "Recently Published:",
-              style: TextStyle(color: AdminTheme.textSecondary, fontSize: 12),
+              style: TextStyle(color: Colors.black, fontSize: 12),
             ),
             const SizedBox(height: 10),
             ListView.builder(
@@ -762,7 +742,7 @@ class _SectionUploadCardState extends State<_SectionUploadCard> {
                 return ListTile(
                   contentPadding: EdgeInsets.zero,
                   leading: CircleAvatar(
-                    backgroundColor: AdminTheme.textSecondary,
+                    backgroundColor: Colors.black,
                     child: hasBytes
                         ? ClipOval(
                             child: Image.memory(
@@ -772,7 +752,7 @@ class _SectionUploadCardState extends State<_SectionUploadCard> {
                               fit: BoxFit.cover,
                               errorBuilder: (_, __, ___) => const Icon(
                                 Icons.image_not_supported,
-                                color: AdminTheme.textSecondary,
+                                color: Colors.black,
                                 size: 22,
                               ),
                             ),
@@ -786,16 +766,16 @@ class _SectionUploadCardState extends State<_SectionUploadCard> {
                               fit: BoxFit.cover,
                               errorBuilder: (_, __, ___) => const Icon(
                                 Icons.image_not_supported,
-                                color: AdminTheme.textSecondary,
+                                color: Colors.black,
                                 size: 22,
                               ),
                             ),
                           )
-                        : const Icon(Icons.image, color: AdminTheme.textSecondary),
+                        : const Icon(Icons.image, color: Colors.black),
                   ),
                   title: Text(
                     p['name'],
-                    style: const TextStyle(color: AdminTheme.textPrimary),
+                    style: const TextStyle(color: Colors.black),
                   ),
                   subtitle: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -810,7 +790,7 @@ class _SectionUploadCardState extends State<_SectionUploadCard> {
                           child: Text(
                             "Category: ${p['category']}",
                             style: const TextStyle(
-                              color: AdminTheme.textSecondary,
+                              color: Colors.black,
                               fontSize: 12,
                             ),
                           ),
@@ -823,7 +803,7 @@ class _SectionUploadCardState extends State<_SectionUploadCard> {
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
                             style: const TextStyle(
-                              color: AdminTheme.textSecondary,
+                              color: Colors.black,
                               fontSize: 12,
                             ),
                           ),
@@ -838,15 +818,15 @@ class _SectionUploadCardState extends State<_SectionUploadCard> {
                             _showEditDialog(context, productProvider, index, p),
                         icon: const Icon(
                           Icons.edit,
-                          color: Color(0xFF7C3AED),
+                          color: Colors.black,
                           size: 18,
                         ),
                         label: const Text(
                           'Update',
-                          style: TextStyle(color: Color(0xFF7C3AED)),
+                          style: TextStyle(color: Colors.black),
                         ),
                         style: OutlinedButton.styleFrom(
-                          side: const BorderSide(color: Color(0xFF7C3AED)),
+                          side: const BorderSide(color: Colors.black),
                         ),
                       ),
                       TextButton.icon(
@@ -884,11 +864,11 @@ class _SectionUploadCardState extends State<_SectionUploadCard> {
         backgroundColor: AdminTheme.surfaceAlt,
         title: const Text(
           'Remove product?',
-          style: TextStyle(color: AdminTheme.textPrimary),
+          style: TextStyle(color: Colors.black),
         ),
         content: Text(
           'This will remove the product from this section.',
-          style: TextStyle(color: AdminTheme.textSecondary),
+          style: TextStyle(color: Colors.black),
         ),
         actions: [
           TextButton(
@@ -907,7 +887,7 @@ class _SectionUploadCardState extends State<_SectionUploadCard> {
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              backgroundColor: Colors.orange,
+              backgroundColor: AdminTheme.brand,
               content: Text('Product removed'),
             ),
           );
@@ -938,7 +918,7 @@ class _SectionUploadCardState extends State<_SectionUploadCard> {
               backgroundColor: AdminTheme.surfaceAlt,
               title: const Text(
                 'Edit product',
-                style: TextStyle(color: AdminTheme.textPrimary),
+                style: TextStyle(color: Colors.black),
               ),
               content: SingleChildScrollView(
                 child: ConstrainedBox(
@@ -948,10 +928,10 @@ class _SectionUploadCardState extends State<_SectionUploadCard> {
                     children: [
                       TextField(
                         controller: nameC,
-                        style: const TextStyle(color: AdminTheme.textPrimary),
+                        style: const TextStyle(color: Colors.black),
                         decoration: const InputDecoration(
                           labelText: 'Product name',
-                          labelStyle: TextStyle(color: AdminTheme.textSecondary),
+                          labelStyle: TextStyle(color: Colors.black),
                           enabledBorder: UnderlineInputBorder(
                             borderSide: BorderSide(color: Color(0x1F000000)),
                           ),
@@ -961,10 +941,10 @@ class _SectionUploadCardState extends State<_SectionUploadCard> {
                       TextField(
                         controller: priceC,
                         keyboardType: TextInputType.number,
-                        style: const TextStyle(color: AdminTheme.textPrimary),
+                        style: const TextStyle(color: Colors.black),
                         decoration: const InputDecoration(
                           labelText: 'Price (BDT)',
-                          labelStyle: TextStyle(color: AdminTheme.textSecondary),
+                          labelStyle: TextStyle(color: Colors.black),
                           enabledBorder: UnderlineInputBorder(
                             borderSide: BorderSide(color: Color(0x1F000000)),
                           ),
@@ -974,10 +954,10 @@ class _SectionUploadCardState extends State<_SectionUploadCard> {
                       TextField(
                         controller: stockC,
                         keyboardType: TextInputType.number,
-                        style: const TextStyle(color: AdminTheme.textPrimary),
+                        style: const TextStyle(color: Colors.black),
                         decoration: const InputDecoration(
                           labelText: 'Stock Quantity',
-                          labelStyle: TextStyle(color: AdminTheme.textSecondary),
+                          labelStyle: TextStyle(color: Colors.black),
                           enabledBorder: UnderlineInputBorder(
                             borderSide: BorderSide(color: Color(0x1F000000)),
                           ),
@@ -987,10 +967,10 @@ class _SectionUploadCardState extends State<_SectionUploadCard> {
                       TextField(
                         controller: descC,
                         maxLines: 2,
-                        style: const TextStyle(color: AdminTheme.textPrimary),
+                        style: const TextStyle(color: Colors.black),
                         decoration: const InputDecoration(
                           labelText: 'Description',
-                          labelStyle: TextStyle(color: AdminTheme.textSecondary),
+                          labelStyle: TextStyle(color: Colors.black),
                           enabledBorder: UnderlineInputBorder(
                             borderSide: BorderSide(color: Color(0x1F000000)),
                           ),
@@ -1011,12 +991,10 @@ class _SectionUploadCardState extends State<_SectionUploadCard> {
                           return DropdownButtonFormField<String>(
                             value: selectedValue,
                             dropdownColor: AdminTheme.surface,
-                            style: const TextStyle(
-                              color: AdminTheme.textPrimary,
-                            ),
+                            style: const TextStyle(color: Colors.black),
                             decoration: const InputDecoration(
                               labelText: 'Category',
-                              labelStyle: TextStyle(color: AdminTheme.textSecondary),
+                              labelStyle: TextStyle(color: Colors.black),
                             ),
                             items: catNames
                                 .map(
@@ -1043,11 +1021,11 @@ class _SectionUploadCardState extends State<_SectionUploadCard> {
                         },
                         icon: const Icon(
                           Icons.add_photo_alternate,
-                          color: Color(0xFF7C3AED),
+                          color: Colors.black,
                         ),
                         label: const Text(
                           'Change image',
-                          style: TextStyle(color: Color(0xFF7C3AED)),
+                          style: TextStyle(color: Colors.black),
                         ),
                       ),
                     ],
@@ -1061,7 +1039,7 @@ class _SectionUploadCardState extends State<_SectionUploadCard> {
                 ),
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF7C3AED),
+                    backgroundColor: Colors.black,
                   ),
                   onPressed: () {
                     if (nameC.text.trim().isEmpty ||
@@ -1124,11 +1102,11 @@ class _SectionUploadCardState extends State<_SectionUploadCard> {
           backgroundColor: AdminTheme.surfaceAlt,
           title: const Text(
             'Admin login required',
-            style: TextStyle(color: AdminTheme.textPrimary),
+            style: TextStyle(color: Colors.black),
           ),
           content: Text(
             'Please login as admin to publish products.',
-            style: TextStyle(color: AdminTheme.textSecondary),
+            style: TextStyle(color: Colors.black),
           ),
           actions: [
             TextButton(
@@ -1140,7 +1118,7 @@ class _SectionUploadCardState extends State<_SectionUploadCard> {
                 Navigator.pop(ctx);
                 Navigator.pushAndRemoveUntil(
                   context,
-                  MaterialPageRoute(builder: (_) => const LogIn()),
+                  MaterialPageRoute(builder: (_) => const AdminLoginPage()),
                   (route) => false,
                 );
               },
@@ -1186,10 +1164,13 @@ class _SectionUploadCardState extends State<_SectionUploadCard> {
           ? await _selectedFile!.readAsBytes()
           : null;
 
+      final regularPrice = double.tryParse(_regularPriceController.text.trim());
+
       final res = await ApiService.createProductWithImage(
         product_name: _nameController.text.trim(),
         description: _descController.text.trim(),
         price: price,
+        regular_price: regularPrice,
         stock_quantity: stockQty,
         category_id: _intOrNull(_selectedCategoryId),
         brand_id: _intOrNull(_selectedBrandId),
@@ -1215,7 +1196,7 @@ class _SectionUploadCardState extends State<_SectionUploadCard> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              backgroundColor: Colors.orange,
+              backgroundColor: AdminTheme.brand,
               content: Text(
                 'Product created, but section assignment failed: $e',
               ),
@@ -1274,6 +1255,7 @@ class _SectionUploadCardState extends State<_SectionUploadCard> {
 
       _nameController.clear();
       _priceController.clear();
+      _regularPriceController.clear();
       _stockController.clear();
       _descController.clear();
       _imageUrlController.clear();
@@ -1330,10 +1312,10 @@ class _SectionUploadCardState extends State<_SectionUploadCard> {
       controller: controller,
       maxLines: maxLines,
       keyboardType: isNumber ? TextInputType.number : TextInputType.text,
-      style: const TextStyle(color: AdminTheme.textPrimary),
+      style: const TextStyle(color: Colors.black),
       decoration: InputDecoration(
         hintText: hint,
-        hintStyle: const TextStyle(color: AdminTheme.textMuted, fontSize: 14),
+        hintStyle: const TextStyle(color: Colors.black, fontSize: 14),
         filled: true,
         fillColor: bg,
         border: OutlineInputBorder(
@@ -1466,7 +1448,3 @@ class _SectionUploadCardState extends State<_SectionUploadCard> {
     return m;
   }
 }
-
-
-
-

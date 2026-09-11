@@ -100,9 +100,7 @@ class MidBannerRow extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: const Color(0xB8FFFFFF),
                     borderRadius: BorderRadius.circular(10),
-                    border: Border.all(
-                      color: const Color(0xA6FFFFFF),
-                    ),
+                    border: Border.all(color: const Color(0xA6FFFFFF)),
                     boxShadow: [
                       BoxShadow(
                         color: const Color(0x14000000),
@@ -119,6 +117,9 @@ class MidBannerRow extends StatelessWidget {
                           image: _resolveImage(_bannerImage(b)),
                           fit: BoxFit.cover,
                           opacity: const AlwaysStoppedAnimation(0.22),
+                          errorBuilder: (context, error, stackTrace) {
+                            return Container(color: const Color(0xFFF0F0F0));
+                          },
                         ),
                       ),
                       Positioned.fill(
@@ -143,6 +144,28 @@ class MidBannerRow extends StatelessWidget {
                         child: Image(
                           image: _resolveImage(_bannerImage(b)),
                           fit: BoxFit.contain,
+                          errorBuilder: (context, error, stackTrace) {
+                            return Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.image_not_supported,
+                                    color: Colors.grey.shade400,
+                                    size: 32,
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    'Banner unavailable',
+                                    style: TextStyle(
+                                      color: Colors.grey.shade600,
+                                      fontSize: 10,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
                         ),
                       ),
                       Positioned(
@@ -173,12 +196,3 @@ class MidBannerRow extends StatelessWidget {
     );
   }
 }
-
-
-
-
-
-
-
-
-

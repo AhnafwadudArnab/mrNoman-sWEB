@@ -557,22 +557,41 @@ class _SidebarState extends State<Sidebar> {
   }
 
   Widget _buildTrustSection() {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-      decoration: BoxDecoration(
-        color: AppColors.grey800,
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Column(
-        children: [
-          _trustItem(Icons.shield, 'Official Warranty'),
-          Divider(height: 20, color: AppColors.whiteOverlay36, thickness: 1),
-          _trustItem(Icons.headset_mic, '24/7 Tech Support'),
-          Divider(height: 20, color: AppColors.whiteOverlay36, thickness: 1),
-          _trustItem(Icons.local_shipping, 'Fast Island-wide Delivery'),
-        ],
-      ),
+    return Consumer<BannerProvider>(
+      builder: (context, bp, _) {
+        final badges = bp.trustBadges.isNotEmpty
+            ? bp.trustBadges
+            : [
+                {'title': 'Official Warranty', 'icon': 'shield'},
+                {'title': '24/7 Tech Support', 'icon': 'headset'},
+                {'title': 'Fast Island-wide Delivery', 'icon': 'truck'},
+              ];
+
+        return Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          decoration: BoxDecoration(
+            color: AppColors.grey800,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Column(
+            children: [
+              for (int i = 0; i < badges.length; i++) ...[
+                _trustItem(
+                  getTrustIcon(badges[i]['icon']),
+                  badges[i]['title'] ?? '',
+                ),
+                if (i < badges.length - 1)
+                  Divider(
+                    height: 20,
+                    color: AppColors.whiteOverlay36,
+                    thickness: 1,
+                  ),
+              ],
+            ],
+          ),
+        );
+      },
     );
   }
 

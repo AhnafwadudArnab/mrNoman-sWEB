@@ -50,7 +50,7 @@ class _AdminCartsPageState extends State<AdminCartsPage>
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Carts refreshed!'),
-          backgroundColor: Color(0xFF7C3AED),
+          backgroundColor: Color(0xFF4D6787),
           duration: Duration(seconds: 1),
         ),
       );
@@ -66,7 +66,7 @@ class _AdminCartsPageState extends State<AdminCartsPage>
     return Column(
       children: [
         Container(
-          color: AdminTheme.textPrimary,
+          color: AdminTheme.surface,
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           child: Row(
             children: [
@@ -80,10 +80,10 @@ class _AdminCartsPageState extends State<AdminCartsPage>
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
-                        color: Colors.black,
+                        color: AdminTheme.textPrimary,
                       ),
                     ),
-                    Text(
+                    const Text(
                       'Live view of what users have in cart',
                       style: TextStyle(fontSize: 12, color: AdminTheme.textSecondary),
                       overflow: TextOverflow.ellipsis,
@@ -105,10 +105,10 @@ class _AdminCartsPageState extends State<AdminCartsPage>
                         vertical: 8,
                       ),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF7C3AED).withAlpha(25),
+                        color: const Color(0xFF4D6787).withAlpha(25),
                         borderRadius: BorderRadius.circular(8),
                         border: Border.all(
-                          color: const Color(0xFF7C3AED).withAlpha(80),
+                          color: const Color(0xFF4D6787).withAlpha(80),
                         ),
                       ),
                       child: Row(
@@ -120,7 +120,7 @@ class _AdminCartsPageState extends State<AdminCartsPage>
                               Icons.refresh,
                               size: 20,
                               color: _isRefreshing
-                                  ? const Color(0xFF7C3AED)
+                                  ? const Color(0xFF4D6787)
                                   : const Color(0xFFD97706),
                             ),
                           ),
@@ -146,99 +146,199 @@ class _AdminCartsPageState extends State<AdminCartsPage>
           child: Consumer<CartProvider>(
             builder: (context, cartProvider, _) {
               final allCarts = cartProvider.getAllCartsForAdmin();
-              if (allCarts.isEmpty) {
-                return Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.shopping_cart_outlined,
-                        size: 64,
-                        color: AdminTheme.textSecondary,
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        'No carts yet. When users add items to cart,\nthey will appear here.',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: AdminTheme.textSecondary,
-                        ),
-                      ),
-                    ],
-                  ),
-                );
-              }
+              final totalCartsCount = allCarts.length;
+              final totalItemsCount = allCarts.values.fold<int>(
+                0,
+                (sum, list) =>
+                    sum + list.fold<int>(0, (s, item) => s + item.quantity),
+              );
+              final totalCartValue = allCarts.values.fold<double>(
+                0.0,
+                (sum, list) =>
+                    sum + list.fold<double>(0.0, (s, item) => s + item.itemTotal),
+              );
+
               return ListView(
                 padding: const EdgeInsets.all(24),
-                children: allCarts.entries.map((e) {
-                  final userId = e.key;
-                  final items = e.value;
-                  final isGuest = userId.startsWith('guest_');
-                  final label = isGuest ? 'Guest' : userId;
-                  final total = items.fold<double>(
-                    0.0,
-                    (sum, item) => sum + item.itemTotal,
-                  );
-                  return Card(
-                    margin: const EdgeInsets.only(bottom: 16),
-                    shape: RoundedRectangleBorder(
+                children: [
+                  // Informational banner clarifying Abandoned Carts
+                  Container(
+                    margin: const EdgeInsets.only(bottom: 20),
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFEFF6FF),
                       borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: const Color(0xFFBFDBFE)),
                     ),
-                    child: ExpansionTile(
-                      leading: CircleAvatar(
-                        backgroundColor: Colors.orange.shade100,
-                        child: Icon(
-                          isGuest ? Icons.person_outline : Icons.person,
-                          color: Colors.orange.shade800,
-                        ),
-                      ),
-                      title: Text(
-                        label,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.w600,
-                          fontSize: 15,
-                        ),
-                      ),
-                      subtitle: Text(
-                        '${items.length} item(s) ? ?${total.toStringAsFixed(2)}',
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: AdminTheme.textSecondary,
-                        ),
-                      ),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Divider(height: 1),
-                        ...items.map(
-                          (item) => ListTile(
-                            leading: _buildThumb(item.imageUrl),
-                            title: Text(
-                              item.name,
-                              style: const TextStyle(
-                                fontWeight: FontWeight.w500,
-                                fontSize: 14,
+                        const Icon(
+                          Icons.info_outline_rounded,
+                          color: Color(0xFF2563EB),
+                          size: 24,
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: const [
+                              Text(
+                                'Abandoned & Active Carts Explanation',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 14,
+                                  color: Color(0xFF1E3A8A),
+                                ),
                               ),
-                            ),
-                            subtitle: Text(
-                              '${item.category} ? Qty: ${item.quantity}',
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: AdminTheme.textSecondary,
+                              SizedBox(height: 4),
+                              Text(
+                                'In e-commerce, abandoned carts represent products customers added to their cart or started checkout for, but have not yet completed the order. This live view tracks potential lost sales so you can analyze demand or initiate customer recovery.',
+                                style: TextStyle(
+                                  fontSize: 12.5,
+                                  color: Color(0xFF1E40AF),
+                                  height: 1.4,
+                                ),
                               ),
-                            ),
-                            trailing: Text(
-                              '?${(item.price * item.quantity).toStringAsFixed(2)}',
-                              style: const TextStyle(
-                                fontWeight: FontWeight.w600,
-                                fontSize: 14,
-                              ),
-                            ),
+                            ],
                           ),
                         ),
                       ],
                     ),
-                  );
-                }).toList(),
+                  ),
+
+                  // Metrics summary row
+                  Row(
+                    children: [
+                      _buildMetricBox('Active Carts', '$totalCartsCount', Icons.shopping_cart_outlined, Colors.blue),
+                      const SizedBox(width: 12),
+                      _buildMetricBox('Items in Carts', '$totalItemsCount', Icons.inventory_2_outlined, Colors.orange),
+                      const SizedBox(width: 12),
+                      _buildMetricBox('Potential Revenue', '৳${totalCartValue.toStringAsFixed(0)}', Icons.monetization_on_outlined, Colors.green),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+
+                  if (allCarts.isEmpty)
+                    Center(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 40),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.shopping_cart_outlined,
+                              size: 64,
+                              color: AdminTheme.textSecondary,
+                            ),
+                            const SizedBox(height: 16),
+                            Text(
+                              'No active customer carts currently.\nWhen visitors add items to cart, they will appear here.',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: AdminTheme.textSecondary,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    )
+                  else
+                    ...allCarts.entries.map((e) {
+                      final userId = e.key;
+                      final items = e.value;
+                      final isGuest = userId.startsWith('guest_');
+                      final label = isGuest ? 'Guest Session ($userId)' : 'User: $userId';
+                      final total = items.fold<double>(
+                        0.0,
+                        (sum, item) => sum + item.itemTotal,
+                      );
+                      return Card(
+                        margin: const EdgeInsets.only(bottom: 16),
+                        elevation: 1.5,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          side: const BorderSide(color: Color(0xFFE2E8F0)),
+                        ),
+                        child: ExpansionTile(
+                          leading: CircleAvatar(
+                            backgroundColor: isGuest
+                                ? Colors.blue.shade50
+                                : Colors.green.shade50,
+                            child: Icon(
+                              isGuest ? Icons.person_outline : Icons.person,
+                              color: isGuest ? Colors.blue : Colors.green,
+                            ),
+                          ),
+                          title: Row(
+                            children: [
+                              Text(
+                                label,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 14,
+                                ),
+                              ),
+                              const SizedBox(width: 10),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: Colors.amber.shade100,
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                child: Text(
+                                  'Pending Checkout',
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.amber.shade900,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          subtitle: Text(
+                            '${items.length} item(s) • Total Value: ৳${total.toStringAsFixed(2)}',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: AdminTheme.textSecondary,
+                            ),
+                          ),
+                          children: [
+                            const Divider(height: 1),
+                            ...items.map(
+                              (item) => ListTile(
+                                leading: _buildThumb(item.imageUrl),
+                                title: Text(
+                                  item.name,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 13,
+                                  ),
+                                ),
+                                subtitle: Text(
+                                  '${item.category} • Qty: ${item.quantity} × ৳${item.price.toStringAsFixed(0)}',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: AdminTheme.textSecondary,
+                                  ),
+                                ),
+                                trailing: Text(
+                                  '৳${(item.price * item.quantity).toStringAsFixed(2)}',
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 14,
+                                    color: Color(0xFF1E293B),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    }).toList(),
+                ],
               );
             },
           ),
@@ -259,6 +359,67 @@ class _AdminCartsPageState extends State<AdminCartsPage>
       selected: AdminSidebarItem.carts,
       onItemSelected: (item) => _navigateFromSidebar(context, item),
       body: _buildCartsContent(context),
+    );
+  }
+
+  Widget _buildMetricBox(String title, String value, IconData icon, Color color) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: const Color(0xFFE2E8F0)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.02),
+              blurRadius: 4,
+              offset: const Offset(0, 1),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(icon, color: color, size: 20),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF64748B),
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    value,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF1E293B),
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 

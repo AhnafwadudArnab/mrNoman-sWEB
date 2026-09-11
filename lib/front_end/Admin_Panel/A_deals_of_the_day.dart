@@ -56,11 +56,11 @@ class AdminDealsOfTheDayPage extends StatelessWidget {
                 MaterialPageRoute(builder: (_) => const HomePage()),
                 (route) => false,
               ),
-              icon: const Icon(Icons.store, color: Color(0xFF7C3AED), size: 20),
+              icon: const Icon(Icons.store, color: Color(0xFF4D6787), size: 20),
               label: const Text(
                 "Back to Store",
                 style: TextStyle(
-                  color: Color(0xFF7C3AED),
+                  color: Color(0xFF4D6787),
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -99,7 +99,7 @@ class _DealsManagementViewState extends State<_DealsManagementView> {
   @override
   Widget build(BuildContext context) {
     const Color fieldBg = AdminTheme.surface;
-    const Color brandOrange = Color(0xFF7C3AED);
+    const Color brandOrange = Color(0xFF4D6787);
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24),
@@ -286,7 +286,7 @@ class _TimerSettingsCardState extends State<_TimerSettingsCard> {
   @override
   Widget build(BuildContext context) {
     const Color fieldBg = AdminTheme.surface;
-    const Color brandOrange = Color(0xFF7C3AED);
+    const Color brandOrange = Color(0xFF4D6787);
 
     if (_loading) {
       return const Center(child: CircularProgressIndicator());
@@ -619,9 +619,7 @@ class _ProductUploadCardState extends State<_ProductUploadCard> {
 
   Future<void> _loadBrands() async {
     try {
-      final list =
-          await ApiService.get('/products?action=brands', withAuth: false)
-              as List;
+      final list = await ApiService.getBrands();
       if (mounted) {
         setState(() {
           final raw = list
@@ -857,7 +855,7 @@ class _ProductUploadCardState extends State<_ProductUploadCard> {
   @override
   Widget build(BuildContext context) {
     const Color fieldBg = AdminTheme.surface;
-    const Color brandOrange = Color(0xFF7C3AED);
+    const Color brandOrange = Color(0xFF4D6787);
 
     final productProvider = Provider.of<AdminProductProvider>(context);
     final currentSectionProducts =

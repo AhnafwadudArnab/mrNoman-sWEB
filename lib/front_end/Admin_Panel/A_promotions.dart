@@ -20,7 +20,7 @@ class AdminPromotionsPage extends StatefulWidget {
 class _AdminPromotionsPageState extends State<AdminPromotionsPage> {
   final Color darkBg = AdminTheme.bg;
   final Color cardBg = AdminTheme.surfaceAlt;
-  final Color brandOrange = const Color(0xFF7C3AED);
+  final Color brandOrange = AdminTheme.brand;
 
   List<Map<String, dynamic>> _list = [];
   bool _loading = true;
@@ -55,12 +55,15 @@ class _AdminPromotionsPageState extends State<AdminPromotionsPage> {
   }
 
   Future<void> _load() async {
+    if (!mounted) return;
     setState(() => _loading = true);
     try {
       final response = await ApiService.get(
         '/promotions?all=1',
         withAuth: true,
       );
+      if (!mounted) return;
+
       final list = response is List
           ? response
           : (response['promotions'] as List? ?? []);
@@ -70,7 +73,11 @@ class _AdminPromotionsPageState extends State<AdminPromotionsPage> {
           _loading = false;
         });
       }
+
+      // Invalidate cache after loading
+      ApiService.invalidateCache('/promotions');
     } catch (e) {
+      if (!mounted) return;
       if (kDebugMode) debugPrint('Promotions load error: $e');
       if (mounted) {
         setState(() => _loading = false);
@@ -108,6 +115,10 @@ class _AdminPromotionsPageState extends State<AdminPromotionsPage> {
             : _endController.text.trim(),
         'active': _active,
       });
+
+      // Invalidate cache after creation
+      ApiService.invalidateCache('/promotions');
+
       _titleController.clear();
       _descController.clear();
       _percentController.clear();
@@ -275,8 +286,8 @@ class _AdminPromotionsPageState extends State<AdminPromotionsPage> {
           color: cardBg,
           children: [
             const Text(
-              'Promotions ? Title, Dates & Discount %',
-              style: TextStyle(color: AdminTheme.textSecondary, fontSize: 14),
+              'Promotions â€¢ Title, Dates & Discount %',
+              style: TextStyle(color: Colors.black, fontSize: 14),
             ),
             const SizedBox.shrink(),
           ],
@@ -295,17 +306,14 @@ class _AdminPromotionsPageState extends State<AdminPromotionsPage> {
                     const Text(
                       'Promotions',
                       style: TextStyle(
-                        color: AdminTheme.textPrimary,
+                        color: Colors.black,
                         fontSize: 28,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                     ElevatedButton.icon(
                       onPressed: _loading ? null : _load,
-                      icon: const Icon(
-                        Icons.refresh,
-                        color: AdminTheme.textPrimary,
-                      ),
+                      icon: const Icon(Icons.refresh, color: Colors.black),
                       label: const Text('Refresh'),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: brandOrange,
@@ -318,7 +326,7 @@ class _AdminPromotionsPageState extends State<AdminPromotionsPage> {
                   builder: (context, constraints) {
                     final isMobile = constraints.maxWidth < 700;
                     final listPanel = Container(
-                      padding: const EdgeInsets.all(24),
+                      padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
                         color: cardBg,
                         borderRadius: BorderRadius.circular(16),
@@ -329,7 +337,7 @@ class _AdminPromotionsPageState extends State<AdminPromotionsPage> {
                           const Text(
                             'All promotions',
                             style: TextStyle(
-                              color: AdminTheme.textPrimary,
+                              color: Colors.black,
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
                             ),
@@ -338,7 +346,7 @@ class _AdminPromotionsPageState extends State<AdminPromotionsPage> {
                           if (_loading)
                             const Center(
                               child: CircularProgressIndicator(
-                                color: Color(0xFF7C3AED),
+                                color: Colors.black,
                               ),
                             )
                           else
@@ -347,9 +355,7 @@ class _AdminPromotionsPageState extends State<AdminPromotionsPage> {
                                     padding: EdgeInsets.all(24),
                                     child: Text(
                                       'No promotions. Create one.',
-                                      style: TextStyle(
-                                        color: AdminTheme.textSecondary,
-                                      ),
+                                      style: TextStyle(color: Colors.black),
                                     ),
                                   )
                                 : SingleChildScrollView(
@@ -367,7 +373,7 @@ class _AdminPromotionsPageState extends State<AdminPromotionsPage> {
                                               child: Text(
                                                 'ID',
                                                 style: TextStyle(
-                                                  color: AdminTheme.textSecondary,
+                                                  color: Colors.black,
                                                   fontWeight: FontWeight.bold,
                                                 ),
                                               ),
@@ -379,7 +385,7 @@ class _AdminPromotionsPageState extends State<AdminPromotionsPage> {
                                               child: Text(
                                                 'Title',
                                                 style: TextStyle(
-                                                  color: AdminTheme.textSecondary,
+                                                  color: Colors.black,
                                                   fontWeight: FontWeight.bold,
                                                 ),
                                               ),
@@ -391,7 +397,7 @@ class _AdminPromotionsPageState extends State<AdminPromotionsPage> {
                                               child: Text(
                                                 '%',
                                                 style: TextStyle(
-                                                  color: AdminTheme.textSecondary,
+                                                  color: Colors.black,
                                                   fontWeight: FontWeight.bold,
                                                 ),
                                               ),
@@ -401,9 +407,9 @@ class _AdminPromotionsPageState extends State<AdminPromotionsPage> {
                                                 bottom: 8,
                                               ),
                                               child: Text(
-                                                'Start ? End',
+                                                'Start â†’ End',
                                                 style: TextStyle(
-                                                  color: AdminTheme.textSecondary,
+                                                  color: Colors.black,
                                                   fontWeight: FontWeight.bold,
                                                 ),
                                               ),
@@ -415,7 +421,7 @@ class _AdminPromotionsPageState extends State<AdminPromotionsPage> {
                                               child: Text(
                                                 'Active',
                                                 style: TextStyle(
-                                                  color: AdminTheme.textSecondary,
+                                                  color: Colors.black,
                                                   fontWeight: FontWeight.bold,
                                                 ),
                                               ),
@@ -427,7 +433,7 @@ class _AdminPromotionsPageState extends State<AdminPromotionsPage> {
                                               child: Text(
                                                 'Action',
                                                 style: TextStyle(
-                                                  color: AdminTheme.textSecondary,
+                                                  color: Colors.black,
                                                   fontWeight: FontWeight.bold,
                                                 ),
                                               ),
@@ -452,8 +458,7 @@ class _AdminPromotionsPageState extends State<AdminPromotionsPage> {
                                                 child: Text(
                                                   '${e['promotion_id']}',
                                                   style: const TextStyle(
-                                                    color:
-                                                        AdminTheme.textPrimary,
+                                                    color: Colors.black,
                                                   ),
                                                 ),
                                               ),
@@ -465,8 +470,7 @@ class _AdminPromotionsPageState extends State<AdminPromotionsPage> {
                                                 child: Text(
                                                   _fmt(e['title']),
                                                   style: const TextStyle(
-                                                    color:
-                                                        AdminTheme.textPrimary,
+                                                    color: Colors.black,
                                                   ),
                                                 ),
                                               ),
@@ -478,8 +482,7 @@ class _AdminPromotionsPageState extends State<AdminPromotionsPage> {
                                                 child: Text(
                                                   '${e['discount_percent'] ?? ''}%',
                                                   style: const TextStyle(
-                                                    color:
-                                                        AdminTheme.textPrimary,
+                                                    color: Colors.black,
                                                   ),
                                                 ),
                                               ),
@@ -493,7 +496,7 @@ class _AdminPromotionsPageState extends State<AdminPromotionsPage> {
                                                       CrossAxisAlignment.start,
                                                   children: [
                                                     Text(
-                                                      '${_fmt(e['start_date'])} ? ${_fmt(e['end_date'])}',
+                                                      '${_fmt(e['start_date'])} â†’ ${_fmt(e['end_date'])}',
                                                       style: const TextStyle(
                                                         color: AdminTheme
                                                             .textPrimary,
@@ -540,7 +543,7 @@ class _AdminPromotionsPageState extends State<AdminPromotionsPage> {
                                                   IconButton(
                                                     icon: const Icon(
                                                       Icons.edit,
-                                                      color: Color(0xFF7C3AED),
+                                                      color: Colors.black,
                                                       size: 20,
                                                     ),
                                                     onPressed: () =>
@@ -568,7 +571,7 @@ class _AdminPromotionsPageState extends State<AdminPromotionsPage> {
                       ),
                     );
                     final formPanel = Container(
-                      padding: const EdgeInsets.all(24),
+                      padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
                         color: cardBg,
                         borderRadius: BorderRadius.circular(16),
@@ -580,7 +583,7 @@ class _AdminPromotionsPageState extends State<AdminPromotionsPage> {
                           const Text(
                             'Create promotion',
                             style: TextStyle(
-                              color: AdminTheme.textPrimary,
+                              color: Colors.black,
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
                             ),
@@ -588,14 +591,10 @@ class _AdminPromotionsPageState extends State<AdminPromotionsPage> {
                           const SizedBox(height: 16),
                           TextField(
                             controller: _titleController,
-                            style: const TextStyle(
-                              color: AdminTheme.textPrimary,
-                            ),
+                            style: const TextStyle(color: Colors.black),
                             decoration: InputDecoration(
                               hintText: 'Title *',
-                              hintStyle: const TextStyle(
-                                color: AdminTheme.textMuted,
-                              ),
+                              hintStyle: const TextStyle(color: Colors.black),
                               filled: true,
                               fillColor: darkBg,
                               border: OutlineInputBorder(
@@ -607,14 +606,10 @@ class _AdminPromotionsPageState extends State<AdminPromotionsPage> {
                           TextField(
                             controller: _descController,
                             maxLines: 2,
-                            style: const TextStyle(
-                              color: AdminTheme.textPrimary,
-                            ),
+                            style: const TextStyle(color: Colors.black),
                             decoration: InputDecoration(
                               hintText: 'Description',
-                              hintStyle: const TextStyle(
-                                color: AdminTheme.textMuted,
-                              ),
+                              hintStyle: const TextStyle(color: Colors.black),
                               filled: true,
                               fillColor: darkBg,
                               border: OutlineInputBorder(
@@ -626,14 +621,10 @@ class _AdminPromotionsPageState extends State<AdminPromotionsPage> {
                           TextField(
                             controller: _percentController,
                             keyboardType: TextInputType.number,
-                            style: const TextStyle(
-                              color: AdminTheme.textPrimary,
-                            ),
+                            style: const TextStyle(color: Colors.black),
                             decoration: InputDecoration(
                               hintText: 'Discount %',
-                              hintStyle: const TextStyle(
-                                color: AdminTheme.textMuted,
-                              ),
+                              hintStyle: const TextStyle(color: Colors.black),
                               filled: true,
                               fillColor: darkBg,
                               border: OutlineInputBorder(
@@ -647,14 +638,10 @@ class _AdminPromotionsPageState extends State<AdminPromotionsPage> {
                             readOnly: true,
                             onTap: () =>
                                 _pickDateTime(_startController, isStart: true),
-                            style: const TextStyle(
-                              color: AdminTheme.textPrimary,
-                            ),
+                            style: const TextStyle(color: Colors.black),
                             decoration: InputDecoration(
                               hintText: 'Start (YYYY-MM-DD HH:mm)',
-                              hintStyle: const TextStyle(
-                                color: AdminTheme.textMuted,
-                              ),
+                              hintStyle: const TextStyle(color: Colors.black),
                               filled: true,
                               fillColor: darkBg,
                               border: OutlineInputBorder(
@@ -667,7 +654,7 @@ class _AdminPromotionsPageState extends State<AdminPromotionsPage> {
                                 ),
                                 icon: const Icon(
                                   Icons.schedule,
-                                  color: AdminTheme.textMuted,
+                                  color: Colors.black,
                                 ),
                               ),
                             ),
@@ -678,14 +665,10 @@ class _AdminPromotionsPageState extends State<AdminPromotionsPage> {
                             readOnly: true,
                             onTap: () =>
                                 _pickDateTime(_endController, isStart: false),
-                            style: const TextStyle(
-                              color: AdminTheme.textPrimary,
-                            ),
+                            style: const TextStyle(color: Colors.black),
                             decoration: InputDecoration(
                               hintText: 'End (YYYY-MM-DD HH:mm)',
-                              hintStyle: const TextStyle(
-                                color: AdminTheme.textMuted,
-                              ),
+                              hintStyle: const TextStyle(color: Colors.black),
                               filled: true,
                               fillColor: darkBg,
                               border: OutlineInputBorder(
@@ -698,7 +681,7 @@ class _AdminPromotionsPageState extends State<AdminPromotionsPage> {
                                 ),
                                 icon: const Icon(
                                   Icons.schedule,
-                                  color: AdminTheme.textMuted,
+                                  color: Colors.black,
                                 ),
                               ),
                             ),
@@ -708,7 +691,7 @@ class _AdminPromotionsPageState extends State<AdminPromotionsPage> {
                             children: [
                               const Text(
                                 'Active ',
-                                style: TextStyle(color: AdminTheme.textPrimary),
+                                style: TextStyle(color: Colors.black),
                               ),
                               Switch(
                                 value: _active,
@@ -808,7 +791,7 @@ class _AdminPromotionsPageState extends State<AdminPromotionsPage> {
           backgroundColor: cardBg,
           title: const Text(
             'Edit promotion',
-            style: TextStyle(color: AdminTheme.textPrimary),
+            style: TextStyle(color: Colors.black),
           ),
           content: SingleChildScrollView(
             child: Column(
@@ -816,45 +799,40 @@ class _AdminPromotionsPageState extends State<AdminPromotionsPage> {
               children: [
                 TextField(
                   controller: titleC,
-                  style: const TextStyle(color: AdminTheme.textPrimary),
+                  style: const TextStyle(color: Colors.black),
                   decoration: const InputDecoration(
                     labelText: 'Title',
-                    labelStyle: TextStyle(color: AdminTheme.textSecondary),
+                    labelStyle: TextStyle(color: Colors.black),
                   ),
                 ),
                 TextField(
                   controller: descC,
                   maxLines: 2,
-                  style: const TextStyle(color: AdminTheme.textPrimary),
+                  style: const TextStyle(color: Colors.black),
                   decoration: const InputDecoration(
                     labelText: 'Description',
-                    labelStyle: TextStyle(color: AdminTheme.textSecondary),
+                    labelStyle: TextStyle(color: Colors.black),
                   ),
                 ),
                 TextField(
                   controller: percentC,
                   keyboardType: TextInputType.number,
-                  style: const TextStyle(color: AdminTheme.textPrimary),
+                  style: const TextStyle(color: Colors.black),
                   decoration: const InputDecoration(
                     labelText: 'Discount %',
-                    labelStyle: TextStyle(color: AdminTheme.textSecondary),
+                    labelStyle: TextStyle(color: Colors.black),
                   ),
                 ),
                 TextField(
                   controller: startC,
                   readOnly: true,
                   onTap: () => pickDt(ctx, startC, true, setDialog),
-                  style: const TextStyle(color: AdminTheme.textPrimary),
+                  style: const TextStyle(color: Colors.black),
                   decoration: InputDecoration(
                     labelText: 'Start',
-                    labelStyle: const TextStyle(
-                      color: AdminTheme.textSecondary,
-                    ),
+                    labelStyle: const TextStyle(color: Colors.black),
                     suffixIcon: IconButton(
-                      icon: const Icon(
-                        Icons.schedule,
-                        color: AdminTheme.textMuted,
-                      ),
+                      icon: const Icon(Icons.schedule, color: Colors.black),
                       onPressed: () => pickDt(ctx, startC, true, setDialog),
                     ),
                   ),
@@ -863,17 +841,12 @@ class _AdminPromotionsPageState extends State<AdminPromotionsPage> {
                   controller: endC,
                   readOnly: true,
                   onTap: () => pickDt(ctx, endC, false, setDialog),
-                  style: const TextStyle(color: AdminTheme.textPrimary),
+                  style: const TextStyle(color: Colors.black),
                   decoration: InputDecoration(
                     labelText: 'End',
-                    labelStyle: const TextStyle(
-                      color: AdminTheme.textSecondary,
-                    ),
+                    labelStyle: const TextStyle(color: Colors.black),
                     suffixIcon: IconButton(
-                      icon: const Icon(
-                        Icons.schedule,
-                        color: AdminTheme.textMuted,
-                      ),
+                      icon: const Icon(Icons.schedule, color: Colors.black),
                       onPressed: () => pickDt(ctx, endC, false, setDialog),
                     ),
                   ),
@@ -882,7 +855,7 @@ class _AdminPromotionsPageState extends State<AdminPromotionsPage> {
                   children: [
                     const Text(
                       'Active ',
-                      style: TextStyle(color: AdminTheme.textPrimary),
+                      style: TextStyle(color: Colors.black),
                     ),
                     Switch(
                       value: active,
@@ -901,8 +874,11 @@ class _AdminPromotionsPageState extends State<AdminPromotionsPage> {
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(backgroundColor: brandOrange),
-              onPressed: () {
+              onPressed: () async {
+                // ✅ Make async to wait for mounted check
                 Navigator.pop(ctx);
+                // ✅ Add mounted check before calling _update
+                if (!mounted) return;
                 _update(_toId(e['promotion_id']), {
                   'title': titleC.text.trim(),
                   'description': descC.text.trim(),
@@ -940,13 +916,3 @@ class _AdminPromotionsPageState extends State<AdminPromotionsPage> {
     );
   }
 }
-
-
-
-
-
-
-
-
-
-

@@ -17,7 +17,7 @@ class AdminFeatureBrandsPage extends StatefulWidget {
 class _AdminFeatureBrandsPageState extends State<AdminFeatureBrandsPage> {
   final Color darkBg = AdminTheme.bg;
   final Color cardBg = AdminTheme.surfaceAlt;
-  final Color brandOrange = const Color(0xFF7C3AED);
+  final Color brandOrange = AdminTheme.brand;
 
   final List<TextEditingController> _brandControllers = [];
   final List<TextEditingController> _midControllers = [
@@ -159,7 +159,10 @@ class _AdminFeatureBrandsPageState extends State<AdminFeatureBrandsPage> {
               children: [
                 const Text(
                   'Featured Brands & Banners',
-                  style: TextStyle(color: AdminTheme.textSecondary, fontSize: 14),
+                  style: TextStyle(
+                    color: AdminTheme.textSecondary,
+                    fontSize: 14,
+                  ),
                 ),
                 const SizedBox.shrink(),
               ],
@@ -469,22 +472,3 @@ class _AdminFeatureBrandsPageState extends State<AdminFeatureBrandsPage> {
     );
   }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
