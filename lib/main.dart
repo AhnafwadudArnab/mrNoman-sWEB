@@ -1,4 +1,5 @@
 import 'package:electrocitybd1/front_end/pages/home_page.dart';
+import 'package:electrocitybd1/front_end/Admin_Panel/A_customers.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
@@ -198,7 +199,11 @@ class _MyAppState extends State<MyApp> {
         ),
       ),
       navigatorObservers: [_scrollObserver],
-      home: HomePage(),
+      home: (kIsWeb &&
+              (Uri.base.fragment.contains('admin') ||
+                  Uri.base.queryParameters['page'] == 'admin'))
+          ? const AdminLayoutPage()
+          : const HomePage(),
     );
   }
 }

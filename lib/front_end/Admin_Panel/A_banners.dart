@@ -310,8 +310,12 @@ class _AdminBannersPageState extends State<AdminBannersPage> {
         _trustIconKeys[i] = bp.trustBadges[i]['icon'] ?? 'shield';
       }
     }
-    _loadSidebarProducts();
-    if (mounted) setState(() {});
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        _loadSidebarProducts();
+        setState(() {});
+      }
+    });
   }
 
   void _syncFromProvider() {

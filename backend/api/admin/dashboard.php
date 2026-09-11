@@ -30,15 +30,37 @@ $cust = $custStmt->fetch();
 $pendingStmt = $db->query("SELECT COUNT(*) AS pendingOrders FROM orders WHERE order_status = 'pending'");
 $pending = $pendingStmt->fetch();
 
-// Daily revenue for last 8 days (for chart)
-$dailyStmt = $db->query("
+// Days parameter for chart (default 8 days)
+$days = isset($_GET['days']) ? (int)$_GET['days'] : 8;
+if ($days < 7) $days = 7;
+if ($days > 90) $days = 90;
+
+// Daily revenue for last $days (for chart)
+$dailyStmt = $db->prepare("
     SELECT DATE(order_date) AS day, COALESCE(SUM(total_amount), 0) AS revenue
     FROM orders
-    WHERE order_date >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)
+    WHERE order_date >= DATE_SUB(CURDATE(), INTERVAL ? DAY)
     GROUP BY DATE(order_date)
     ORDER BY day ASC
 ");
-$dailyRevenue = $dailyStmt->fetchAll();
+$dailyStmt->execute([$days - 1]);
+$rawRows = $dailyStmt->fetchAll();
+
+// Index existing revenue by date
+$revByDate = [];
+foreach ($rawRows as $r) {
+    $revByDate[$r['day']] = (float)$r['revenue'];
+}
+
+// Generate continuous sequential array of all days up to today
+$dailyRevenue = [];
+for ($i = $days - 1; $i >= 0; $i--) {
+    $dateStr = date('Y-m-d', strtotime("-$i days"));
+    $dailyRevenue[] = [
+        'day'     => $dateStr,
+        'revenue' => $revByDate[$dateStr] ?? 0.0,
+    ];
+}
 
 // Recent orders (last 5)
 $recentStmt = $db->query("

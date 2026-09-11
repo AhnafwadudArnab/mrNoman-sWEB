@@ -23,7 +23,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
   Map<String, dynamic>? _dashboardStats;
   bool _statsLoading = true;
   String? _adminName;
-  String _selectedPeriod = 'Today';
+  String _selectedPeriod = 'Last 7 Days';
 
   @override
   void initState() {
@@ -36,7 +36,6 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
 
   final List<String> _timePeriods = [
     'Last 7 Days',
-    'Last 8 Days',
     'Last 14 Days',
     'Last 30 Days',
     'Last 90 Days',
@@ -79,14 +78,13 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
 
     try {
       // Extract days from selected period
-      int days = 8; // default
+      int days = 7; // default
       if (_selectedPeriod.contains('7')) days = 7;
-      if (_selectedPeriod.contains('8')) days = 8;
       if (_selectedPeriod.contains('14')) days = 14;
       if (_selectedPeriod.contains('30')) days = 30;
       if (_selectedPeriod.contains('90')) days = 90;
 
-      final stats = await ApiService.getDashboardStats(days: days);
+      final stats = await ApiService.getDashboardStats(days: days, useCache: false);
       if (mounted) {
         setState(() {
           _dashboardStats = stats;
@@ -181,7 +179,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
 
   Widget _buildTopBar() {
     final isMobile = AdminScaffold.isMobileScreen(context);
-    // On mobile the AppBar is already shown by AdminScaffold ? skip this bar
+    // On mobile the AppBar is already shown by AdminScaffold -> skip this bar
     if (isMobile) return const SizedBox.shrink();
     return Container(
       height: 70,
@@ -303,7 +301,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
         final cards = [
           _buildStatCard(
             'Total Sales',
-            '?${totalRevenue.toStringAsFixed(0)}',
+            '৳${totalRevenue.toStringAsFixed(0)}',
             '',
             'from DB',
             AdminTheme.brand,
@@ -422,21 +420,56 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
     // Build chart spots from real daily revenue data if available
     final dailyRevenue =
         (_dashboardStats?['dailyRevenue'] as List<dynamic>?) ?? [];
-    final spots = dailyRevenue.isNotEmpty
-        ? List.generate(dailyRevenue.length, (i) {
-            final v = dailyRevenue[i];
-            return FlSpot(i.toDouble(), _toDouble(v is Map ? v['revenue'] : v));
-          })
-        : [
-            const FlSpot(0, 0),
-            const FlSpot(1, 0),
-            const FlSpot(2, 0),
-            const FlSpot(3, 0),
-            const FlSpot(4, 0),
-            const FlSpot(5, 0),
-            const FlSpot(6, 0),
-            const FlSpot(7, 0),
-          ];
+    final List<FlSpot> spots;
+    if (dailyRevenue.isNotEmpty) {
+      spots = List.generate(dailyRevenue.length, (i) {
+        final v = dailyRevenue[i];
+        final rev = _toDouble(v is Map ? v['revenue'] : v);
+        return FlSpot(i.toDouble(), rev);
+      });
+    } else {
+      spots = List.generate(7, (i) => FlSpot(i.toDouble(), 0));
+    }
+
+    double maxVal = 0;
+    for (final s in spots) {
+      if (s.y > maxVal) maxVal = s.y;
+    }
+    final double maxY = maxVal > 0 ? (maxVal * 1.35) : 5000;
+    final double maxX = spots.length > 1 ? (spots.length - 1).toDouble() : 1.0;
+
+    String formatDayLabel(int index) {
+      if (index >= 0 && index < dailyRevenue.length) {
+        final item = dailyRevenue[index];
+        if (item is Map && item['day'] != null) {
+          final str = item['day'].toString();
+          final parts = str.split('-');
+          if (parts.length == 3) {
+            const months = [
+              'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+              'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+            ];
+            final mIdx = int.tryParse(parts[1]);
+            final dNum = int.tryParse(parts[2]);
+            if (mIdx != null && mIdx >= 1 && mIdx <= 12 && dNum != null) {
+              return '${months[mIdx - 1]} $dNum';
+            }
+          }
+        }
+      }
+      return 'D${index + 1}';
+    }
+
+    double bottomInterval = 1.0;
+    if (spots.length > 30) {
+      bottomInterval = (spots.length / 5).floorToDouble().clamp(1.0, 30.0);
+    } else if (spots.length > 14) {
+      bottomInterval = 5.0;
+    } else if (spots.length > 7) {
+      bottomInterval = 2.0;
+    } else {
+      bottomInterval = 1.0;
+    }
 
     return Container(
       padding: const EdgeInsets.all(20),
@@ -459,47 +492,124 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
             height: 200,
             child: LineChart(
               LineChartData(
+                minX: 0,
+                maxX: maxX,
+                minY: 0,
+                maxY: maxY,
                 lineTouchData: LineTouchData(
                   enabled: true,
                   handleBuiltInTouches: true,
+                  getTouchedSpotIndicator: (LineChartBarData barData, List<int> spotIndexes) {
+                    return spotIndexes.map((index) {
+                      return TouchedSpotIndicatorData(
+                        FlLine(
+                          color: const Color(0xFF2563EB),
+                          strokeWidth: 2,
+                          dashArray: [4, 4],
+                        ),
+                        FlDotData(
+                          show: true,
+                          getDotPainter: (spot, percent, bar, index) => FlDotCirclePainter(
+                            radius: 6,
+                            color: const Color(0xFF2563EB),
+                            strokeWidth: 3,
+                            strokeColor: Colors.white,
+                          ),
+                        ),
+                      );
+                    }).toList();
+                  },
                   touchTooltipData: LineTouchTooltipData(
-                    getTooltipColor: (touchedSpot) => const Color(0xFF1E293B),
+                    getTooltipColor: (touchedSpot) => const Color(0xFF0F172A),
+                    tooltipBorder: const BorderSide(color: Colors.white38, width: 1),
+                    tooltipBorderRadius: BorderRadius.circular(8),
+                    tooltipPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                     fitInsideHorizontally: true,
                     fitInsideVertically: true,
                     getTooltipItems: (touchedSpots) {
                       return touchedSpots.map((spot) {
+                        final label = formatDayLabel(spot.x.toInt());
                         return LineTooltipItem(
-                          'Day ${spot.x.toInt() + 1}\n৳${spot.y.toStringAsFixed(0)}',
+                          '$label\n',
                           const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 12,
+                            color: Colors.white70,
+                            fontWeight: FontWeight.w500,
+                            fontSize: 11,
                           ),
+                          children: [
+                            TextSpan(
+                              text: '৳${spot.y.toStringAsFixed(0)}',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 15,
+                              ),
+                            ),
+                          ],
                         );
                       }).toList();
                     },
                   ),
                 ),
-                gridData: FlGridData(show: true),
+                gridData: FlGridData(
+                  show: true,
+                  drawVerticalLine: false,
+                  horizontalInterval: (maxY / 4).clamp(1.0, double.infinity),
+                  getDrawingHorizontalLine: (value) => FlLine(
+                    color: AdminTheme.border.withOpacity(0.6),
+                    strokeWidth: 1,
+                    dashArray: [4, 4],
+                  ),
+                ),
                 titlesData: FlTitlesData(
                   leftTitles: AxisTitles(
                     sideTitles: SideTitles(
                       showTitles: true,
-                      reservedSize: 40,
-                      getTitlesWidget: (value, meta) => Text(
-                        '${value.toInt()}',
-                        style: const TextStyle(fontSize: 10),
-                      ),
+                      reservedSize: 45,
+                      interval: (maxY / 4).clamp(1.0, double.infinity),
+                      getTitlesWidget: (value, meta) {
+                        if (value <= 0) return const SizedBox.shrink();
+                        String text;
+                        if (value >= 100000) {
+                          text = '${(value / 1000).toStringAsFixed(0)}k';
+                        } else if (value >= 1000) {
+                          text = '${(value / 1000).toStringAsFixed(1)}k';
+                        } else {
+                          text = value.toStringAsFixed(0);
+                        }
+                        return Text(
+                          text,
+                          style: TextStyle(
+                            fontSize: 10,
+                            color: AdminTheme.textSecondary,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        );
+                      },
                     ),
                   ),
                   bottomTitles: AxisTitles(
                     sideTitles: SideTitles(
                       showTitles: true,
                       reservedSize: 30,
-                      getTitlesWidget: (value, meta) => Text(
-                        'D${value.toInt() + 1}',
-                        style: const TextStyle(fontSize: 10),
-                      ),
+                      interval: bottomInterval,
+                      getTitlesWidget: (value, meta) {
+                        final index = value.toInt();
+                        if (index < 0 || index >= spots.length) {
+                          return const SizedBox.shrink();
+                        }
+                        return Padding(
+                          padding: const EdgeInsets.only(top: 8.0),
+                          child: Text(
+                            formatDayLabel(index),
+                            style: TextStyle(
+                              fontSize: 10,
+                              color: AdminTheme.textSecondary,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        );
+                      },
                     ),
                   ),
                   rightTitles: const AxisTitles(
@@ -509,14 +619,47 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                     sideTitles: SideTitles(showTitles: false),
                   ),
                 ),
-                borderData: FlBorderData(show: false),
+                borderData: FlBorderData(
+                  show: true,
+                  border: Border(
+                    bottom: BorderSide(
+                      color: AdminTheme.border,
+                      width: 1,
+                    ),
+                    left: BorderSide.none,
+                    right: BorderSide.none,
+                    top: BorderSide.none,
+                  ),
+                ),
                 lineBarsData: [
                   LineChartBarData(
                     spots: spots,
                     isCurved: true,
+                    curveSmoothness: 0.25,
+                    preventCurveOverShooting: true,
                     color: AdminTheme.brand,
                     barWidth: 3,
-                    dotData: FlDotData(show: true),
+                    isStrokeCapRound: true,
+                    dotData: FlDotData(
+                      show: spots.length <= 14,
+                      getDotPainter: (spot, percent, bar, index) => FlDotCirclePainter(
+                        radius: 4,
+                        color: AdminTheme.brand,
+                        strokeWidth: 2,
+                        strokeColor: Colors.white,
+                      ),
+                    ),
+                    belowBarData: BarAreaData(
+                      show: true,
+                      gradient: LinearGradient(
+                        colors: [
+                          AdminTheme.brand.withOpacity(0.28),
+                          AdminTheme.brand.withOpacity(0.02),
+                        ],
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                      ),
+                    ),
                   ),
                 ],
               ),
@@ -655,7 +798,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                 Row(
                   children: [
                     const Text(
-                      'Keep it up! ??',
+                      'Keep it up! 🎯',
                       style: TextStyle(fontWeight: FontWeight.bold),
                     ),
                   ],
@@ -663,7 +806,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                 const SizedBox(height: 4),
                 Text(
                   revenue > 0
-                      ? 'Revenue: ?${revenue.toStringAsFixed(0)} / Target: ?${target.toStringAsFixed(0)}'
+                      ? 'Revenue: ৳${revenue.toStringAsFixed(0)} / Target: ৳${target.toStringAsFixed(0)}'
                       : 'No revenue data yet.',
                   style: TextStyle(
                     color: AdminTheme.textSecondary,
@@ -773,14 +916,14 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                 _buildConversionCard(
                   'Avg Order Value',
                   totalOrders > 0
-                      ? '?${(totalRevenue / totalOrders).toStringAsFixed(0)}'
-                      : '?0',
+                      ? '৳${(totalRevenue / totalOrders).toStringAsFixed(0)}'
+                      : '৳0',
                   '',
                   true,
                 ),
                 _buildConversionCard(
                   'Total Revenue',
-                  '?${totalRevenue.toStringAsFixed(0)}',
+                  '৳${totalRevenue.toStringAsFixed(0)}',
                   '',
                   true,
                 ),

@@ -31,7 +31,7 @@ Widget? getAdminPage(AdminSidebarItem item) {
     case AdminSidebarItem.products:
       return const AdminProductUploadPage(embedded: true);
     case AdminSidebarItem.productList:
-      return const AdminUpdateProductPage();
+      return const AdminUpdateProductPage(embedded: true);
     case AdminSidebarItem.stockManagement:
       return const AdminStockManagementPage(embedded: true);
     case AdminSidebarItem.collections:

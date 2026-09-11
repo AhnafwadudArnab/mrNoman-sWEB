@@ -20,7 +20,9 @@ import 'package:electrocitybd1/front_end/Admin_Panel/admin_scaffold.dart';
 
 /// Admin page to view and delete specific products (from database and from website sections).
 class AdminUpdateProductPage extends StatefulWidget {
-  const AdminUpdateProductPage({super.key});
+  final bool embedded;
+
+  const AdminUpdateProductPage({super.key, this.embedded = true});
 
   @override
   State<AdminUpdateProductPage> createState() => _AdminUpdateProductPageState();
@@ -339,8 +341,15 @@ class _AdminUpdateProductPageState extends State<AdminUpdateProductPage> {
       ],
     );
 
+    if (widget.embedded) {
+      return Material(
+        color: AdminTheme.bg,
+        child: content,
+      );
+    }
+
     return AdminScaffold(
-      selected: AdminSidebarItem.products,
+      selected: AdminSidebarItem.productList,
       onItemSelected: (item) => _navigateFromSidebar(context, item),
       body: content,
     );

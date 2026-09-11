@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:electrocitybd1/config/app_colors.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
@@ -204,31 +203,37 @@ class _WishlistPageState extends State<WishlistPage> {
     return Scaffold(
       appBar: const Header(),
       drawer: const AppDrawer(),
-      backgroundColor: AppColors.grey300,
+      backgroundColor: const Color(0xFFF8FAFC),
       body: SingleChildScrollView(
         child: Column(
           children: [
-            // Header
+            // Modern Header Banner
             Container(
               width: double.infinity,
-              padding: const EdgeInsets.symmetric(vertical: 40),
-              color: AppColors.grey300,
+              padding: const EdgeInsets.symmetric(vertical: 36, horizontal: 24),
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                border: Border(
+                  bottom: BorderSide(color: Color(0xFFE2E8F0), width: 1),
+                ),
+              ),
               child: Column(
                 children: [
                   const Text(
-                    'Wishlist',
+                    'My Wishlist',
                     style: TextStyle(
-                      fontSize: 32,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.grey300,
+                      fontSize: 30,
+                      fontWeight: FontWeight.w800,
+                      color: Color(0xFF0F172A),
+                      letterSpacing: -0.5,
                     ),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 10),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      TextButton(
-                        onPressed: () {
+                      InkWell(
+                        onTap: () {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
@@ -236,30 +241,35 @@ class _WishlistPageState extends State<WishlistPage> {
                             ),
                           );
                         },
-                        child: Text(
-                          'Home',
-                          style: TextStyle(color: AppColors.grey300, fontSize: 14),
+                        child: const Row(
+                          children: [
+                            Icon(Icons.home_outlined, size: 16, color: Color(0xFF64748B)),
+                            SizedBox(width: 4),
+                            Text(
+                              'Home',
+                              style: TextStyle(
+                                color: Color(0xFF64748B),
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                      Text(
-                        '  /  ',
-                        style: TextStyle(color: AppColors.grey300, fontSize: 14),
+                      const Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 8),
+                        child: Icon(
+                          Icons.chevron_right,
+                          size: 16,
+                          color: Color(0xFF94A3B8),
+                        ),
                       ),
-                      TextButton(
-                        onPressed: () {
-                          // Refresh wishlist
-                          setState(() {});
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Wishlist refreshed')),
-                          );
-                        },
-                        child: Text(
-                          'Wishlist',
-                          style: TextStyle(
-                            color: Colors.orange,
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
-                          ),
+                      const Text(
+                        'Wishlist',
+                        style: TextStyle(
+                          color: Color(0xFF2563EB),
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
                     ],
@@ -268,61 +278,93 @@ class _WishlistPageState extends State<WishlistPage> {
               ),
             ),
 
-            // Wishlist Table
+            // Wishlist Content
             Consumer<WishlistProvider>(
               builder: (context, wishlistProvider, _) {
                 final items = wishlistProvider.items;
 
                 if (items.isEmpty) {
-                  return Container(
-                    margin: const EdgeInsets.all(16),
-                    padding: const EdgeInsets.all(40),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Column(
-                      children: [
-                        Icon(
-                          Icons.favorite_border,
-                          size: 64,
-                          color: Colors.black26,
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          'Your wishlist is empty',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.grey300,
+                  return Center(
+                    child: Container(
+                      constraints: const BoxConstraints(maxWidth: 480),
+                      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 48),
+                      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 48),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: const Color(0xFFE2E8F0)),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.04),
+                            blurRadius: 20,
+                            offset: const Offset(0, 4),
                           ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Add items to get started',
-                          style: TextStyle(fontSize: 14, color: AppColors.grey300),
-                        ),
-                        const SizedBox(height: 24),
-                        ElevatedButton.icon(
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => const HomePage(),
+                        ],
+                      ),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Container(
+                            width: 80,
+                            height: 80,
+                            decoration: const BoxDecoration(
+                              color: Color(0xFFFEF2F2),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Center(
+                              child: Icon(
+                                Icons.favorite_outline_rounded,
+                                size: 40,
+                                color: Color(0xFFEF4444),
                               ),
-                            );
-                          },
-                          icon: const Icon(Icons.shopping_bag),
-                          label: const Text('Continue Shopping'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.orange,
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 24,
-                              vertical: 12,
                             ),
                           ),
-                        ),
-                      ],
+                          const SizedBox(height: 24),
+                          const Text(
+                            'Your wishlist is empty',
+                            style: TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.w700,
+                              color: Color(0xFF0F172A),
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          const Text(
+                            'Explore our catalog and save your favorite electronics here so you never lose track of them.',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Color(0xFF64748B),
+                              height: 1.5,
+                            ),
+                          ),
+                          const SizedBox(height: 28),
+                          ElevatedButton.icon(
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => const HomePage(),
+                                ),
+                              );
+                            },
+                            icon: const Icon(Icons.shopping_bag_outlined, size: 20),
+                            label: const Text('Start Shopping'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF2563EB),
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 28,
+                                vertical: 14,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              elevation: 0,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   );
                 }
@@ -335,191 +377,7 @@ class _WishlistPageState extends State<WishlistPage> {
               },
             ),
 
-            // Cart Button & Clear
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Consumer<WishlistProvider>(
-                builder: (context, wishlistProvider, _) {
-                  final items = wishlistProvider.items;
-                  if (items.isEmpty) return const SizedBox.shrink();
-
-                  return Wrap(
-                    alignment: WrapAlignment.spaceBetween,
-                    crossAxisAlignment: WrapCrossAlignment.center,
-                    spacing: 12,
-                    runSpacing: 12,
-                    children: [
-                      Wrap(
-                        spacing: 12,
-                        runSpacing: 12,
-                        children: [
-                          ElevatedButton.icon(
-                            onPressed: () => _clearWishlist(wishlistProvider),
-                            icon: const Icon(Icons.delete_outline),
-                            label: const Text('Clear Wishlist'),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.red[400],
-                              foregroundColor: Colors.white,
-                            ),
-                          ),
-                          if (_selectedItems.isNotEmpty)
-                            ElevatedButton.icon(
-                              onPressed: () {
-                                final selectedItemsList = items
-                                    .where(
-                                      (item) => _selectedItems.contains(
-                                        item.productId,
-                                      ),
-                                    )
-                                    .toList();
-
-                                final count = selectedItemsList.length;
-
-                                for (var item in selectedItemsList) {
-                                  context.read<CartProvider>().addToCart(
-                                    productId: item.productId,
-                                    name: item.name,
-                                    price: item.price,
-                                    imageUrl: item.imageUrl,
-                                    category: item.category,
-                                  );
-                                  wishlistProvider.removeFromWishlist(
-                                    item.productId,
-                                  );
-                                }
-
-                                setState(() => _selectedItems.clear());
-                                _showMessage(
-                                  '$count item${count > 1 ? 's' : ''} added to cart and removed from wishlist',
-                                );
-                              },
-                              icon: const Icon(Icons.shopping_cart),
-                              label: Text(
-                                'Add Selected (${_selectedItems.length})',
-                              ),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.green,
-                                foregroundColor: Colors.white,
-                              ),
-                            ),
-                        ],
-                      ),
-                      ElevatedButton.icon(
-                        onPressed: () async {
-                          // ? Stock Validation for "Add All To Cart"
-                          final itemsToAdd = <WishlistItem>[];
-                          final outOfStockItems = <String>[];
-
-                          for (var item in items) {
-                            try {
-                              final pid = int.tryParse(item.productId);
-                              if (pid != null) {
-                                final product = await ApiService.getProduct(
-                                  pid,
-                                );
-                                final availableStock =
-                                    int.tryParse(
-                                      product['stock_quantity']?.toString() ??
-                                          '0',
-                                    ) ??
-                                    0;
-
-                                if (availableStock > 0) {
-                                  itemsToAdd.add(item);
-                                } else {
-                                  outOfStockItems.add(item.name);
-                                }
-                              } else {
-                                itemsToAdd.add(item);
-                              }
-                            } catch (e) {
-                              // If error checking stock, skip this item
-                              outOfStockItems.add(item.name);
-                            }
-                          }
-
-                          if (!mounted) return;
-
-                          // Show warning if some items are out of stock
-                          if (outOfStockItems.isNotEmpty) {
-                            final shouldContinue = await showDialog<bool>(
-                              context: context,
-                              builder: (ctx) => AlertDialog(
-                                title: const Text('?? Some Items Out of Stock'),
-                                content: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    const Text(
-                                      'The following items are out of stock and will be skipped:',
-                                    ),
-                                    const SizedBox(height: 8),
-                                    ...outOfStockItems.map(
-                                      (name) => Text(
-                                        '? $name',
-                                        style: const TextStyle(fontSize: 12),
-                                      ),
-                                    ),
-                                    const SizedBox(height: 16),
-                                    Text(
-                                      '${itemsToAdd.length} item${itemsToAdd.length > 1 ? 's' : ''} will be added to cart.',
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                actions: [
-                                  TextButton(
-                                    onPressed: () => Navigator.pop(ctx, false),
-                                    child: const Text('Cancel'),
-                                  ),
-                                  TextButton(
-                                    onPressed: () => Navigator.pop(ctx, true),
-                                    child: const Text('Continue'),
-                                  ),
-                                ],
-                              ),
-                            );
-
-                            if (shouldContinue != true) return;
-                          }
-
-                          // Add available items to cart
-                          for (var item in itemsToAdd) {
-                            context.read<CartProvider>().addToCart(
-                              productId: item.productId,
-                              name: item.name,
-                              price: item.price,
-                              imageUrl: item.imageUrl,
-                              category: item.category,
-                            );
-                            wishlistProvider.removeFromWishlist(item.productId);
-                          }
-
-                          setState(() => _selectedItems.clear());
-
-                          if (itemsToAdd.isEmpty) {
-                            _showMessage('All items are out of stock');
-                          } else {
-                            _showMessage(
-                              '${itemsToAdd.length} item${itemsToAdd.length > 1 ? 's' : ''} added to cart',
-                            );
-                          }
-                        },
-                        icon: const Icon(Icons.shopping_cart),
-                        label: const Text('Add All To Cart'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.orange,
-                          foregroundColor: Colors.white,
-                        ),
-                      ),
-                    ],
-                  );
-                },
-              ),
-            ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 32),
             const FooterSection(),
           ],
         ),
@@ -548,63 +406,98 @@ class _WishlistPageState extends State<WishlistPage> {
               borderRadius: BorderRadius.circular(12),
               border: Border.all(color: const Color(0xFFE2E8F0)),
             ),
-            child: Row(
+            child: Wrap(
+              alignment: WrapAlignment.spaceBetween,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: 12,
+              runSpacing: 12,
               children: [
-                Checkbox(
-                  value: allSelected,
-                  onChanged: (value) {
-                    setState(() {
-                      if (value == true) {
-                        _selectedItems.addAll(items.map((e) => e.productId));
-                      } else {
-                        _selectedItems.clear();
-                      }
-                    });
-                  },
-                  activeColor: const Color(0xFF2563EB),
-                ),
-                Text(
-                  'Select All (${items.length} items)',
-                  style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
-                ),
-                const Spacer(),
-                if (_selectedItems.isNotEmpty) ...[
-                  ElevatedButton.icon(
-                    onPressed: () {
-                      final selectedItemsList = items
-                          .where((item) => _selectedItems.contains(item.productId))
-                          .toList();
-                      for (var item in selectedItemsList) {
-                        context.read<CartProvider>().addToCart(
-                          productId: item.productId,
-                          name: item.name,
-                          price: item.price,
-                          imageUrl: item.imageUrl,
-                          category: item.category,
-                        );
-                        wishlistProvider.removeFromWishlist(item.productId);
-                      }
-                      setState(() => _selectedItems.clear());
-                      _showMessage('${selectedItemsList.length} items moved to cart');
-                    },
-                    icon: const Icon(Icons.shopping_cart_outlined, size: 16),
-                    label: Text('Move Selected (${_selectedItems.length})'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF2563EB),
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Checkbox(
+                      value: allSelected,
+                      onChanged: (value) {
+                        setState(() {
+                          if (value == true) {
+                            _selectedItems.addAll(items.map((e) => e.productId));
+                          } else {
+                            _selectedItems.clear();
+                          }
+                        });
+                      },
+                      activeColor: const Color(0xFF2563EB),
                     ),
-                  ),
-                  const SizedBox(width: 8),
-                ],
-                OutlinedButton.icon(
-                  onPressed: () => _clearWishlist(wishlistProvider),
-                  icon: const Icon(Icons.delete_outline, size: 16, color: Colors.red),
-                  label: const Text('Clear', style: TextStyle(color: Colors.red)),
-                  style: OutlinedButton.styleFrom(
-                    side: const BorderSide(color: Color(0xFFFCA5A5)),
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                  ),
+                    Text(
+                      'Select All (${items.length} items)',
+                      style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+                    ),
+                  ],
+                ),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    if (_selectedItems.isNotEmpty)
+                      ElevatedButton.icon(
+                        onPressed: () {
+                          final selectedItemsList = items
+                              .where((item) => _selectedItems.contains(item.productId))
+                              .toList();
+                          for (var item in selectedItemsList) {
+                            context.read<CartProvider>().addToCart(
+                              productId: item.productId,
+                              name: item.name,
+                              price: item.price,
+                              imageUrl: item.imageUrl,
+                              category: item.category,
+                            );
+                            wishlistProvider.removeFromWishlist(item.productId);
+                          }
+                          setState(() => _selectedItems.clear());
+                          _showMessage('${selectedItemsList.length} items moved to cart');
+                        },
+                        icon: const Icon(Icons.shopping_cart_outlined, size: 16),
+                        label: Text('Move Selected (${_selectedItems.length})'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF2563EB),
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                        ),
+                      ),
+                    ElevatedButton.icon(
+                      onPressed: () {
+                        for (var item in items) {
+                          context.read<CartProvider>().addToCart(
+                            productId: item.productId,
+                            name: item.name,
+                            price: item.price,
+                            imageUrl: item.imageUrl,
+                            category: item.category,
+                          );
+                        }
+                        wishlistProvider.clearWishlist();
+                        setState(() => _selectedItems.clear());
+                        _showMessage('All ${items.length} items added to cart');
+                      },
+                      icon: const Icon(Icons.shopping_bag_outlined, size: 16),
+                      label: const Text('Add All to Cart'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF10B981),
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                      ),
+                    ),
+                    OutlinedButton.icon(
+                      onPressed: () => _clearWishlist(wishlistProvider),
+                      icon: const Icon(Icons.delete_outline, size: 16, color: Colors.red),
+                      label: const Text('Clear', style: TextStyle(color: Colors.red)),
+                      style: OutlinedButton.styleFrom(
+                        side: const BorderSide(color: Color(0xFFFCA5A5)),
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
