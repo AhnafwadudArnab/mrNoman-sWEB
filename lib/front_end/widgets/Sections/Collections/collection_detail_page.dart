@@ -9,6 +9,7 @@ import '../../../utils/api_service.dart';
 import '../../../utils/optimized_image_widget.dart';
 import '../../footer.dart';
 import '../../header.dart';
+import '../../store_breadcrumb_bar.dart';
 
 class CollectionDetailPage extends StatefulWidget {
   final String collectionName;
@@ -216,6 +217,10 @@ class _CollectionDetailPageState extends State<CollectionDetailPage> {
             child: Column(
               children: [
                 const Header(),
+                StoreBreadcrumbBar(
+                  currentPage: widget.collectionName,
+                  parentPage: 'Collections',
+                ),
                 if (isNarrow)
                   Padding(
                     padding: EdgeInsets.symmetric(
@@ -354,7 +359,7 @@ class _CollectionDetailPageState extends State<CollectionDetailPage> {
                     cat,
                     style: TextStyle(
                       fontSize: 14,
-                      color: selected ? Colors.red.shade700 : AppColors.grey200,
+                      color: selected ? Colors.red.shade700 : const Color(0xFF374151),
                       fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
                     ),
                   ),
@@ -366,7 +371,7 @@ class _CollectionDetailPageState extends State<CollectionDetailPage> {
                     vertical: 2,
                   ),
                   decoration: BoxDecoration(
-                    color: selected ? Colors.red.shade100 : AppColors.grey200,
+                    color: selected ? Colors.red.shade100 : const Color(0xFFF3F4F6),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
@@ -374,7 +379,7 @@ class _CollectionDetailPageState extends State<CollectionDetailPage> {
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
-                      color: selected ? Colors.red.shade700 : AppColors.grey200,
+                      color: selected ? Colors.red.shade700 : const Color(0xFF4B5563),
                     ),
                   ),
                 ),
@@ -395,14 +400,14 @@ class _CollectionDetailPageState extends State<CollectionDetailPage> {
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w800,
-                  color: AppColors.grey300,
+                  color: Colors.black87,
                   letterSpacing: 0.3,
                 ),
               ),
               const SizedBox(height: 4),
-              Text(
+              const Text(
                 'Filter by category',
-                style: TextStyle(fontSize: 12, color: AppColors.grey300),
+                style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
               ),
               const SizedBox(height: 20),
               ...chips,
@@ -465,7 +470,7 @@ class _CollectionDetailPageState extends State<CollectionDetailPage> {
                     const SizedBox(height: 8),
                     Text(
                       'Showing ${(_currentPage - 1) * _itemsPerPage + 1} - ${(_currentPage - 1) * _itemsPerPage + _paginatedProducts.length} of ${_allProducts.length} result',
-                      style: TextStyle(fontSize: 13, color: AppColors.grey300),
+                      style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
                     ),
                   ],
                 )
@@ -473,7 +478,7 @@ class _CollectionDetailPageState extends State<CollectionDetailPage> {
                   children: [
                     Text(
                       'Showing ${(_currentPage - 1) * _itemsPerPage + 1} - ${(_currentPage - 1) * _itemsPerPage + _paginatedProducts.length} of ${_allProducts.length} result',
-                      style: TextStyle(fontSize: 14, color: AppColors.grey300),
+                      style: const TextStyle(fontSize: 14, color: AppColors.textSecondary),
                     ),
                     const SizedBox(width: 24),
                     Icon(widget.icon, size: 24, color: Colors.red),
@@ -542,7 +547,7 @@ class _CollectionDetailPageState extends State<CollectionDetailPage> {
                   if (_currentPage > 3)
                     const Padding(
                       padding: EdgeInsets.symmetric(horizontal: 8),
-                      child: Text('...'),
+                      child: Text('...', style: TextStyle(color: AppColors.textSecondary, fontWeight: FontWeight.bold)),
                     ),
                   ...List.generate(_maxPagesToShow, (index) {
                     final start = (_currentPage - 2).clamp(2, _totalPages - 4);
@@ -553,7 +558,7 @@ class _CollectionDetailPageState extends State<CollectionDetailPage> {
                   if (_currentPage < _totalPages - 2)
                     const Padding(
                       padding: EdgeInsets.symmetric(horizontal: 8),
-                      child: Text('...'),
+                      child: Text('...', style: TextStyle(color: AppColors.textSecondary, fontWeight: FontWeight.bold)),
                     ),
                   _pageButton(_totalPages),
                 ],
@@ -587,9 +592,9 @@ class _CollectionDetailPageState extends State<CollectionDetailPage> {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(
+          const Text(
             'Sort By:',
-            style: TextStyle(fontSize: 14, color: AppColors.grey300),
+            style: TextStyle(fontSize: 14, color: AppColors.textSecondary),
           ),
           const SizedBox(width: 8),
           const Text(
@@ -597,35 +602,41 @@ class _CollectionDetailPageState extends State<CollectionDetailPage> {
             style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
           ),
           const SizedBox(width: 8),
-          Icon(Icons.keyboard_arrow_down, size: 20, color: AppColors.grey300),
+          const Icon(Icons.keyboard_arrow_down, size: 20, color: AppColors.textSecondary),
         ],
       ),
     );
   }
 
   Widget _pageButton(int pageNum) {
+    final isActive = _currentPage == pageNum;
     return InkWell(
       onTap: () {
         setState(() {
           _currentPage = pageNum;
         });
       },
+      borderRadius: BorderRadius.circular(6),
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 2),
         width: 36,
         height: 36,
         decoration: BoxDecoration(
-          color: _currentPage == pageNum ? Colors.red : Colors.transparent,
-          borderRadius: BorderRadius.circular(4),
+          color: isActive ? Colors.red : Colors.white,
+          border: Border.all(
+            color: isActive ? Colors.red : const Color(0xFFCBD5E1),
+            width: 1.2,
+          ),
+          borderRadius: BorderRadius.circular(6),
         ),
         child: Center(
           child: Text(
             '$pageNum',
             style: TextStyle(
-              color: _currentPage == pageNum ? Colors.white : Colors.black,
-              fontWeight: _currentPage == pageNum
+              color: isActive ? Colors.white : const Color(0xFF1E293B),
+              fontWeight: isActive
                   ? FontWeight.bold
-                  : FontWeight.normal,
+                  : FontWeight.w600,
             ),
           ),
         ),
@@ -640,14 +651,14 @@ class _CollectionDetailPageState extends State<CollectionDetailPage> {
         children: [
           Icon(Icons.error_outline, size: 64, color: Colors.red[300]),
           const SizedBox(height: 16),
-          Text(
+          const Text(
             'Failed to load products',
-            style: TextStyle(fontSize: 18, color: AppColors.grey300),
+            style: TextStyle(fontSize: 18, color: AppColors.textPrimary, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 8),
           Text(
             _error!,
-            style: TextStyle(fontSize: 14, color: AppColors.grey300),
+            style: const TextStyle(fontSize: 14, color: AppColors.textSecondary),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 24),
@@ -736,7 +747,11 @@ class _CollectionDetailPageState extends State<CollectionDetailPage> {
                   // Product Name
                   Text(
                     product['title'] ?? 'Product',
-                    style: const TextStyle(fontSize: 14),
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF111827),
+                    ),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -757,7 +772,7 @@ class _CollectionDetailPageState extends State<CollectionDetailPage> {
 
                   // Price
                   Text(
-                    '?${(product['price'] as double).toStringAsFixed(0)}',
+                    'Tk ${(product['price'] as double).toStringAsFixed(0)}',
                     style: const TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 16,
@@ -770,7 +785,7 @@ class _CollectionDetailPageState extends State<CollectionDetailPage> {
                   if (isInStock)
                     Text(
                       '$stockQuantity items available',
-                      style: TextStyle(fontSize: 11, color: AppColors.grey300),
+                      style: const TextStyle(fontSize: 11, color: Color(0xFF6B7280)),
                     )
                   else
                     Text(

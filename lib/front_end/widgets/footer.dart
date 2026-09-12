@@ -49,7 +49,7 @@ class FooterSection extends StatelessWidget {
             children: [
               Center(
                 child: Text(
-                  'Copyright ? 2026 ElectroZoneBD. All Rights Reserved.',
+                  '© 2026 ElectroZoneBD. All Rights Reserved.',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: AppDimensions.smallFont(context),

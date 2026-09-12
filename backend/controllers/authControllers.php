@@ -33,7 +33,7 @@ class AuthController {
         $this->user->email = $data['email'];
         if ($this->user->emailExists()) {
             http_response_code(400);
-            return ['message' => 'Email already exists'];
+            return ['message' => 'Email already exists. Please login.', 'error' => 'Email already exists. Please login.'];
         }
         
         // Create user
@@ -83,7 +83,7 @@ class AuthController {
         
         if (!$this->user->emailExists()) {
             http_response_code(401);
-            return ['message' => 'Invalid email or password'];
+            return ['message' => 'User account does not exist'];
         }
         
         // Verify password

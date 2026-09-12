@@ -202,9 +202,9 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
             ),
             const Icon(Icons.star_half, color: Colors.amber, size: 22),
             const SizedBox(width: 8),
-            Text(
+            const Text(
               "4.5 (128 reviews)",
-              style: TextStyle(color: AppColors.grey300, fontSize: 15),
+              style: TextStyle(color: AppColors.textSecondary, fontSize: 15, fontWeight: FontWeight.w500),
             ),
           ],
         ),

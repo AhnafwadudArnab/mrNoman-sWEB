@@ -11,6 +11,8 @@ import '../../widgets/app_drawer.dart';
 import '../../widgets/footer.dart';
 import '../../widgets/header.dart';
 import '../Profiles/Wishlist_provider.dart';
+import '../home_page.dart';
+import 'category_products_page.dart';
 import 'package:electrocitybd1/front_end/pages/Templates/all_products_template.dart';
 
 class UniversalProductDetails extends StatefulWidget {
@@ -84,92 +86,155 @@ class _UniversalProductDetailsState extends State<UniversalProductDetails>
   Widget _buildBreadcrumb(AppResponsive r) {
     return Container(
       width: double.infinity,
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        border: Border(
+          bottom: BorderSide(color: Color(0xFFE5E7EB), width: 1),
+        ),
+      ),
       padding: EdgeInsets.symmetric(
         horizontal: r.value(
-          smallMobile: 16,
-          mobile: 16,
-          tablet: 40,
-          smallDesktop: 80,
-          desktop: 100,
-        ),
-        vertical: r.value(
           smallMobile: 12,
           mobile: 12,
-          tablet: 16,
-          smallDesktop: 18,
-          desktop: 20,
+          tablet: 24,
+          smallDesktop: 32,
+          desktop: 48,
         ),
+        vertical: 8,
       ),
       child: Row(
         children: [
-          SizedBox(
-            width: r.value(
-              smallMobile: 12,
-              mobile: 12,
-              tablet: 14,
-              smallDesktop: 15,
-              desktop: 16,
+          // Back button
+          InkWell(
+            onTap: () {
+              if (Navigator.canPop(context)) {
+                Navigator.pop(context);
+              } else {
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(builder: (_) => const HomePage()),
+                  (route) => false,
+                );
+              }
+            },
+            borderRadius: BorderRadius.circular(6),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF3F4F6),
+                borderRadius: BorderRadius.circular(6),
+                border: Border.all(color: const Color(0xFFE5E7EB)),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: const [
+                  Icon(Icons.arrow_back, size: 15, color: Color(0xFF1F2937)),
+                  SizedBox(width: 4),
+                  Text(
+                    'Back',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF1F2937),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
+
+          const SizedBox(width: 8),
+          Container(
+            height: 16,
+            width: 1,
+            color: const Color(0xFFD1D5DB),
+          ),
+          const SizedBox(width: 8),
+
+          // Breadcrumbs
           Expanded(
-            child: Wrap(
-              spacing: 4,
-              children: [
-                TextButton(
-                  onPressed: () {
-                    Navigator.popUntil(context, (route) => route.isFirst);
-                  },
-                  style: TextButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
-                    ),
-                    minimumSize: Size.zero,
-                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  ),
-                  child: Text(
-                    "Home",
-                    style: TextStyle(
-                      color: Colors.black,
-                      fontSize: AppDimensions.smallFont(context),
-                    ),
-                  ),
-                ),
-                Text(
-                  " / ",
-                  style: TextStyle(
-                    color: Colors.black,
-                    fontSize: AppDimensions.smallFont(context),
-                  ),
-                ),
-                TextButton(
-                  onPressed: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          'Navigate to ${widget.product.category} category',
-                        ),
-                        duration: const Duration(seconds: 1),
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  InkWell(
+                    onTap: () {
+                      Navigator.pushAndRemoveUntil(
+                        context,
+                        MaterialPageRoute(builder: (_) => const HomePage()),
+                        (route) => false,
+                      );
+                    },
+                    borderRadius: BorderRadius.circular(4),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: const [
+                          Icon(Icons.home_outlined, size: 15, color: Color(0xFF6B7280)),
+                          SizedBox(width: 4),
+                          Text(
+                            'Home',
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: Color(0xFF6B7280),
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
                       ),
-                    );
-                  },
-                  style: TextButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
-                    ),
-                    minimumSize: Size.zero,
-                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  ),
-                  child: Text(
-                    widget.product.category,
-                    style: TextStyle(
-                      color: Colors.black,
-                      fontSize: AppDimensions.smallFont(context),
                     ),
                   ),
-                ),
-              ],
+                  const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 4),
+                    child: Text(
+                      '/',
+                      style: TextStyle(fontSize: 12, color: Color(0xFF9CA3AF)),
+                    ),
+                  ),
+                  InkWell(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => CategoryProductsPage(
+                            categoryId: 0,
+                            categoryName: widget.product.category,
+                          ),
+                        ),
+                      );
+                    },
+                    borderRadius: BorderRadius.circular(4),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                      child: Text(
+                        widget.product.category,
+                        style: const TextStyle(
+                          fontSize: 13,
+                          color: Color(0xFF2563EB),
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 4),
+                    child: Text(
+                      '/',
+                      style: TextStyle(fontSize: 12, color: Color(0xFF9CA3AF)),
+                    ),
+                  ),
+                  Text(
+                    widget.product.name,
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF111827),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ],

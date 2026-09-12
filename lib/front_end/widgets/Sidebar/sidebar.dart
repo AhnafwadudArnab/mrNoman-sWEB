@@ -1,4 +1,4 @@
-import 'package:electrocitybd1/config/app_colors.dart';
+﻿import 'package:electrocitybd1/config/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -321,7 +321,7 @@ class _SidebarState extends State<Sidebar> {
       decoration: BoxDecoration(
         color: AppColors.white,
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: AppColors.textPrimary),
+        border: Border.all(color: const Color(0xFFE5E7EB)),
       ),
       child: Column(
         children: orderedCategories.asMap().entries.map((entry) {

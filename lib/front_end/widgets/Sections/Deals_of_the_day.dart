@@ -551,7 +551,7 @@ class _DealsOfTheDayState extends State<DealsOfTheDay> {
                                 color: AppColors.grey300,
                                 child: const Icon(
                                   Icons.image,
-                                  color: AppColors.grey300,
+                                  color: Colors.black26,
                                 ),
                               ),
                             );
@@ -706,10 +706,10 @@ class _DealsOfTheDayState extends State<DealsOfTheDay> {
                             errorBuilder: (context, error, stackTrace) =>
                                 const Icon(
                                   Icons.image,
-                                  color: AppColors.grey300,
+                                  color: Colors.black26,
                                 ),
                           )
-                        : const Icon(Icons.image, color: AppColors.grey300)),
+                        : const Icon(Icons.image, color: Colors.black26)),
               ),
             ),
             const SizedBox(width: 5),

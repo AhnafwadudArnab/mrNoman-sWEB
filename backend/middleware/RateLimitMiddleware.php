@@ -197,27 +197,31 @@ class RateLimitMiddleware {
      * Load storage from file
      */
     private static function loadStorage() {
-        $dir = dirname(self::$storageFile);
-        if (!is_dir($dir)) {
-            mkdir($dir, 0755, true);
-        }
-        
-        if (file_exists(self::$storageFile)) {
-            $content = file_get_contents(self::$storageFile);
-            self::$storage = json_decode($content, true) ?: [];
-        }
-        
-        // Clean old entries (older than 1 hour)
-        $now = time();
-        foreach (self::$storage as $key => $data) {
-            if (isset($data['requests'])) {
-                $data['requests'] = array_filter($data['requests'], function($timestamp) use ($now) {
-                    return $timestamp > ($now - 3600);
-                });
-                if (empty($data['requests']) && $data['blocked_until'] < $now) {
-                    unset(self::$storage[$key]);
+        try {
+            $dir = dirname(self::$storageFile);
+            if (!is_dir($dir)) {
+                @mkdir($dir, 0777, true);
+            }
+            
+            if (file_exists(self::$storageFile)) {
+                $content = @file_get_contents(self::$storageFile);
+                self::$storage = json_decode($content, true) ?: [];
+            }
+            
+            // Clean old entries (older than 1 hour)
+            $now = time();
+            foreach (self::$storage as $key => $data) {
+                if (isset($data['requests'])) {
+                    $data['requests'] = array_filter($data['requests'], function($timestamp) use ($now) {
+                        return $timestamp > ($now - 3600);
+                    });
+                    if (empty($data['requests']) && $data['blocked_until'] < $now) {
+                        unset(self::$storage[$key]);
+                    }
                 }
             }
+        } catch (Throwable $e) {
+            self::$storage = [];
         }
     }
     
@@ -225,12 +229,16 @@ class RateLimitMiddleware {
      * Save storage to file
      */
     private static function saveStorage() {
-        $dir = dirname(self::$storageFile);
-        if (!is_dir($dir)) {
-            mkdir($dir, 0755, true);
+        try {
+            $dir = dirname(self::$storageFile);
+            if (!is_dir($dir)) {
+                @mkdir($dir, 0777, true);
+            }
+            
+            @file_put_contents(self::$storageFile, json_encode(self::$storage));
+        } catch (Throwable $e) {
+            // Silently ignore if file is not writable in shared hosting
         }
-        
-        file_put_contents(self::$storageFile, json_encode(self::$storage));
     }
 }
 ?>

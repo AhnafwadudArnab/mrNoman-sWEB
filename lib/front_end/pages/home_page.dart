@@ -492,6 +492,7 @@ class _MainContentState extends State<_MainContent> {
     final hasHero = len > 0;
 
     return SingleChildScrollView(
+      key: const PageStorageKey<String>('home_page_scroll'),
       padding: EdgeInsets.symmetric(
         vertical: r.value(
           smallMobile: 8.0,

@@ -213,7 +213,7 @@ class _FeaturedBrandsStripState extends State<FeaturedBrandsStrip> {
                         errorBuilder: (_, __, ___) => const Icon(
                           Icons.broken_image,
                           size: 40,
-                          color: AppColors.grey300,
+                          color: Colors.black26,
                         ),
                       )
                     : Image.network(
@@ -224,7 +224,7 @@ class _FeaturedBrandsStripState extends State<FeaturedBrandsStrip> {
                         errorBuilder: (_, __, ___) => const Icon(
                           Icons.broken_image,
                           size: 40,
-                          color: AppColors.grey300,
+                          color: Colors.black26,
                         ),
                       ),
               );

@@ -497,7 +497,7 @@ class _TrendingItemsState extends State<TrendingItems> {
                                                               '৳${regPrice.toStringAsFixed(0)}',
                                                               style: const TextStyle(
                                                                 decoration: TextDecoration.lineThrough,
-                                                                color: AppColors.grey300,
+                                                                color: AppColors.textSecondary,
                                                                 fontSize: 11,
                                                               ),
                                                             ),
@@ -800,7 +800,7 @@ class _TrendingItemsState extends State<TrendingItems> {
                                                             '৳${prevPrice.toStringAsFixed(0)}',
                                                             style: const TextStyle(
                                                               decoration: TextDecoration.lineThrough,
-                                                              color: AppColors.grey300,
+                                                              color: AppColors.textSecondary,
                                                               fontSize: 11,
                                                             ),
                                                           ),

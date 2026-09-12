@@ -68,6 +68,12 @@ class _SignupState extends State<Signup> {
 
       if (!mounted) return;
 
+      // Check for backend error
+      if (result['error'] != null) {
+        final errStr = ApiService.cleanErrorMessage(result['error'], statusCode: result['statusCode'] ?? 400);
+        throw ApiException(errStr, result['statusCode'] ?? 400);
+      }
+
       // Check response
       if (result['token'] == null || result['user'] == null) {
         throw ApiException('Registration failed. Please try again.', 400);
@@ -151,9 +157,10 @@ class _SignupState extends State<Signup> {
       );
     } on ApiException catch (e) {
       if (!mounted) return;
+      final cleanMsg = ApiService.cleanErrorMessage(e.message, statusCode: e.statusCode);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(e.message),
+          content: Text(cleanMsg),
           backgroundColor: Colors.red,
           behavior: SnackBarBehavior.floating,
         ),
@@ -162,9 +169,7 @@ class _SignupState extends State<Signup> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text(
-            'Server connection failed. Please check if backend is running.',
-          ),
+          content: Text('Unable to connect to server. Please try again.'),
           backgroundColor: Colors.red,
           behavior: SnackBarBehavior.floating,
         ),

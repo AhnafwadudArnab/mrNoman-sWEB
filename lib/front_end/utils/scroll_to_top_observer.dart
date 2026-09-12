@@ -19,7 +19,8 @@ class ScrollToTopObserver extends NavigatorObserver {
   @override
   void didPop(Route<dynamic> route, Route<dynamic>? previousRoute) {
     super.didPop(route, previousRoute);
-    _resetSoon();
+    // Do not reset scroll on pop: preserving scroll position on return
+    // is essential for e-commerce browsing (e.g. returning from See All to HomePage).
   }
 
   void _resetSoon() {

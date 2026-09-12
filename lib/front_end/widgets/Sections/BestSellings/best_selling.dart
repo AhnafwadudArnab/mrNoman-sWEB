@@ -327,7 +327,7 @@ class _BestSellingBoxState extends State<BestSellingBox> {
                       const SizedBox(width: 4),
                       const Text(
                         '4.5',
-                        style: TextStyle(fontSize: 12, color: AppColors.grey300),
+                        style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
                       ),
                     ],
                   ),
@@ -511,7 +511,7 @@ class _BestSellingBoxState extends State<BestSellingBox> {
                       const SizedBox(width: 4),
                       const Text(
                         '4.5',
-                        style: TextStyle(fontSize: 12, color: AppColors.grey300),
+                        style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
                       ),
                     ],
                   ),

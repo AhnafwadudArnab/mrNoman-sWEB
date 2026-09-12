@@ -5,6 +5,7 @@ import '../../../utils/api_service.dart';
 import '../../../Provider/api_ready_notifier.dart';
 import '../../footer.dart';
 import '../../header.dart';
+import '../../store_breadcrumb_bar.dart';
 import 'collection_detail_page.dart';
 
 class CollectionsPage extends StatefulWidget {
@@ -349,6 +350,7 @@ class _CollectionsPageState extends State<CollectionsPage> {
                       style: const TextStyle(
                         fontWeight: FontWeight.w700,
                         fontSize: 13,
+                        color: Color(0xFF111827),
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -358,7 +360,8 @@ class _CollectionsPageState extends State<CollectionsPage> {
                       '$count items',
                       style: const TextStyle(
                         fontSize: 11,
-                        color: Colors.black54,
+                        fontWeight: FontWeight.w500,
+                        color: Color(0xFF4B5563),
                       ),
                     ),
                   ],
@@ -500,6 +503,7 @@ class _AllCollectionsPageState extends State<AllCollectionsPage> {
       body: SingleChildScrollView(
         child: Column(
           children: [
+            const StoreBreadcrumbBar(currentPage: 'All Collections'),
             // Banner
             Container(
               width: double.infinity,
@@ -601,6 +605,7 @@ class _AllCollectionsPageState extends State<AllCollectionsPage> {
                                         style: const TextStyle(
                                           fontWeight: FontWeight.w700,
                                           fontSize: 13,
+                                          color: Color(0xFF111827),
                                         ),
                                         maxLines: 2,
                                         overflow: TextOverflow.ellipsis,
@@ -610,7 +615,8 @@ class _AllCollectionsPageState extends State<AllCollectionsPage> {
                                         '$count items',
                                         style: const TextStyle(
                                           fontSize: 11,
-                                          color: Colors.black54,
+                                          fontWeight: FontWeight.w500,
+                                          color: Color(0xFF4B5563),
                                         ),
                                       ),
                                     ],

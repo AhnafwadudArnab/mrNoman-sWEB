@@ -108,7 +108,7 @@ class _MyOrdersPageState extends State<MyOrdersPage> {
               const SizedBox(height: 16),
               const Text(
                 'Loading orders...',
-                style: TextStyle(fontSize: 14, color: AppColors.grey300),
+                style: TextStyle(fontSize: 14, color: AppColors.textSecondary),
               ),
             ],
           ),
@@ -208,7 +208,7 @@ class _MyOrdersPageState extends State<MyOrdersPage> {
                         const SizedBox(height: 16),
                         Text(
                           'No $_selectedFilter orders',
-                          style: TextStyle(fontSize: 16, color: AppColors.grey300),
+                          style: const TextStyle(fontSize: 16, color: AppColors.textSecondary, fontWeight: FontWeight.w500),
                         ),
                       ],
                     ),
@@ -414,9 +414,9 @@ class _MyOrdersPageState extends State<MyOrdersPage> {
     return Center(
       child: Container(
         decoration: BoxDecoration(
-          color: AppColors.grey300,
+          color: Colors.white,
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: AppColors.grey300, width: 1.5),
+          border: Border.all(color: AppColors.border, width: 1.5),
           boxShadow: [
             BoxShadow(
               color: const Color(0x0D000000),
@@ -443,7 +443,7 @@ class _MyOrdersPageState extends State<MyOrdersPage> {
                   children: [
                     Icon(
                       Icons.chevron_left,
-                      color: _currentPage > 1 ? _brandOrange : AppColors.grey200,
+                      color: _currentPage > 1 ? _brandOrange : Colors.black26,
                       size: 22,
                     ),
                     const SizedBox(width: 4),
@@ -452,7 +452,7 @@ class _MyOrdersPageState extends State<MyOrdersPage> {
                       style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.bold,
-                        color: _currentPage > 1 ? _brandOrange : AppColors.grey200,
+                        color: _currentPage > 1 ? _brandOrange : Colors.black26,
                       ),
                     ),
                   ],
@@ -499,7 +499,7 @@ class _MyOrdersPageState extends State<MyOrdersPage> {
                         fontWeight: FontWeight.bold,
                         color: _currentPage < _totalPages
                             ? _brandOrange
-                            : AppColors.grey200,
+                            : Colors.black26,
                       ),
                     ),
                     const SizedBox(width: 4),
@@ -507,7 +507,7 @@ class _MyOrdersPageState extends State<MyOrdersPage> {
                       Icons.chevron_right,
                       color: _currentPage < _totalPages
                           ? _brandOrange
-                          : AppColors.grey200,
+                          : Colors.black26,
                       size: 22,
                     ),
                   ],
@@ -558,13 +558,13 @@ class _MyOrdersPageState extends State<MyOrdersPage> {
                         style: const TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 15,
-                          color: AppColors.grey300,
+                          color: AppColors.textPrimary,
                         ),
                       ),
                       const SizedBox(height: 2),
                       Text(
                         order.date,
-                        style: TextStyle(fontSize: 12, color: AppColors.grey300),
+                        style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
                       ),
                     ],
                   ),
@@ -576,7 +576,7 @@ class _MyOrdersPageState extends State<MyOrdersPage> {
                   style: const TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 16,
-                    color: AppColors.grey300,
+                    color: AppColors.textPrimary,
                   ),
                 ),
               ],
@@ -602,16 +602,16 @@ class _MyOrdersPageState extends State<MyOrdersPage> {
                   const SizedBox(height: 10),
                   Text(
                     'Delivery Address',
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 12,
-                      color: AppColors.grey300,
+                      color: AppColors.textSecondary,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   const SizedBox(height: 6),
                   Text(
                     order.deliveryAddress!,
-                    style: const TextStyle(fontSize: 13, color: AppColors.grey300),
+                    style: const TextStyle(fontSize: 13, color: AppColors.textPrimary),
                   ),
                 ],
               ],

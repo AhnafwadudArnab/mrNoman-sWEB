@@ -182,8 +182,8 @@ if ($segments[0] === 'api') {
         exit;
     }
 
-    if (isset($segments[1]) && $segments[1] === 'health') {
-        echo json_encode(['status' => 'ok']);
+    if (isset($segments[1]) && ($segments[1] === 'health' || $segments[1] === 'health.php')) {
+        echo json_encode(['status' => 'ok', 'message' => 'API is running', 'database' => 'connected']);
         exit;
     }
 
@@ -197,15 +197,21 @@ if ($segments[0] === 'api') {
     $apiBase = __DIR__ . '/../api';
     $file = null;
 
-    // Normalize endpoint: convert hyphens to underscores for API file lookup
-    $endpoint = isset($segments[1]) ? str_replace('-', '_', $segments[1]) : null;
-    $subEndpoint = isset($segments[2]) ? str_replace('-', '_', $segments[2]) : null;
+    // Normalize endpoint: convert hyphens to underscores and strip .php suffix
+    $endpoint = isset($segments[1]) ? str_replace('-', '_', preg_replace('/\.php$/i', '', $segments[1])) : null;
+    $subEndpoint = isset($segments[2]) ? str_replace('-', '_', preg_replace('/\.php$/i', '', $segments[2])) : null;
+
+    // Handle double /api/ prefix if requested (e.g. /api/api/products)
+    if ($endpoint === 'api' && $subEndpoint !== null) {
+        $endpoint = $subEndpoint;
+        $subEndpoint = isset($segments[3]) ? str_replace('-', '_', preg_replace('/\.php$/i', '', $segments[3])) : null;
+    }
 
     // Handle routes with IDs (e.g., /api/payment_methods/1 or /api/products/123)
     if (count($segments) >= 3 && is_numeric($segments[2])) {
         $_GET['id'] = $segments[2];
         $file = $apiBase . '/' . $endpoint . '.php';
-    } elseif (count($segments) >= 3) {
+    } elseif (count($segments) >= 3 && $subEndpoint) {
         $file = $apiBase . '/' . $endpoint . '/' . $subEndpoint . '.php';
     } elseif (count($segments) >= 2 && $endpoint) {
         $file = $apiBase . '/' . $endpoint . '.php';
@@ -216,6 +222,28 @@ if ($segments[0] === 'api') {
         require_once $file;
         exit;
     }
+
+    // Fallback checks for Linux / cPanel case-sensitivity (e.g. Orders vs orders, Users vs users)
+    if ($endpoint) {
+        $fallbacks = [
+            $apiBase . '/' . strtolower($endpoint) . '.php',
+            $apiBase . '/' . ucfirst($endpoint) . '.php',
+        ];
+        if ($subEndpoint) {
+            $fallbacks[] = $apiBase . '/' . strtolower($endpoint) . '/' . strtolower($subEndpoint) . '.php';
+            $fallbacks[] = $apiBase . '/' . ucfirst($endpoint) . '/' . strtolower($subEndpoint) . '.php';
+            $fallbacks[] = $apiBase . '/' . ucfirst($endpoint) . '/' . ucfirst($subEndpoint) . '.php';
+            $fallbacks[] = $apiBase . '/' . strtolower($endpoint) . '/' . ucfirst($subEndpoint) . '.php';
+        }
+        foreach ($fallbacks as $fb) {
+            if (file_exists($fb)) {
+                $_GET = array_merge($_GET, $_REQUEST);
+                require_once $fb;
+                exit;
+            }
+        }
+    }
+
     http_response_code(404);
     echo json_encode(['message' => 'Endpoint not found: /' . implode('/', array_slice($segments, 1))]);
     exit;

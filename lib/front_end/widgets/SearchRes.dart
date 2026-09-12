@@ -511,14 +511,14 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
               "Tk ${_minPrice.round()} - Tk ${_priceValue.round()}",
               style: const TextStyle(
                 fontSize: 13,
-                color: AppColors.grey300,
+                color: AppColors.textSecondary,
                 fontWeight: FontWeight.w500,
               ),
             ),
             const SizedBox(height: 20),
             Text(
               "${filtered.length} products found",
-              style: TextStyle(fontSize: 14, color: AppColors.grey300),
+              style: const TextStyle(fontSize: 14, color: AppColors.textSecondary, fontWeight: FontWeight.w500),
             ),
           ],
         ),
@@ -537,9 +537,10 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
 
   double _getCardAspectRatio(BuildContext context) {
     final w = MediaQuery.of(context).size.width;
-    if (w < 480) return 0.64;
-    if (w < 768) return 0.68;
-    return 0.58;
+    if (w < 480) return 0.62;
+    if (w < 768) return 0.66;
+    if (w < 1200) return 0.72;
+    return 0.74;
   }
 
   // Pagination helpers
@@ -581,7 +582,7 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
               : null,
           icon: const Icon(Icons.chevron_left),
           color: brandOrange,
-          disabledColor: AppColors.grey300,
+          disabledColor: Colors.black26,
         ),
 
         const SizedBox(width: 8),
@@ -605,7 +606,7 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
                   decoration: BoxDecoration(
                     color: isCurrentPage ? brandOrange : Colors.transparent,
                     border: Border.all(
-                      color: isCurrentPage ? brandOrange : AppColors.grey200,
+                      color: isCurrentPage ? brandOrange : const Color(0xFFCBD5E1),
                     ),
                     borderRadius: BorderRadius.circular(8),
                   ),
@@ -613,10 +614,10 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
                   child: Text(
                     '$pageNum',
                     style: TextStyle(
-                      color: isCurrentPage ? Colors.white : AppColors.grey200,
+                      color: isCurrentPage ? Colors.white : const Color(0xFF1E293B),
                       fontWeight: isCurrentPage
                           ? FontWeight.bold
-                          : FontWeight.normal,
+                          : FontWeight.w600,
                     ),
                   ),
                 ),
@@ -626,7 +627,7 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
               pageNum == _currentPage + 2) {
             return const Padding(
               padding: EdgeInsets.symmetric(horizontal: 4),
-              child: Text('...', style: TextStyle(fontSize: 18)),
+              child: Text('...', style: TextStyle(fontSize: 18, color: AppColors.textSecondary, fontWeight: FontWeight.bold)),
             );
           }
           return const SizedBox.shrink();
@@ -641,7 +642,7 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
               : null,
           icon: const Icon(Icons.chevron_right),
           color: brandOrange,
-          disabledColor: AppColors.grey300,
+          disabledColor: Colors.black26,
         ),
       ],
     );

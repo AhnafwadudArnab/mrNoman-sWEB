@@ -1,4 +1,4 @@
-import 'package:electrocitybd1/front_end/pages/home_page.dart';
+﻿import 'package:electrocitybd1/front_end/pages/home_page.dart';
 import 'package:electrocitybd1/front_end/Admin_Panel/A_customers.dart';
 import 'package:electrocitybd1/front_end/Admin_Panel/A_payments.dart';
 import 'package:flutter/foundation.dart';
@@ -167,9 +167,18 @@ class _MyAppState extends State<MyApp> {
         DefaultWidgetsLocalizations.delegate,
       ],
       supportedLocales: AppLocalizations.supportedLocales,
+      themeMode: ThemeMode.light,
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        textTheme: ThemeData.light().textTheme,
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: const Color(0xFF123456),
+          brightness: Brightness.light,
+        ),
+        scaffoldBackgroundColor: const Color(0xFFF5F7FA),
+        cardColor: Colors.white,
+        textTheme: ThemeData.light().textTheme.apply(
+          bodyColor: const Color(0xFF111827),
+          displayColor: const Color(0xFF111827),
+        ),
         useMaterial3: true,
       ),
       darkTheme: ThemeData(

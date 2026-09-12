@@ -10,6 +10,7 @@ import '../../../utils/api_service.dart';
 import '../../../utils/optimized_image_widget.dart';
 import '../../footer.dart';
 import '../../header.dart';
+import '../../store_breadcrumb_bar.dart';
 
 class BestSellingAll extends StatefulWidget {
   final String breadcrumbLabel;
@@ -173,6 +174,7 @@ class _BestSellingAllState extends State<BestSellingAll> {
       body: SingleChildScrollView(
         child: Column(
           children: [
+            StoreBreadcrumbBar(currentPage: widget.breadcrumbLabel),
             Container(
               height: r.value(
                 smallMobile: 120,
@@ -211,7 +213,7 @@ class _BestSellingAllState extends State<BestSellingAll> {
                     children: [
                       Text(
                         'Found ${items.length} items',
-                        style: const TextStyle(color: AppColors.grey300),
+                        style: const TextStyle(color: AppColors.textSecondary, fontWeight: FontWeight.w500),
                       ),
                       DropdownButton<String>(
                         value: _selectedSort,
@@ -378,24 +380,72 @@ class _BestSellingAllState extends State<BestSellingAll> {
                         );
                       },
                     ),
-                  const SizedBox(height: 16),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: List.generate(
-                      totalPages,
-                      (p) => Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 4),
-                        child: ChoiceChip(
-                          label: Text('${p + 1}'),
-                          selected: _currentPage == p + 1,
-                          onSelected: (s) =>
-                              setState(() => _currentPage = p + 1),
-                          selectedColor: Colors.amber,
-                          showCheckmark: false,
-                        ),
+                  if (totalPages > 1) ...[
+                    const SizedBox(height: 16),
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          IconButton(
+                            onPressed: _currentPage > 1
+                                ? () => setState(() => _currentPage--)
+                                : null,
+                            icon: const Icon(Icons.chevron_left),
+                            style: IconButton.styleFrom(
+                              backgroundColor: _currentPage > 1 ? Colors.amber[700] : Colors.black12,
+                              foregroundColor: Colors.white,
+                              disabledBackgroundColor: Colors.black12,
+                              disabledForegroundColor: Colors.black38,
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          ...List.generate(
+                            totalPages,
+                            (p) {
+                              final pageNum = p + 1;
+                              final isActive = _currentPage == pageNum;
+                              return Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 4),
+                                child: ChoiceChip(
+                                  label: Text(
+                                    '$pageNum',
+                                    style: TextStyle(
+                                      color: isActive ? Colors.white : const Color(0xFF1E293B),
+                                      fontWeight: isActive ? FontWeight.bold : FontWeight.w600,
+                                    ),
+                                  ),
+                                  selected: isActive,
+                                  onSelected: (s) => setState(() => _currentPage = pageNum),
+                                  selectedColor: Colors.amber[700],
+                                  backgroundColor: Colors.white,
+                                  side: BorderSide(
+                                    color: isActive ? Colors.amber[700]! : const Color(0xFFCBD5E1),
+                                  ),
+                                  showCheckmark: false,
+                                ),
+                              );
+                            },
+                          ),
+                          const SizedBox(width: 8),
+                          IconButton(
+                            onPressed: _currentPage < totalPages
+                                ? () => setState(() => _currentPage++)
+                                : null,
+                            icon: const Icon(Icons.chevron_right),
+                            style: IconButton.styleFrom(
+                              backgroundColor: _currentPage < totalPages ? Colors.amber[700] : Colors.black12,
+                              foregroundColor: Colors.white,
+                              disabledBackgroundColor: Colors.black12,
+                              disabledForegroundColor: Colors.black38,
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                  ),
+                  ],
                 ],
               ),
             ),

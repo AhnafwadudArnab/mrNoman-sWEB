@@ -1,5 +1,6 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import 'package:electrocitybd1/front_end/All_Pages/Registrations/signup.dart';
 import 'package:electrocitybd1/front_end/utils/api_service.dart';
@@ -8,6 +9,7 @@ import 'package:electrocitybd1/front_end/Admin_Panel/Admin_sidebar.dart';
 import 'package:electrocitybd1/front_end/Admin_Panel/A_customers.dart';
 import 'package:electrocitybd1/front_end/Admin_Panel/admin_scaffold.dart';
 import 'package:electrocitybd1/front_end/Admin_Panel/admin_theme.dart';
+import 'package:electrocitybd1/front_end/Provider/Orders_provider.dart';
 
 class AdminDashboardPage extends StatefulWidget {
   /// When true, only the content is shown (no sidebar). Used inside AdminLayoutPage.
@@ -30,6 +32,11 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
     super.initState();
     _loadDashboardStats();
     _loadAdminName();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        context.read<OrdersProvider>().refreshFromApi(admin: true);
+      }
+    });
   }
 
   String? _statsError;
@@ -206,34 +213,404 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
               ),
             ),
           ),
-          Stack(
-            children: [
-              IconButton(
-                icon: const Icon(
-                  Icons.notifications_outlined,
-                  color: AdminTheme.textPrimary,
-                ),
-                onPressed: () {
-                  AdminNav.go(context, AdminSidebarItem.orders);
-                },
-              ),
-              Positioned(
-                right: 8,
-                top: 8,
-                child: Container(
-                  width: 8,
-                  height: 8,
-                  decoration: const BoxDecoration(
-                    color: AdminTheme.error,
-                    shape: BoxShape.circle,
+          Consumer<OrdersProvider>(
+            builder: (context, ordersProvider, _) {
+              final pendingOrders = ordersProvider.orders.where((o) =>
+                  o.status.toLowerCase() == 'pending' ||
+                  o.status.toLowerCase() == 'new order').toList();
+              final notificationCount = pendingOrders.length;
+
+              return Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  IconButton(
+                    icon: const Icon(
+                      Icons.notifications_outlined,
+                      color: AdminTheme.textPrimary,
+                    ),
+                    tooltip: 'Order Notifications',
+                    onPressed: () {
+                      _showOrderNotifications(context);
+                    },
                   ),
-                ),
-              ),
-            ],
+                  if (notificationCount > 0)
+                    Positioned(
+                      right: 6,
+                      top: 6,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                        decoration: BoxDecoration(
+                          color: AdminTheme.error,
+                          borderRadius: BorderRadius.circular(10),
+                          boxShadow: [
+                            BoxShadow(
+                              color: AdminTheme.error.withOpacity(0.4),
+                              blurRadius: 4,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
+                        child: Center(
+                          child: Text(
+                            notificationCount > 9 ? '9+' : '$notificationCount',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                              height: 1.0,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              );
+            },
           ),
           const SizedBox(width: 8),
         ],
       ),
+    );
+  }
+
+  void _showOrderNotifications(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (dialogContext) {
+        return Consumer<OrdersProvider>(
+          builder: (context, ordersProvider, _) {
+            final orders = ordersProvider.ordersNewestFirst;
+            final pendingOrders = orders.where((o) =>
+                o.status.toLowerCase() == 'pending' ||
+                o.status.toLowerCase() == 'new order').toList();
+            final displayOrders = orders.take(15).toList();
+
+            return Dialog(
+              backgroundColor: Colors.transparent,
+              insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(
+                  maxWidth: 520,
+                  maxHeight: 650,
+                ),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: AdminTheme.surface,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: AdminTheme.shadowLg,
+                    border: Border.all(color: AdminTheme.border),
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      // Header
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(20, 18, 12, 16),
+                        child: Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: AdminTheme.brand.withOpacity(0.12),
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: const Icon(
+                                Icons.notifications_active,
+                                color: AdminTheme.brand,
+                                size: 22,
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    'Order Notifications',
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                      color: AdminTheme.textPrimary,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    pendingOrders.isNotEmpty
+                                        ? '${pendingOrders.length} pending order${pendingOrders.length > 1 ? 's' : ''} require attention'
+                                        : 'All orders are up to date',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: pendingOrders.isNotEmpty
+                                          ? AdminTheme.warning
+                                          : AdminTheme.textSecondary,
+                                      fontWeight: pendingOrders.isNotEmpty
+                                          ? FontWeight.w600
+                                          : FontWeight.normal,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            IconButton(
+                              icon: ordersProvider.isLoading
+                                  ? const SizedBox(
+                                      width: 18,
+                                      height: 18,
+                                      child: CircularProgressIndicator(strokeWidth: 2),
+                                    )
+                                  : const Icon(Icons.refresh, size: 20),
+                              tooltip: 'Refresh orders',
+                              color: AdminTheme.textSecondary,
+                              onPressed: ordersProvider.isLoading
+                                  ? null
+                                  : () => ordersProvider.refreshFromApi(admin: true),
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.close, size: 20),
+                              tooltip: 'Close',
+                              color: AdminTheme.textSecondary,
+                              onPressed: () => Navigator.of(dialogContext).pop(),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const Divider(height: 1, color: AdminTheme.divider),
+
+                      // Notification list
+                      Expanded(
+                        child: ordersProvider.isLoading && orders.isEmpty
+                            ? const Center(
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    CircularProgressIndicator(),
+                                    SizedBox(height: 12),
+                                    Text(
+                                      'Loading order notifications...',
+                                      style: TextStyle(color: AdminTheme.textSecondary),
+                                    ),
+                                  ],
+                                ),
+                              )
+                            : displayOrders.isEmpty
+                                ? Center(
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(32),
+                                      child: Column(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Icon(
+                                            Icons.notifications_off_outlined,
+                                            size: 48,
+                                            color: AdminTheme.textMuted.withOpacity(0.6),
+                                          ),
+                                          const SizedBox(height: 12),
+                                          const Text(
+                                            'No Order Notifications',
+                                            style: TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.w600,
+                                              color: AdminTheme.textPrimary,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 6),
+                                          const Text(
+                                            'There are currently no orders placed.',
+                                            style: TextStyle(
+                                              fontSize: 13,
+                                              color: AdminTheme.textSecondary,
+                                            ),
+                                            textAlign: TextAlign.center,
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  )
+                                : ListView.separated(
+                                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                    itemCount: displayOrders.length,
+                                    separatorBuilder: (_, __) => const SizedBox(height: 8),
+                                    itemBuilder: (ctx, index) {
+                                      final order = displayOrders[index];
+                                      final isPending = order.status.toLowerCase() == 'pending' ||
+                                          order.status.toLowerCase() == 'new order';
+                                      final statusColor = AdminTheme.statusColor(order.status);
+                                      final customerTitle = (order.customerName != null && order.customerName!.trim().isNotEmpty)
+                                          ? order.customerName!.trim()
+                                          : 'Customer';
+
+                                      return Material(
+                                        color: isPending
+                                            ? statusColor.withOpacity(0.06)
+                                            : AdminTheme.surfaceAlt.withOpacity(0.5),
+                                        borderRadius: BorderRadius.circular(10),
+                                        child: InkWell(
+                                          borderRadius: BorderRadius.circular(10),
+                                          onTap: () {
+                                            Navigator.of(dialogContext).pop();
+                                            AdminNav.go(context, AdminSidebarItem.orders);
+                                          },
+                                          hoverColor: AdminTheme.brand.withOpacity(0.08),
+                                          child: Container(
+                                            padding: const EdgeInsets.all(12),
+                                            decoration: BoxDecoration(
+                                              borderRadius: BorderRadius.circular(10),
+                                              border: Border.all(
+                                                color: isPending
+                                                    ? statusColor.withOpacity(0.4)
+                                                    : AdminTheme.border.withOpacity(0.6),
+                                              ),
+                                            ),
+                                            child: Row(
+                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              children: [
+                                                Container(
+                                                  padding: const EdgeInsets.all(8),
+                                                  decoration: BoxDecoration(
+                                                    color: statusColor.withOpacity(0.15),
+                                                    shape: BoxShape.circle,
+                                                  ),
+                                                  child: Icon(
+                                                    Icons.shopping_bag_outlined,
+                                                    color: statusColor,
+                                                    size: 18,
+                                                  ),
+                                                ),
+                                                const SizedBox(width: 12),
+                                                Expanded(
+                                                  child: Column(
+                                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                                    children: [
+                                                      Row(
+                                                        children: [
+                                                          Expanded(
+                                                            child: Text(
+                                                              'Order #${order.orderId}',
+                                                              style: const TextStyle(
+                                                                fontWeight: FontWeight.bold,
+                                                                fontSize: 14,
+                                                                color: AdminTheme.textPrimary,
+                                                              ),
+                                                              overflow: TextOverflow.ellipsis,
+                                                            ),
+                                                          ),
+                                                          Container(
+                                                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                                            decoration: BoxDecoration(
+                                                              color: statusColor.withOpacity(0.15),
+                                                              borderRadius: BorderRadius.circular(20),
+                                                            ),
+                                                            child: Text(
+                                                              order.status.toUpperCase(),
+                                                              style: TextStyle(
+                                                                color: statusColor,
+                                                                fontSize: 10,
+                                                                fontWeight: FontWeight.bold,
+                                                              ),
+                                                            ),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                      const SizedBox(height: 4),
+                                                      Text(
+                                                        '$customerTitle ${order.customerPhone != null && order.customerPhone!.isNotEmpty ? '• ${order.customerPhone}' : ''}',
+                                                        style: const TextStyle(
+                                                          fontSize: 12,
+                                                          color: AdminTheme.textSecondary,
+                                                        ),
+                                                        maxLines: 1,
+                                                        overflow: TextOverflow.ellipsis,
+                                                      ),
+                                                      const SizedBox(height: 4),
+                                                      Row(
+                                                        children: [
+                                                          Text(
+                                                            '৳${order.total.toStringAsFixed(0)}',
+                                                            style: const TextStyle(
+                                                              fontSize: 13,
+                                                              fontWeight: FontWeight.bold,
+                                                              color: AdminTheme.brand,
+                                                            ),
+                                                          ),
+                                                          const SizedBox(width: 8),
+                                                          Text(
+                                                            '• ${order.paymentMethod}',
+                                                            style: const TextStyle(
+                                                              fontSize: 11,
+                                                              color: AdminTheme.textMuted,
+                                                            ),
+                                                          ),
+                                                          const Spacer(),
+                                                          Text(
+                                                            order.createdAt,
+                                                            style: const TextStyle(
+                                                              fontSize: 11,
+                                                              color: AdminTheme.textMuted,
+                                                            ),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                  ),
+                      ),
+
+                      const Divider(height: 1, color: AdminTheme.divider),
+
+                      // Footer button
+                      Padding(
+                        padding: const EdgeInsets.all(14),
+                        child: Row(
+                          children: [
+                            Text(
+                              'Total: ${orders.length} order${orders.length == 1 ? '' : 's'}',
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: AdminTheme.textSecondary,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            const Spacer(),
+                            ElevatedButton.icon(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AdminTheme.brand,
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                              ),
+                              icon: const Icon(Icons.arrow_forward, size: 16),
+                              label: const Text(
+                                'View in Order List',
+                                style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                              ),
+                              onPressed: () {
+                                Navigator.of(dialogContext).pop();
+                                AdminNav.go(context, AdminSidebarItem.orders);
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          },
+        );
+      },
     );
   }
 

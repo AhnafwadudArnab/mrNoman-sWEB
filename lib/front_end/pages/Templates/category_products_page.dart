@@ -9,6 +9,7 @@ import '../../utils/api_service.dart';
 import '../../utils/image_resolver.dart';
 import '../../widgets/footer.dart';
 import '../../widgets/header.dart';
+import '../../widgets/store_breadcrumb_bar.dart';
 import 'Dyna_products.dart';
 
 class CategoryProductsPage extends StatefulWidget {
@@ -122,11 +123,28 @@ class _CategoryProductsPageState extends State<CategoryProductsPage> {
   List<String> _getUniqueBrands() {
     final brands = _products
         .map((p) => p['brand_name'] as String?)
-        .where((b) => b != null && b.isNotEmpty)
+        .where((b) => b != null && b.isNotEmpty && b != 'All')
         .toSet()
         .toList();
     brands.sort();
     return brands.cast<String>();
+  }
+
+  int _getBrandCount(String brand) {
+    return _products.where((p) => (p['brand_name']?.toString() ?? '') == brand).length;
+  }
+
+  bool get _hasActiveFilters =>
+      _selectedBrands.isNotEmpty ||
+      _priceRange.start > _priceMin ||
+      _priceRange.end < _priceMax;
+
+  void _clearAllFilters() {
+    setState(() {
+      _selectedBrands.clear();
+      _priceRange = const RangeValues(_priceMin, _priceMax);
+      _currentPage = 1;
+    });
   }
 
   List<Map<String, dynamic>> _sortedProducts() {
@@ -222,6 +240,10 @@ class _CategoryProductsPageState extends State<CategoryProductsPage> {
       body: SingleChildScrollView(
         child: Column(
           children: [
+            StoreBreadcrumbBar(
+              currentPage: widget.categoryName,
+              parentPage: 'Categories',
+            ),
             _buildBanner(r),
             Padding(
               padding: EdgeInsets.symmetric(
@@ -295,44 +317,142 @@ class _CategoryProductsPageState extends State<CategoryProductsPage> {
   }
 
   Widget _buildFilterPanel(AppResponsive r) {
+    final brands = _getUniqueBrands();
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
-        border: Border.all(color: AppColors.grey300),
-        borderRadius: BorderRadius.circular(8),
-        boxShadow: [BoxShadow(color: const Color(0x05000000), blurRadius: 10)],
+        border: Border.all(color: const Color(0xFFE5E7EB)),
+        borderRadius: BorderRadius.circular(10),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x06000000),
+            blurRadius: 10,
+            offset: Offset(0, 2),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Filters',
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: const [
+                  Icon(Icons.tune, size: 18, color: Color(0xFF111827)),
+                  SizedBox(width: 6),
+                  Text(
+                    'Filters',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w700,
+                      fontSize: 16,
+                      color: Color(0xFF111827),
+                    ),
+                  ),
+                ],
+              ),
+              if (_hasActiveFilters)
+                InkWell(
+                  onTap: _clearAllFilters,
+                  borderRadius: BorderRadius.circular(4),
+                  child: const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    child: Text(
+                      'Clear all',
+                      style: TextStyle(
+                        color: Color(0xFFDC2626),
+                        fontWeight: FontWeight.w600,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ),
+                ),
+            ],
           ),
-          const Divider(height: 30),
+          const SizedBox(height: 12),
+          const Divider(height: 1, color: Color(0xFFE5E7EB)),
+          const SizedBox(height: 16),
+
+          // Price Range
           const Text(
             'Price Range',
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+            style: TextStyle(
+              fontWeight: FontWeight.w700,
+              fontSize: 13,
+              color: Color(0xFF111827),
+            ),
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF9FAFB),
+                    border: Border.all(color: const Color(0xFFE5E7EB)),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Text(
+                    'Tk ${_priceRange.start.round()}',
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF111827),
+                    ),
+                  ),
+                ),
+              ),
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 8),
+                child: Text('-', style: TextStyle(color: Color(0xFF9CA3AF), fontWeight: FontWeight.bold)),
+              ),
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF9FAFB),
+                    border: Border.all(color: const Color(0xFFE5E7EB)),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Text(
+                    'Tk ${_priceRange.end.round()}',
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF111827),
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
           RangeSlider(
             values: _priceRange,
             min: _priceMin,
             max: _priceMax,
-            activeColor: Colors.amber[700],
-            inactiveColor: Colors.black26,
-            onChanged: (val) => setState(() => _priceRange = val),
+            activeColor: const Color(0xFFF59E0B),
+            inactiveColor: const Color(0xFFE5E7EB),
+            onChanged: (val) => setState(() {
+              _priceRange = val;
+              _currentPage = 1;
+            }),
           ),
-          Text(
-            'Tk ${_priceRange.start.round()} - Tk ${_priceRange.end.round()}',
-            style: const TextStyle(fontSize: 12),
-          ),
-          const SizedBox(height: 20),
-          _filterSection(
-            title: 'Brands',
-            options: _getUniqueBrands(),
-            selectedList: _selectedBrands,
-          ),
+          const SizedBox(height: 12),
+
+          // Brands Section
+          if (brands.isNotEmpty) ...[
+            const Divider(height: 1, color: Color(0xFFE5E7EB)),
+            const SizedBox(height: 12),
+            _filterSectionWithCount(
+              title: 'Brands',
+              options: brands,
+              selectedList: _selectedBrands,
+              getCount: _getBrandCount,
+            ),
+          ],
         ],
       ),
     );
@@ -344,42 +464,107 @@ class _CategoryProductsPageState extends State<CategoryProductsPage> {
       child: OutlinedButton.icon(
         onPressed: () =>
             setState(() => _mobileFiltersOpen = !_mobileFiltersOpen),
-        icon: Icon(_mobileFiltersOpen ? Icons.close : Icons.tune, size: 18),
-        label: Text(_mobileFiltersOpen ? 'Hide Filters' : 'Show Filters'),
+        icon: Icon(_mobileFiltersOpen ? Icons.close : Icons.tune, size: 18, color: const Color(0xFF111827)),
+        label: Text(
+          _mobileFiltersOpen ? 'Hide Filters' : 'Show Filters',
+          style: const TextStyle(
+            color: Color(0xFF111827),
+            fontWeight: FontWeight.w600,
+            fontSize: 13,
+          ),
+        ),
         style: OutlinedButton.styleFrom(
-          foregroundColor: AppColors.grey300,
-          side: BorderSide(color: Colors.black26),
+          side: const BorderSide(color: Color(0xFFD1D5DB)),
           padding: const EdgeInsets.symmetric(vertical: 13),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          backgroundColor: Colors.white,
         ),
       ),
     );
   }
 
-  Widget _filterSection({
+  Widget _filterSectionWithCount({
     required String title,
     required List<String> options,
     required List<String> selectedList,
+    int Function(String)? getCount,
   }) {
-    return ExpansionTile(
-      title: Text(
-        title,
-        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
-      ),
-      tilePadding: EdgeInsets.zero,
-      initiallyExpanded: true,
-      children: options
-          .map(
-            (opt) => CheckboxListTile(
-              title: Text(opt, style: const TextStyle(fontSize: 12)),
-              value: selectedList.contains(opt),
-              onChanged: (_) => _toggleBrand(opt),
-              controlAffinity: ListTileControlAffinity.leading,
-              dense: true,
-              contentPadding: EdgeInsets.zero,
+    if (options.isEmpty) return const SizedBox.shrink();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          title,
+          style: const TextStyle(
+            fontWeight: FontWeight.w700,
+            fontSize: 13,
+            color: Color(0xFF111827),
+          ),
+        ),
+        const SizedBox(height: 6),
+        ConstrainedBox(
+          constraints: const BoxConstraints(maxHeight: 220),
+          child: SingleChildScrollView(
+            child: Column(
+              children: options.map((opt) {
+                final isSelected = selectedList.contains(opt);
+                final count = getCount != null ? getCount(opt) : null;
+                return InkWell(
+                  onTap: () => _toggleBrand(opt),
+                  borderRadius: BorderRadius.circular(6),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 2),
+                    child: Row(
+                      children: [
+                        SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: Checkbox(
+                            value: isSelected,
+                            onChanged: (_) => _toggleBrand(opt),
+                            activeColor: const Color(0xFFF59E0B),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            side: const BorderSide(
+                              color: Color(0xFFD1D5DB),
+                              width: 1.5,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            opt,
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                              color: isSelected ? const Color(0xFF111827) : const Color(0xFF374151),
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        if (count != null && count > 0)
+                          Text(
+                            '($count)',
+                            style: const TextStyle(
+                              fontSize: 11,
+                              color: Color(0xFF9CA3AF),
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                );
+              }).toList(),
             ),
-          )
-          .toList(),
+          ),
+        ),
+        const SizedBox(height: 8),
+      ],
     );
   }
 
@@ -409,7 +594,7 @@ class _CategoryProductsPageState extends State<CategoryProductsPage> {
               const SizedBox(height: 8),
               Text(
                 _error!,
-                style: TextStyle(color: AppColors.grey300, fontSize: 13),
+                style: const TextStyle(color: AppColors.textSecondary, fontSize: 13),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 24),
@@ -447,28 +632,40 @@ class _CategoryProductsPageState extends State<CategoryProductsPage> {
           children: [
             Text(
               'Found ${items.length} items',
-              style: const TextStyle(color: AppColors.grey300, fontSize: 13),
+              style: const TextStyle(
+                color: Color(0xFF4B5563),
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+              ),
             ),
-            DropdownButton<String>(
-              value: _selectedSort,
-              underline: const SizedBox(),
-              items: const [
-                DropdownMenuItem(
-                  value: 'featured',
-                  child: Text('Sort: Featured'),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: const Color(0xFFE5E7EB)),
+              ),
+              child: DropdownButton<String>(
+                value: _selectedSort,
+                underline: const SizedBox(),
+                style: const TextStyle(
+                  color: Color(0xFF111827),
+                  fontSize: 13,
+                  fontWeight: FontWeight.w500,
                 ),
-                DropdownMenuItem(value: 'newest', child: Text('Newest First')),
-                DropdownMenuItem(
-                  value: 'price_low',
-                  child: Text('Price: Low to High'),
-                ),
-                DropdownMenuItem(
-                  value: 'price_high',
-                  child: Text('Price: High to Low'),
-                ),
-                DropdownMenuItem(value: 'title', child: Text('Name: A-Z')),
-              ],
-              onChanged: (v) => setState(() => _selectedSort = v!),
+                dropdownColor: Colors.white,
+                icon: const Icon(Icons.keyboard_arrow_down, size: 18, color: Color(0xFF4B5563)),
+                items: const [
+                  DropdownMenuItem(value: 'featured', child: Text('Sort: Featured', style: TextStyle(color: Color(0xFF111827)))),
+                  DropdownMenuItem(value: 'newest', child: Text('Newest First', style: TextStyle(color: Color(0xFF111827)))),
+                  DropdownMenuItem(value: 'price_low', child: Text('Price: Low to High', style: TextStyle(color: Color(0xFF111827)))),
+                  DropdownMenuItem(value: 'price_high', child: Text('Price: High to Low', style: TextStyle(color: Color(0xFF111827)))),
+                  DropdownMenuItem(value: 'title', child: Text('Name: A-Z', style: TextStyle(color: Color(0xFF111827)))),
+                ],
+                onChanged: (v) {
+                  if (v != null) setState(() => _selectedSort = v);
+                },
+              ),
             ),
           ],
         ),
@@ -514,17 +711,35 @@ class _CategoryProductsPageState extends State<CategoryProductsPage> {
                   ),
                 ),
               )
-            : GridView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: pageItems.length,
-                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: gridCount,
-                  childAspectRatio: r.isSmallMobile || r.isMobile ? 0.56 : 0.65,
-                  crossAxisSpacing: 15,
-                  mainAxisSpacing: 15,
-                ),
-                itemBuilder: (context, index) => _productCard(pageItems[index]),
+            : LayoutBuilder(
+                builder: (context, constraints) {
+                  final availableWidth = constraints.maxWidth;
+                  final totalSpacing = (gridCount - 1) * 15.0;
+                  final cardWidth = (availableWidth - totalSpacing) / gridCount;
+
+                  const double imageAspect = 1.22;
+                  final imageHeight = cardWidth / imageAspect;
+
+                  // Details area: padding (14px) + 2-line title (~28px) + gap (3px) + stock (~13px) + tight spacing (~8-10px) + price (~18px) + gap (5px) + button (30px) = ~122px
+                  final double contentHeight = r.isSmallMobile ? 114.0 : 122.0;
+                  final totalCardHeight = imageHeight + contentHeight;
+                  final calculatedRatio =
+                      (cardWidth / totalCardHeight).clamp(0.55, 0.95);
+
+                  return GridView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: pageItems.length,
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: gridCount,
+                      childAspectRatio: calculatedRatio,
+                      crossAxisSpacing: 15,
+                      mainAxisSpacing: 15,
+                    ),
+                    itemBuilder: (context, index) =>
+                        _productCard(pageItems[index]),
+                  );
+                },
               ),
         const SizedBox(height: 30),
         if (pageItems.isNotEmpty) _buildPagination(totalPages),
@@ -558,9 +773,9 @@ class _CategoryProductsPageState extends State<CategoryProductsPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Fixed height image ? always takes top 55% of card
+            // Compact proportional image
             AspectRatio(
-              aspectRatio: 1.1,
+              aspectRatio: 1.22,
               child: ClipRRect(
                 borderRadius: const BorderRadius.vertical(
                   top: Radius.circular(8),
@@ -575,7 +790,7 @@ class _CategoryProductsPageState extends State<CategoryProductsPage> {
             ),
             Expanded(
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
+                padding: const EdgeInsets.fromLTRB(10, 6, 10, 8),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -589,7 +804,7 @@ class _CategoryProductsPageState extends State<CategoryProductsPage> {
                         color: Colors.black,
                       ),
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 3),
                     Text(
                       stockQty > 0
                           ? (stockQty <= 5
@@ -617,10 +832,10 @@ class _CategoryProductsPageState extends State<CategoryProductsPage> {
                         fontSize: 14,
                       ),
                     ),
-                    const SizedBox(height: 6),
+                    const SizedBox(height: 5),
                     SizedBox(
                       width: double.infinity,
-                      height: 32,
+                      height: 30,
                       child: ElevatedButton(
                         onPressed: () async {
                           await context.read<CartProvider>().addToCart(
@@ -663,20 +878,69 @@ class _CategoryProductsPageState extends State<CategoryProductsPage> {
   }
 
   Widget _buildPagination(int totalPages) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: List.generate(
-        totalPages,
-        (i) => Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 4),
-          child: ChoiceChip(
-            label: Text('${i + 1}'),
-            selected: _currentPage == i + 1,
-            onSelected: (s) => setState(() => _currentPage = i + 1),
-            selectedColor: Colors.amber,
-            showCheckmark: false,
+    if (totalPages <= 1) return const SizedBox.shrink();
+
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          IconButton(
+            onPressed: _currentPage > 1
+                ? () => setState(() => _currentPage--)
+                : null,
+            icon: const Icon(Icons.chevron_left),
+            style: IconButton.styleFrom(
+              backgroundColor: _currentPage > 1 ? Colors.amber[700] : Colors.black12,
+              foregroundColor: Colors.white,
+              disabledBackgroundColor: Colors.black12,
+              disabledForegroundColor: Colors.black38,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
           ),
-        ),
+          const SizedBox(width: 8),
+          ...List.generate(
+            totalPages,
+            (i) {
+              final pageNum = i + 1;
+              final isActive = _currentPage == pageNum;
+              return Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4),
+                child: ChoiceChip(
+                  label: Text(
+                    '$pageNum',
+                    style: TextStyle(
+                      color: isActive ? Colors.white : const Color(0xFF1E293B),
+                      fontWeight: isActive ? FontWeight.bold : FontWeight.w600,
+                    ),
+                  ),
+                  selected: isActive,
+                  onSelected: (s) => setState(() => _currentPage = pageNum),
+                  selectedColor: Colors.amber[700],
+                  backgroundColor: Colors.white,
+                  side: BorderSide(
+                    color: isActive ? Colors.amber[700]! : const Color(0xFFCBD5E1),
+                  ),
+                  showCheckmark: false,
+                ),
+              );
+            },
+          ),
+          const SizedBox(width: 8),
+          IconButton(
+            onPressed: _currentPage < totalPages
+                ? () => setState(() => _currentPage++)
+                : null,
+            icon: const Icon(Icons.chevron_right),
+            style: IconButton.styleFrom(
+              backgroundColor: _currentPage < totalPages ? Colors.amber[700] : Colors.black12,
+              foregroundColor: Colors.white,
+              disabledBackgroundColor: Colors.black12,
+              disabledForegroundColor: Colors.black38,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
+          ),
+        ],
       ),
     );
   }

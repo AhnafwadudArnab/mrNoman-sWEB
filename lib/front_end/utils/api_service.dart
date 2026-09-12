@@ -169,6 +169,73 @@ class ApiService {
     return headers;
   }
 
+  /// Extracts a clean, human-readable error string, stripping any raw JSON, HTML, or technical dumps
+  static String cleanErrorMessage(dynamic raw, {int? statusCode}) {
+    if (raw == null) return 'Request failed. Please try again.';
+    String str = raw.toString().trim();
+
+    // If it's a JSON string like {"message": "..."} or {"error": "..."}, parse it
+    if ((str.startsWith('{') && str.endsWith('}')) ||
+        (str.startsWith('[') && str.endsWith(']'))) {
+      try {
+        final decoded = jsonDecode(str);
+        if (decoded is Map) {
+          final val = decoded['message'] ??
+              decoded['error'] ??
+              decoded['msg'] ??
+              decoded['detail'];
+          if (val != null) str = val.toString().trim();
+        }
+      } catch (_) {}
+    }
+
+    // Check for HTML response or expected JSON preview dump
+    if (str.contains('<!DOCTYPE') ||
+        str.contains('<html') ||
+        str.contains('<head') ||
+        str.contains('expected JSON') ||
+        str.contains('Invalid response format')) {
+      if (statusCode == 404 || str.contains('404')) {
+        return 'Server endpoint not found. Please try again.';
+      }
+      if (statusCode == 500 || str.contains('500')) {
+        return 'Server error occurred. Please try again later.';
+      }
+      return 'Unable to connect to server. Please try again.';
+    }
+
+    // Map common raw backend messages to user-friendly messages
+    final lower = str.toLowerCase();
+    if (lower.contains('email already exist') ||
+        lower.contains('already registered') ||
+        lower.contains('user already exist')) {
+      return 'This email is already registered. Please login.';
+    }
+    if (lower.contains('user not found') ||
+        lower.contains('user does not exist') ||
+        lower.contains('account not found') ||
+        lower.contains('does not exist') ||
+        lower.contains("doesn't exist")) {
+      return 'User account does not exist.';
+    }
+    if (lower.contains('invalid email or password') ||
+        lower.contains('invalid credentials') ||
+        lower.contains('wrong password')) {
+      return 'Invalid email or password.';
+    }
+    if (lower.contains('invalid admin credentials')) {
+      return 'Invalid admin credentials.';
+    }
+    if (lower.contains('rate limit') ||
+        lower.contains('too many requests') ||
+        lower.contains('blocked') ||
+        lower.contains('too many failed login')) {
+      return 'Too many login attempts. Please try again in a few minutes.';
+    }
+
+    return str;
+  }
+
   // --- Generic HTTP Methods ---
 
   static dynamic _tryJsonDecode(String text) {
@@ -180,14 +247,16 @@ class ApiService {
 
     // Validate that response starts with valid JSON characters
     if (!trimmed.startsWith('{') && !trimmed.startsWith('[')) {
-      // Include actual response content for debugging (limit to 200 chars)
-      final preview = trimmed.length > 200
-          ? '${trimmed.substring(0, 200)}...'
-          : trimmed;
-      throw ApiException(
-        'Invalid response format (expected JSON): $preview',
-        0,
-      );
+      if (trimmed.contains('<!DOCTYPE') || trimmed.contains('<html')) {
+        if (trimmed.contains('404 Not Found') || trimmed.contains('404')) {
+          throw ApiException('Server endpoint not found. Please try again.', 404);
+        }
+        if (trimmed.contains('500') || trimmed.contains('Internal Server Error')) {
+          throw ApiException('Server temporarily unavailable. Please try again.', 500);
+        }
+        throw ApiException('Unable to connect to server. Please try again.', 0);
+      }
+      throw ApiException('Unable to process server response. Please try again.', 0);
     }
 
     try {
@@ -211,15 +280,28 @@ class ApiService {
         } catch (_) {}
       }
 
-      // Include actual response content for debugging (limit to 200 chars)
-      final preview = trimmed.length > 200
-          ? '${trimmed.substring(0, 200)}...'
-          : trimmed;
-      throw ApiException('Failed to parse JSON response: $preview', 0);
+      throw ApiException('Unable to process server response. Please try again.', 0);
     }
   }
 
   static Future<Map<String, dynamic>> _handleResponse(http.Response res) async {
+    // If status is >= 400 and body is HTML, handle immediately with friendly error
+    if (res.statusCode >= 400) {
+      if (res.statusCode == 401 || res.statusCode == 403) {
+        await clearToken();
+      }
+      final trimmed = res.body.trim();
+      if (trimmed.contains('<!DOCTYPE') || trimmed.contains('<html')) {
+        if (res.statusCode == 404) {
+          throw ApiException('Server endpoint not found. Please try again.', 404);
+        }
+        if (res.statusCode == 500) {
+          throw ApiException('Server error occurred. Please try again later.', 500);
+        }
+        throw ApiException('Unable to connect to server. Please try again.', res.statusCode);
+      }
+    }
+
     final body = _tryJsonDecode(res.body);
     if (res.statusCode >= 200 && res.statusCode < 300) {
       return body is Map<String, dynamic> ? body : {'data': body};
@@ -228,10 +310,11 @@ class ApiService {
       await clearToken();
     }
     if (body is Map) {
-      final err = body['error'] ?? body['message'];
-      throw ApiException(err ?? 'Request failed', res.statusCode);
+      final err = body['message'] ?? body['error'] ?? body['msg'];
+      final cleanMsg = cleanErrorMessage(err, statusCode: res.statusCode);
+      throw ApiException(cleanMsg, res.statusCode);
     }
-    throw ApiException('Request failed', res.statusCode);
+    throw ApiException('Request failed. Please try again.', res.statusCode);
   }
 
   static Future<T> _withReprobeBase<T>(
@@ -406,8 +489,8 @@ class ApiService {
       if (result['token'] != null) await saveToken(result['token']);
       return result;
     } on ApiException catch (e) {
-      // Return error message for UI display
-      return {'error': e.message, 'statusCode': e.statusCode};
+      // Return clean error message for UI display
+      return {'error': cleanErrorMessage(e.message, statusCode: e.statusCode), 'statusCode': e.statusCode};
     }
   }
 
@@ -592,11 +675,8 @@ class ApiService {
 
       // Check if response starts with valid JSON
       if (!body.startsWith('{') && !body.startsWith('[')) {
-        final preview = body.length > 200
-            ? '${body.substring(0, 200)}...'
-            : body;
         throw ApiException(
-          'Invalid response format (expected JSON): $preview',
+          'Unable to process server response. Please try again.',
           res.statusCode,
         );
       }

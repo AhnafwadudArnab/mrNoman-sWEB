@@ -1,0 +1,29 @@
+{
+    "admin_flow": {
+        "admin_accounts": true,
+        "default_password_matches": true,
+        "get_all_orders": true,
+        "endpoints": false
+    },
+    "user_flow": {
+        "endpoints": true,
+        "order_history": true
+    },
+    "guest_flow": {
+        "place_order": true
+    },
+    "database_schema": {
+        "orders_columns": true,
+        "user_id_nullable": true
+    },
+    "cpanel_server": {
+        "cpanel_electrocitybd_latest.sql": true,
+        "backend\/.htaccess": true,
+        "backend\/public\/.htaccess": true,
+        "backend\/config\/cors.php": true,
+        "backend\/config\/env.php": true,
+        "backend\/router.php": true,
+        "backend\/config.php": true,
+        "uploads_dir": true
+    }
+}

@@ -1,4 +1,4 @@
-import 'dart:async';
+﻿import 'dart:async';
 
 import 'package:electrocitybd1/config/app_colors.dart';
 import 'package:flutter/material.dart';
@@ -373,16 +373,49 @@ class _PersonalCareLifestylePageState extends State<PersonalCareLifestylePage> {
       childrenPadding: const EdgeInsets.only(left: 8, right: 0),
       children: options
           .map(
-            (opt) => CheckboxListTile(
-              title: Text(opt, style: const TextStyle(fontSize: 12)),
-              value: selectedList.contains(opt),
-              onChanged: (v) => setState(
-                () => v! ? selectedList.add(opt) : selectedList.remove(opt),
+            (opt) => InkWell(
+              onTap: () => setState(
+                () => selectedList.contains(opt)
+                    ? selectedList.remove(opt)
+                    : selectedList.add(opt),
               ),
-              controlAffinity: ListTileControlAffinity.leading,
-              dense: true,
-              contentPadding: EdgeInsets.zero,
-              activeColor: Colors.orange,
+              borderRadius: BorderRadius.circular(6),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 2),
+                child: Row(
+                  children: [
+                    SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: Checkbox(
+                        value: selectedList.contains(opt),
+                        onChanged: (v) => setState(
+                          () => v! ? selectedList.add(opt) : selectedList.remove(opt),
+                        ),
+                        activeColor: const Color(0xFFF59E0B),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        side: const BorderSide(
+                          color: Color(0xFFD1D5DB),
+                          width: 1.5,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        opt,
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: selectedList.contains(opt) ? FontWeight.w600 : FontWeight.normal,
+                          color: selectedList.contains(opt) ? const Color(0xFF111827) : const Color(0xFF374151),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
           )
           .toList(),

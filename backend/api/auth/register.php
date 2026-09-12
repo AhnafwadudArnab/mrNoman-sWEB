@@ -32,7 +32,7 @@ if ($method === 'POST') {
     
     if ($checkStmt->rowCount() > 0) {
         http_response_code(400);
-        echo json_encode(['message' => 'Email already exists']);
+        echo json_encode(['message' => 'Email already exists. Please login.', 'error' => 'Email already exists. Please login.']);
         exit;
     }
     

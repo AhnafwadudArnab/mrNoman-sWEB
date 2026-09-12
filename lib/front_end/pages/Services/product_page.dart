@@ -32,7 +32,7 @@ class ProductPage extends StatelessWidget {
               errorBuilder: (_, __, ___) => Container(
                 height: 220,
                 color: AppColors.grey300,
-                child: const Icon(Icons.image, size: 60, color: AppColors.grey300),
+                child: const Icon(Icons.image, size: 60, color: Colors.black26),
               ),
             ),
           ),

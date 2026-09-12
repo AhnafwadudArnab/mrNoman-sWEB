@@ -46,7 +46,7 @@ if ($method === 'POST') {
         Logger::logAuth('login_failed', null, $email, false);
         Logger::logSecurity('failed_login_attempt', ['email' => $email, 'reason' => 'user_not_found']);
         http_response_code(401);
-        echo json_encode(['message' => 'Invalid email or password']);
+        echo json_encode(['message' => 'User account does not exist']);
         exit;
     }
     

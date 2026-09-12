@@ -26,26 +26,30 @@ class Logger {
             return;
         }
         
-        // Ensure log directory exists
-        if (!is_dir(self::$logDir)) {
-            mkdir(self::$logDir, 0755, true);
+        try {
+            // Ensure log directory exists
+            if (!is_dir(self::$logDir)) {
+                @mkdir(self::$logDir, 0777, true);
+            }
+            
+            // Determine log file
+            $logFile = self::$logDir . '/' . date('Y-m-d') . '.log';
+            
+            // Check file size and rotate if needed
+            if (file_exists($logFile) && filesize($logFile) > self::$maxFileSize) {
+                self::rotateLog($logFile);
+            }
+            
+            // Format log entry
+            $timestamp = date('Y-m-d H:i:s');
+            $contextStr = !empty($context) ? ' ' . json_encode($context) : '';
+            $logEntry = "[{$timestamp}] [{$level}] {$message}{$contextStr}" . PHP_EOL;
+            
+            // Write to file
+            @file_put_contents($logFile, $logEntry, FILE_APPEND | LOCK_EX);
+        } catch (Throwable $e) {
+            // Silently continue if storage is not writable on shared hosting
         }
-        
-        // Determine log file
-        $logFile = self::$logDir . '/' . date('Y-m-d') . '.log';
-        
-        // Check file size and rotate if needed
-        if (file_exists($logFile) && filesize($logFile) > self::$maxFileSize) {
-            self::rotateLog($logFile);
-        }
-        
-        // Format log entry
-        $timestamp = date('Y-m-d H:i:s');
-        $contextStr = !empty($context) ? ' ' . json_encode($context) : '';
-        $logEntry = "[{$timestamp}] [{$level}] {$message}{$contextStr}" . PHP_EOL;
-        
-        // Write to file
-        file_put_contents($logFile, $logEntry, FILE_APPEND | LOCK_EX);
         
         // Also log to PHP error log for critical errors
         if ($level === self::CRITICAL || $level === self::ERROR) {

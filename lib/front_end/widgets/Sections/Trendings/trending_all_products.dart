@@ -10,6 +10,7 @@ import '../../../utils/api_service.dart';
 import '../../../utils/image_resolver.dart';
 import '../../footer.dart';
 import '../../header.dart';
+import '../../store_breadcrumb_bar.dart';
 
 class TrendingAllProducts extends StatefulWidget {
   final String breadcrumbLabel;
@@ -218,18 +219,44 @@ class _TrendingAllProducts extends State<TrendingAllProducts> {
 
   // Extract unique specs from products
   List<String> _getUniqueSpecs() {
-    // Only use DB products that are currently loaded
     final base = _dbProducts;
     if (base.isEmpty) return [];
 
     final specs = <String>{};
     for (var p in base) {
       final productSpecs = (p['specs'] as List<String>?) ?? const <String>[];
-      specs.addAll(productSpecs);
+      for (final s in productSpecs) {
+        if (s.isNotEmpty && s != 'N/A') specs.add(s);
+      }
     }
     final specsList = specs.toList();
     specsList.sort();
     return specsList;
+  }
+
+  int _getCategoryCount(String cat) {
+    return _dbProducts.where((p) => p['category'] == cat).length;
+  }
+
+  int _getBrandCount(String brand) {
+    return _dbProducts.where((p) => p['brand'] == brand).length;
+  }
+
+  bool get _hasActiveFilters =>
+      _selectedCategories.isNotEmpty ||
+      _selectedBrands.isNotEmpty ||
+      _selectedSpecifications.isNotEmpty ||
+      _priceRange.start > _priceMin ||
+      _priceRange.end < _priceMax;
+
+  void _clearAllFilters() {
+    setState(() {
+      _selectedCategories.clear();
+      _selectedBrands.clear();
+      _selectedSpecifications.clear();
+      _priceRange = const RangeValues(_priceMin, _priceMax);
+      _currentPage = 1;
+    });
   }
 
   List<Map<String, Object>> _sortedProducts(List<Map<String, Object>> items) {
@@ -320,6 +347,11 @@ class _TrendingAllProducts extends State<TrendingAllProducts> {
       body: SingleChildScrollView(
         child: Column(
           children: [
+            StoreBreadcrumbBar(
+              currentPage: widget.categoryFilter != null && widget.categoryFilter!.isNotEmpty
+                  ? 'Trending - ${widget.categoryFilter}'
+                  : 'Trending Products',
+            ),
             _buildBanner(r, context),
             Padding(
               padding: EdgeInsets.symmetric(
@@ -405,13 +437,23 @@ class _TrendingAllProducts extends State<TrendingAllProducts> {
   }
 
   Widget _buildFilterPanel(AppResponsive r, BuildContext context) {
+    final categories = _getUniqueCategories();
+    final brands = _getUniqueBrands();
+    final specs = _getUniqueSpecs();
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
-        border: Border.all(color: AppColors.grey300),
-        borderRadius: BorderRadius.circular(8),
-        boxShadow: [BoxShadow(color: const Color(0x05000000), blurRadius: 10)],
+        border: Border.all(color: const Color(0xFFE5E7EB)),
+        borderRadius: BorderRadius.circular(10),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x06000000),
+            blurRadius: 10,
+            offset: Offset(0, 2),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -419,64 +461,160 @@ class _TrendingAllProducts extends State<TrendingAllProducts> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
-                'Filters',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-              ),
-              if (widget.categoryFilter != null)
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 4,
+              Row(
+                children: const [
+                  Icon(Icons.tune, size: 18, color: Color(0xFF111827)),
+                  SizedBox(width: 6),
+                  Text(
+                    'Filters',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w700,
+                      fontSize: 16,
+                      color: Color(0xFF111827),
+                    ),
                   ),
+                ],
+              ),
+              if (_hasActiveFilters)
+                InkWell(
+                  onTap: _clearAllFilters,
+                  borderRadius: BorderRadius.circular(4),
+                  child: const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    child: Text(
+                      'Clear all',
+                      style: TextStyle(
+                        color: Color(0xFFDC2626),
+                        fontWeight: FontWeight.w600,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ),
+                )
+              else if (widget.categoryFilter != null)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
-                    color: const Color(0x1A2196F3),
+                    color: const Color(0xFFEFF6FF),
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: Text(
                     widget.categoryFilter!,
                     style: const TextStyle(
                       fontSize: 11,
-                      color: Colors.blue,
+                      color: Color(0xFF2563EB),
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                 ),
             ],
           ),
-          const Divider(height: 30),
+          const SizedBox(height: 12),
+          const Divider(height: 1, color: Color(0xFFE5E7EB)),
+          const SizedBox(height: 16),
+
+          // Price Range Section
           const Text(
             'Price Range',
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+            style: TextStyle(
+              fontWeight: FontWeight.w700,
+              fontSize: 13,
+              color: Color(0xFF111827),
+            ),
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF9FAFB),
+                    border: Border.all(color: const Color(0xFFE5E7EB)),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Text(
+                    'Tk ${_priceRange.start.round()}',
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF111827),
+                    ),
+                  ),
+                ),
+              ),
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 8),
+                child: Text('-', style: TextStyle(color: Color(0xFF9CA3AF), fontWeight: FontWeight.bold)),
+              ),
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF9FAFB),
+                    border: Border.all(color: const Color(0xFFE5E7EB)),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Text(
+                    'Tk ${_priceRange.end.round()}',
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF111827),
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
           RangeSlider(
             values: _priceRange,
             min: _priceMin,
             max: _priceMax,
-            activeColor: Colors.amber[700],
-            inactiveColor: Colors.black26,
-            onChanged: (val) => setState(() => _priceRange = val),
+            activeColor: const Color(0xFFF59E0B),
+            inactiveColor: const Color(0xFFE5E7EB),
+            onChanged: (val) => setState(() {
+              _priceRange = val;
+              _currentPage = 1;
+            }),
           ),
-          Text(
-            'Tk ${_priceRange.start.round()} - Tk ${_priceRange.end.round()}',
-            style: const TextStyle(fontSize: 12),
-          ),
-          const SizedBox(height: 20),
-          _filterSection(
-            title: 'Categories',
-            options: _getUniqueCategories(),
-            selectedList: _selectedCategories,
-          ),
-          _filterSection(
-            title: 'Brands',
-            options: _getUniqueBrands(),
-            selectedList: _selectedBrands,
-          ),
-          _filterSection(
-            title: 'Specs',
-            options: _getUniqueSpecs(),
-            selectedList: _selectedSpecifications,
-          ),
+          const SizedBox(height: 12),
+
+          // Categories Section
+          if (categories.isNotEmpty) ...[
+            const Divider(height: 1, color: Color(0xFFE5E7EB)),
+            const SizedBox(height: 12),
+            _filterSectionWithCount(
+              title: 'Categories',
+              options: categories,
+              selectedList: _selectedCategories,
+              getCount: _getCategoryCount,
+            ),
+          ],
+
+          // Brands Section
+          if (brands.isNotEmpty) ...[
+            const Divider(height: 1, color: Color(0xFFE5E7EB)),
+            const SizedBox(height: 12),
+            _filterSectionWithCount(
+              title: 'Brands',
+              options: brands,
+              selectedList: _selectedBrands,
+              getCount: _getBrandCount,
+            ),
+          ],
+
+          // Specs Section
+          if (specs.isNotEmpty) ...[
+            const Divider(height: 1, color: Color(0xFFE5E7EB)),
+            const SizedBox(height: 12),
+            _filterSectionWithCount(
+              title: 'Specifications',
+              options: specs,
+              selectedList: _selectedSpecifications,
+              getCount: null,
+            ),
+          ],
         ],
       ),
     );
@@ -488,48 +626,107 @@ class _TrendingAllProducts extends State<TrendingAllProducts> {
       child: OutlinedButton.icon(
         onPressed: () =>
             setState(() => _mobileFiltersOpen = !_mobileFiltersOpen),
-        icon: Icon(_mobileFiltersOpen ? Icons.close : Icons.tune, size: 18),
-        label: Text(_mobileFiltersOpen ? 'Hide Filters' : 'Show Filters'),
+        icon: Icon(_mobileFiltersOpen ? Icons.close : Icons.tune, size: 18, color: const Color(0xFF111827)),
+        label: Text(
+          _mobileFiltersOpen ? 'Hide Filters' : 'Show Filters',
+          style: const TextStyle(
+            color: Color(0xFF111827),
+            fontWeight: FontWeight.w600,
+            fontSize: 13,
+          ),
+        ),
         style: OutlinedButton.styleFrom(
-          foregroundColor: AppColors.grey300,
-          side: BorderSide(color: Colors.black26),
+          side: const BorderSide(color: Color(0xFFD1D5DB)),
           padding: const EdgeInsets.symmetric(vertical: 13),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          backgroundColor: Colors.white,
         ),
       ),
     );
   }
 
-  Widget _filterSection({
+  Widget _filterSectionWithCount({
     required String title,
     required List<String> options,
     required List<String> selectedList,
+    int Function(String)? getCount,
   }) {
-    // Don't show filter section if no options available
-    if (options.isEmpty) {
-      return const SizedBox.shrink();
-    }
+    if (options.isEmpty) return const SizedBox.shrink();
 
-    return ExpansionTile(
-      title: Text(
-        title,
-        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
-      ),
-      tilePadding: EdgeInsets.zero,
-      initiallyExpanded: true,
-      children: options
-          .map(
-            (opt) => CheckboxListTile(
-              title: Text(opt, style: const TextStyle(fontSize: 12)),
-              value: selectedList.contains(opt),
-              onChanged: (_) => _toggleFilter(selectedList, opt),
-              controlAffinity: ListTileControlAffinity.leading,
-              dense: true,
-              contentPadding: EdgeInsets.zero,
-              activeColor: Colors.amber[700],
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          title,
+          style: const TextStyle(
+            fontWeight: FontWeight.w700,
+            fontSize: 13,
+            color: Color(0xFF111827),
+          ),
+        ),
+        const SizedBox(height: 6),
+        ConstrainedBox(
+          constraints: const BoxConstraints(maxHeight: 220),
+          child: SingleChildScrollView(
+            child: Column(
+              children: options.map((opt) {
+                final isSelected = selectedList.contains(opt);
+                final count = getCount != null ? getCount(opt) : null;
+                return InkWell(
+                  onTap: () => _toggleFilter(selectedList, opt),
+                  borderRadius: BorderRadius.circular(6),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 2),
+                    child: Row(
+                      children: [
+                        SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: Checkbox(
+                            value: isSelected,
+                            onChanged: (_) => _toggleFilter(selectedList, opt),
+                            activeColor: const Color(0xFFF59E0B),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            side: const BorderSide(
+                              color: Color(0xFFD1D5DB),
+                              width: 1.5,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            opt,
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                              color: isSelected ? const Color(0xFF111827) : const Color(0xFF374151),
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        if (count != null && count > 0)
+                          Text(
+                            '($count)',
+                            style: const TextStyle(
+                              fontSize: 11,
+                              color: Color(0xFF9CA3AF),
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                );
+              }).toList(),
             ),
-          )
-          .toList(),
+          ),
+        ),
+        const SizedBox(height: 8),
+      ],
     );
   }
 
@@ -561,7 +758,7 @@ class _TrendingAllProducts extends State<TrendingAllProducts> {
               const SizedBox(height: 8),
               Text(
                 _loadError!,
-                style: TextStyle(color: AppColors.grey300, fontSize: 13),
+                style: const TextStyle(color: AppColors.textSecondary, fontSize: 13),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 24),
@@ -599,28 +796,40 @@ class _TrendingAllProducts extends State<TrendingAllProducts> {
           children: [
             Text(
               'Found ${items.length} items',
-              style: const TextStyle(color: AppColors.grey300, fontSize: 13),
+              style: const TextStyle(
+                color: Color(0xFF4B5563),
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+              ),
             ),
-            DropdownButton<String>(
-              value: _selectedSort,
-              underline: const SizedBox(),
-              items: const [
-                DropdownMenuItem(
-                  value: 'featured',
-                  child: Text('Sort: Featured'),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: const Color(0xFFE5E7EB)),
+              ),
+              child: DropdownButton<String>(
+                value: _selectedSort,
+                underline: const SizedBox(),
+                style: const TextStyle(
+                  color: Color(0xFF111827),
+                  fontSize: 13,
+                  fontWeight: FontWeight.w500,
                 ),
-                DropdownMenuItem(value: 'newest', child: Text('Newest First')),
-                DropdownMenuItem(
-                  value: 'price_low',
-                  child: Text('Price: Low to High'),
-                ),
-                DropdownMenuItem(
-                  value: 'price_high',
-                  child: Text('Price: High to Low'),
-                ),
-                DropdownMenuItem(value: 'title', child: Text('Name: A-Z')),
-              ],
-              onChanged: (v) => setState(() => _selectedSort = v!),
+                dropdownColor: Colors.white,
+                icon: const Icon(Icons.keyboard_arrow_down, size: 18, color: Color(0xFF4B5563)),
+                items: const [
+                  DropdownMenuItem(value: 'featured', child: Text('Sort: Featured', style: TextStyle(color: Color(0xFF111827)))),
+                  DropdownMenuItem(value: 'newest', child: Text('Newest First', style: TextStyle(color: Color(0xFF111827)))),
+                  DropdownMenuItem(value: 'price_low', child: Text('Price: Low to High', style: TextStyle(color: Color(0xFF111827)))),
+                  DropdownMenuItem(value: 'price_high', child: Text('Price: High to Low', style: TextStyle(color: Color(0xFF111827)))),
+                  DropdownMenuItem(value: 'title', child: Text('Name: A-Z', style: TextStyle(color: Color(0xFF111827)))),
+                ],
+                onChanged: (v) {
+                  if (v != null) setState(() => _selectedSort = v);
+                },
+              ),
             ),
           ],
         ),
@@ -634,7 +843,7 @@ class _TrendingAllProducts extends State<TrendingAllProducts> {
                       const Icon(
                         Icons.inventory_2_outlined,
                         size: 48,
-                        color: AppColors.grey300,
+                        color: AppColors.textSecondary,
                       ),
                       const SizedBox(height: 16),
                       Text(
@@ -643,7 +852,8 @@ class _TrendingAllProducts extends State<TrendingAllProducts> {
                             : "No products match your filters.",
                         style: const TextStyle(
                           fontSize: 16,
-                          color: AppColors.grey300,
+                          color: AppColors.textPrimary,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
                       const SizedBox(height: 8),
@@ -652,7 +862,7 @@ class _TrendingAllProducts extends State<TrendingAllProducts> {
                           "Please add products to the database.",
                           style: TextStyle(
                             fontSize: 14,
-                            color: AppColors.grey300,
+                            color: AppColors.textSecondary,
                           ),
                         ),
                       if (_selectedCategories.isNotEmpty ||
@@ -748,17 +958,18 @@ class _TrendingAllProducts extends State<TrendingAllProducts> {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
-                      fontWeight: FontWeight.bold,
+                      fontWeight: FontWeight.w600,
                       fontSize: 13,
+                      color: Color(0xFF111827),
                     ),
                   ),
                   const SizedBox(height: 5),
                   Text(
                     'Tk ${price.toStringAsFixed(0)}',
-                    style: TextStyle(
-                      color: Colors.amber[900],
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
+                    style: const TextStyle(
+                      color: Color(0xFFEA580C),
+                      fontWeight: FontWeight.w800,
+                      fontSize: 15,
                     ),
                   ),
                   if (stockQuantity != null) ...[
@@ -841,9 +1052,10 @@ class _TrendingAllProducts extends State<TrendingAllProducts> {
           style: IconButton.styleFrom(
             backgroundColor: _currentPage > 1
                 ? Colors.amber[700]
-                : Colors.black26,
+                : Colors.black12,
             foregroundColor: Colors.white,
-            disabledBackgroundColor: Colors.black26,
+            disabledBackgroundColor: Colors.black12,
+            disabledForegroundColor: Colors.black38,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(8),
             ),
@@ -882,7 +1094,7 @@ class _TrendingAllProducts extends State<TrendingAllProducts> {
               padding: EdgeInsets.symmetric(horizontal: 4),
               child: Text(
                 '...',
-                style: TextStyle(fontSize: 18, color: AppColors.grey300),
+                style: TextStyle(fontSize: 18, color: AppColors.textSecondary, fontWeight: FontWeight.bold),
               ),
             );
           }
@@ -898,7 +1110,7 @@ class _TrendingAllProducts extends State<TrendingAllProducts> {
                 decoration: BoxDecoration(
                   color: isActive ? Colors.amber[700] : Colors.white,
                   border: Border.all(
-                    color: isActive ? Colors.amber[700]! : Colors.black26,
+                    color: isActive ? Colors.amber[700]! : const Color(0xFFCBD5E1),
                     width: 1.5,
                   ),
                   borderRadius: BorderRadius.circular(8),
@@ -907,10 +1119,10 @@ class _TrendingAllProducts extends State<TrendingAllProducts> {
                   child: Text(
                     '$pageNum',
                     style: TextStyle(
-                      color: isActive ? Colors.white : AppColors.grey200,
+                      color: isActive ? Colors.white : const Color(0xFF1E293B),
                       fontWeight: isActive
                           ? FontWeight.bold
-                          : FontWeight.normal,
+                          : FontWeight.w600,
                       fontSize: 14,
                     ),
                   ),
@@ -930,9 +1142,10 @@ class _TrendingAllProducts extends State<TrendingAllProducts> {
           style: IconButton.styleFrom(
             backgroundColor: _currentPage < totalPages
                 ? Colors.amber[700]
-                : Colors.black26,
+                : Colors.black12,
             foregroundColor: Colors.white,
-            disabledBackgroundColor: Colors.black26,
+            disabledBackgroundColor: Colors.black12,
+            disabledForegroundColor: Colors.black38,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(8),
             ),

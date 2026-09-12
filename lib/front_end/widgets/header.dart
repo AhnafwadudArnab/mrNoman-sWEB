@@ -477,6 +477,7 @@ class _HeaderState extends State<Header> {
     final wishlistCount = context.watch<WishlistProvider>().wishlistCount;
 
     return AppBar(
+      automaticallyImplyLeading: false,
       backgroundColor: const Color(0xFFFAB12F),
       elevation: 4,
       shadowColor: const Color(0x1A000000),
