@@ -197,50 +197,48 @@ if ($segments[0] === 'api') {
     $apiBase = __DIR__ . '/../api';
     $file = null;
 
-    // Normalize endpoint: convert hyphens to underscores and strip .php suffix
-    $endpoint = isset($segments[1]) ? str_replace('-', '_', preg_replace('/\.php$/i', '', $segments[1])) : null;
-    $subEndpoint = isset($segments[2]) ? str_replace('-', '_', preg_replace('/\.php$/i', '', $segments[2])) : null;
+    // Normalize endpoints — keep raw, hyphenated, and underscored forms
+    $raw1 = isset($segments[1]) ? preg_replace('/\.php$/i', '', $segments[1]) : null;
+    $raw2 = isset($segments[2]) ? preg_replace('/\.php$/i', '', $segments[2]) : null;
+
+    $endpoint = $raw1 ? str_replace('-', '_', $raw1) : null;
+    $subEndpoint = $raw2 ? str_replace('-', '_', $raw2) : null;
 
     // Handle double /api/ prefix if requested (e.g. /api/api/products)
     if ($endpoint === 'api' && $subEndpoint !== null) {
-        $endpoint = $subEndpoint;
-        $subEndpoint = isset($segments[3]) ? str_replace('-', '_', preg_replace('/\.php$/i', '', $segments[3])) : null;
+        $raw1 = $raw2;
+        $raw2 = isset($segments[3]) ? preg_replace('/\.php$/i', '', $segments[3]) : null;
+        $endpoint = $raw1 ? str_replace('-', '_', $raw1) : null;
+        $subEndpoint = $raw2 ? str_replace('-', '_', $raw2) : null;
     }
 
-    // Handle routes with IDs (e.g., /api/payment_methods/1 or /api/products/123)
-    if (count($segments) >= 3 && is_numeric($segments[2])) {
-        $_GET['id'] = $segments[2];
-        $file = $apiBase . '/' . $endpoint . '.php';
-    } elseif (count($segments) >= 3 && $subEndpoint) {
-        $file = $apiBase . '/' . $endpoint . '/' . $subEndpoint . '.php';
-    } elseif (count($segments) >= 2 && $endpoint) {
-        $file = $apiBase . '/' . $endpoint . '.php';
+    // Candidate file paths to test in priority order
+    $candidates = [];
+    if (count($segments) >= 3 && $raw2 !== null && is_numeric($raw2)) {
+        $_GET['id'] = $raw2;
+        $candidates[] = "$apiBase/$raw1.php";
+        $candidates[] = "$apiBase/$endpoint.php";
+    } elseif ($raw1 && $raw2) {
+        $candidates[] = "$apiBase/$raw1/$raw2.php";
+        $candidates[] = "$apiBase/$endpoint/$subEndpoint.php";
+        $candidates[] = "$apiBase/$raw1/$subEndpoint.php";
+        $candidates[] = "$apiBase/$endpoint/$raw2.php";
+        $candidates[] = "$apiBase/$raw1/Admin/$raw2.php";
+        $candidates[] = "$apiBase/$raw1/Admin/$subEndpoint.php";
+        $candidates[] = "$apiBase/" . ucfirst($endpoint) . '/' . ucfirst($subEndpoint) . '.php';
+        $candidates[] = "$apiBase/" . strtolower($endpoint) . '/' . strtolower($subEndpoint) . '.php';
+    } elseif ($raw1) {
+        $candidates[] = "$apiBase/$raw1.php";
+        $candidates[] = "$apiBase/$endpoint.php";
+        $candidates[] = "$apiBase/" . ucfirst($endpoint) . '.php';
+        $candidates[] = "$apiBase/" . strtolower($endpoint) . '.php';
     }
 
-    if ($file && file_exists($file)) {
-        $_GET = array_merge($_GET, $_REQUEST);
-        require_once $file;
-        exit;
-    }
-
-    // Fallback checks for Linux / cPanel case-sensitivity (e.g. Orders vs orders, Users vs users)
-    if ($endpoint) {
-        $fallbacks = [
-            $apiBase . '/' . strtolower($endpoint) . '.php',
-            $apiBase . '/' . ucfirst($endpoint) . '.php',
-        ];
-        if ($subEndpoint) {
-            $fallbacks[] = $apiBase . '/' . strtolower($endpoint) . '/' . strtolower($subEndpoint) . '.php';
-            $fallbacks[] = $apiBase . '/' . ucfirst($endpoint) . '/' . strtolower($subEndpoint) . '.php';
-            $fallbacks[] = $apiBase . '/' . ucfirst($endpoint) . '/' . ucfirst($subEndpoint) . '.php';
-            $fallbacks[] = $apiBase . '/' . strtolower($endpoint) . '/' . ucfirst($subEndpoint) . '.php';
-        }
-        foreach ($fallbacks as $fb) {
-            if (file_exists($fb)) {
-                $_GET = array_merge($_GET, $_REQUEST);
-                require_once $fb;
-                exit;
-            }
+    foreach ($candidates as $candidate) {
+        if (is_file($candidate)) {
+            $_GET = array_merge($_GET, $_REQUEST);
+            require_once $candidate;
+            exit;
         }
     }
 

@@ -286,7 +286,7 @@ class _AdminPromotionsPageState extends State<AdminPromotionsPage> {
           color: cardBg,
           children: [
             const Text(
-              'Promotions â€¢ Title, Dates & Discount %',
+              'Promotions • Title, Dates & Discount %',
               style: TextStyle(color: Colors.black, fontSize: 14),
             ),
             const SizedBox.shrink(),
@@ -313,10 +313,15 @@ class _AdminPromotionsPageState extends State<AdminPromotionsPage> {
                     ),
                     ElevatedButton.icon(
                       onPressed: _loading ? null : _load,
-                      icon: const Icon(Icons.refresh, color: Colors.black),
+                      icon: const Icon(Icons.refresh, color: Colors.white, size: 18),
                       label: const Text('Refresh'),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: brandOrange,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 10,
+                        ),
                       ),
                     ),
                   ],
@@ -407,7 +412,7 @@ class _AdminPromotionsPageState extends State<AdminPromotionsPage> {
                                                 bottom: 8,
                                               ),
                                               child: Text(
-                                                'Start â†’ End',
+                                                'Start → End',
                                                 style: TextStyle(
                                                   color: Colors.black,
                                                   fontWeight: FontWeight.bold,
@@ -496,7 +501,7 @@ class _AdminPromotionsPageState extends State<AdminPromotionsPage> {
                                                       CrossAxisAlignment.start,
                                                   children: [
                                                     Text(
-                                                      '${_fmt(e['start_date'])} â†’ ${_fmt(e['end_date'])}',
+                                                      '${_fmt(e['start_date'])} → ${_fmt(e['end_date'])}',
                                                       style: const TextStyle(
                                                         color: AdminTheme
                                                             .textPrimary,
@@ -707,11 +712,22 @@ class _AdminPromotionsPageState extends State<AdminPromotionsPage> {
                               onPressed: _create,
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: brandOrange,
+                                foregroundColor: Colors.white,
                                 padding: const EdgeInsets.symmetric(
                                   vertical: 14,
                                 ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
                               ),
-                              child: const Text('Create'),
+                              child: const Text(
+                                'Create Promotion',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
                             ),
                           ),
                         ],
@@ -873,7 +889,10 @@ class _AdminPromotionsPageState extends State<AdminPromotionsPage> {
               child: const Text('Cancel'),
             ),
             ElevatedButton(
-              style: ElevatedButton.styleFrom(backgroundColor: brandOrange),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: brandOrange,
+                foregroundColor: Colors.white,
+              ),
               onPressed: () async {
                 // ✅ Make async to wait for mounted check
                 Navigator.pop(ctx);

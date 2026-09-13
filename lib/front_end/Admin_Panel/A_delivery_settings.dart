@@ -280,12 +280,7 @@ class _AdminDeliverySettingsPageState extends State<AdminDeliverySettingsPage> {
               children: [
                 copy,
                 const SizedBox(height: 18),
-                ...metrics.map(
-                  (metric) => Padding(
-                    padding: const EdgeInsets.only(bottom: 10),
-                    child: metric,
-                  ),
-                ),
+                _metricsGrid(metrics, constraints.maxWidth),
               ],
             );
           }
@@ -304,6 +299,19 @@ class _AdminDeliverySettingsPageState extends State<AdminDeliverySettingsPage> {
           );
         },
       ),
+    );
+  }
+
+  Widget _metricsGrid(List<Widget> metrics, double maxWidth) {
+    final columns = maxWidth < 440 ? 1 : 3;
+    final spacing = 12.0;
+    final tileWidth = (maxWidth - (columns - 1) * spacing) / columns;
+    return Wrap(
+      spacing: spacing,
+      runSpacing: spacing,
+      children: metrics
+          .map((metric) => SizedBox(width: tileWidth, child: metric))
+          .toList(),
     );
   }
 

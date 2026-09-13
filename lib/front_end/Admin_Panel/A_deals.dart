@@ -977,48 +977,91 @@ class _AdminDealsPageState extends State<AdminDealsPage>
   // TAB 2: DEALS COUNTDOWN TIMER
   // ══════════════════════════════════════════════════════════════════════════
   Widget _buildTimersTabView() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isMobile = constraints.maxWidth < 640;
+        final pagePadding = isMobile ? 12.0 : 20.0;
+        final isNarrow = constraints.maxWidth < 560;
+
+        return SingleChildScrollView(
+          padding: EdgeInsets.symmetric(horizontal: pagePadding, vertical: isMobile ? 16 : 24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Deals Countdown Timers',
-                    style: TextStyle(
-                      color: AdminTheme.textPrimary,
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
+              if (isNarrow) ...[
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Deals Countdown Timers',
+                      style: TextStyle(
+                        color: AdminTheme.textPrimary,
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    const Text(
+                      'Manage flash deal countdown clocks shown on the homepage',
+                      style: TextStyle(color: AdminTheme.textSecondary, fontSize: 13),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                ElevatedButton.icon(
+                  onPressed: _showCreateTimerDialog,
+                  icon: const Icon(Icons.add, size: 18),
+                  label: const Text('Create Timer'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: brandColor,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
                     ),
                   ),
-                  const SizedBox(height: 4),
-                  const Text(
-                    'Manage flash deal countdown clocks shown on the homepage',
-                    style: TextStyle(color: AdminTheme.textSecondary, fontSize: 13),
-                  ),
-                ],
-              ),
-              ElevatedButton.icon(
-                onPressed: _showCreateTimerDialog,
-                icon: const Icon(Icons.add, size: 18),
-                label: const Text('Create Timer'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: brandColor,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 20),
+              ] else
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Deals Countdown Timers',
+                            style: TextStyle(
+                              color: AdminTheme.textPrimary,
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          const Text(
+                            'Manage flash deal countdown clocks shown on the homepage',
+                            style: TextStyle(color: AdminTheme.textSecondary, fontSize: 13),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    ElevatedButton.icon(
+                      onPressed: _showCreateTimerDialog,
+                      icon: const Icon(Icons.add, size: 18),
+                      label: const Text('Create Timer'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: brandColor,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              const SizedBox(height: 20),
 
           if (_loadingTimers)
             const Center(
@@ -1208,6 +1251,8 @@ class _AdminDealsPageState extends State<AdminDealsPage>
             ),
         ],
       ),
+    );
+      },
     );
   }
 

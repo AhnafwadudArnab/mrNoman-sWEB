@@ -71,6 +71,12 @@ class AdminScaffold extends StatelessWidget {
           bodyColor: AdminTheme.textPrimary,
           displayColor: AdminTheme.textPrimary,
         ),
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AdminTheme.brand,
+            foregroundColor: Colors.white,
+          ),
+        ),
       ),
       child: Scaffold(
       backgroundColor: pageBackground,

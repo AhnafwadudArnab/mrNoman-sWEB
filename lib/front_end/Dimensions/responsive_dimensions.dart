@@ -15,8 +15,9 @@ class AppResponsive {
   double get height => MediaQuery.of(context).size.height;
 
   /// Breakpoints
-  bool get isSmallMobile => width < 375; // 320px
-  bool get isMobile => width >= 375 && width < 768; // 375px, 425px
+  bool get isSmallMobile => width < 375; // 320px, 360px
+  bool get isMobile => width < 768; // All mobile devices < 768px
+  bool get isMediumMobile => width >= 375 && width < 768; // 375px, 425px
   bool get isTablet => width >= 768 && width < 1024; // 768px
   bool get isSmallDesktop => width >= 1024 && width < 1440; // 1024px
   bool get isDesktop => width >= 1440; // 1440px, 4K

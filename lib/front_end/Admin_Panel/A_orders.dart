@@ -251,27 +251,33 @@ class _AdminOrdersPageState extends State<AdminOrdersPage> {
     if (p.isLoading && p.orders.isEmpty) {
       return const Center(child: CircularProgressIndicator(color: _C.brand));
     }
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          // ── Stat cards
-          _buildStatCards(allRows),
-          const SizedBox(height: 20),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isMobile = constraints.maxWidth < 640;
+        final pagePadding = isMobile ? 12.0 : 24.0;
+        return SingleChildScrollView(
+          padding: EdgeInsets.all(pagePadding),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // ── Stat cards
+              _buildStatCards(allRows),
+              SizedBox(height: isMobile ? 14 : 20),
 
-          // ── Error banner
-          if (p.error != null) _buildErrorBanner(p),
+              // ── Error banner
+              if (p.error != null) _buildErrorBanner(p),
 
-          // ── Toolbar (search + filters + export + add)
-          _buildToolbar(allRows, filtered, p),
-          const SizedBox(height: 16),
+              // ── Toolbar (search + filters + export + add)
+              _buildToolbar(allRows, filtered, p),
+              SizedBox(height: isMobile ? 12 : 16),
 
-          // ── Table
-          _buildTable(filtered, allRows, p),
-          const SizedBox(height: 24),
-        ],
-      ),
+              // ── Table
+              _buildTable(filtered, allRows, p),
+              const SizedBox(height: 24),
+            ],
+          ),
+        );
+      },
     );
   }
 
@@ -304,14 +310,19 @@ class _AdminOrdersPageState extends State<AdminOrdersPage> {
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        final cols = constraints.maxWidth < 520 ? 2 : 4;
-        final isNarrow = constraints.maxWidth < 520;
+        final isNarrow = constraints.maxWidth < 640;
+        final isVeryNarrow = constraints.maxWidth < 400;
+        final spacing = isNarrow ? 10.0 : 16.0;
+        final cardWidth = isNarrow
+            ? ((constraints.maxWidth - spacing) / 2).floorToDouble()
+            : ((constraints.maxWidth - (spacing * 3)) / 4).floorToDouble();
+
         return Wrap(
-          spacing: 16,
-          runSpacing: 16,
+          spacing: spacing,
+          runSpacing: spacing,
           children: [
             _statCard(
-              label: 'New orders (pending)',
+              label: 'New (pending)',
               count: newCount,
               weeklyCount: weeklyNew,
               bg: _C.statNew,
@@ -323,12 +334,11 @@ class _AdminOrdersPageState extends State<AdminOrdersPage> {
                     : 'pending',
               ),
               active: _filterStatus == 'pending',
-              width: isNarrow
-                  ? (constraints.maxWidth / 2 - 8).clamp(0.0, double.infinity)
-                  : (constraints.maxWidth / 4 - 12).clamp(0.0, double.infinity),
+              width: cardWidth,
+              isNarrow: isNarrow,
             ),
             _statCard(
-              label: 'Ongoing orders (Processing)',
+              label: 'Processing',
               count: processingCount,
               weeklyCount: weeklyProcessing,
               bg: _C.statAwait,
@@ -340,15 +350,14 @@ class _AdminOrdersPageState extends State<AdminOrdersPage> {
                     : 'processing',
               ),
               active: _filterStatus == 'processing',
-              width: isNarrow
-                  ? (constraints.maxWidth / 2 - 8).clamp(0.0, double.infinity)
-                  : (constraints.maxWidth / 4 - 12).clamp(0.0, double.infinity),
+              width: cardWidth,
+              isNarrow: isNarrow,
             ),
             _statCard(
-              label: 'On the way (shipped)',
+              label: 'Shipped',
               count: shippedCount,
               weeklyCount: weeklyShipped,
-              bg: _C.statOnWay, 
+              bg: _C.statOnWay,
               accent: _C.statOnWayAccent,
               icon: Icons.local_shipping_outlined,
               onTap: () => setState(
@@ -357,12 +366,11 @@ class _AdminOrdersPageState extends State<AdminOrdersPage> {
                     : 'shipped',
               ),
               active: _filterStatus == 'shipped',
-              width: isNarrow
-                  ? (constraints.maxWidth / 2 - 8).clamp(0.0, double.infinity)
-                  : (constraints.maxWidth / 4 - 12).clamp(0.0, double.infinity),
+              width: cardWidth,
+              isNarrow: isNarrow,
             ),
             _statCard(
-              label: 'Delivered orders',
+              label: 'Delivered',
               count: deliveredCount,
               weeklyCount: weeklyDelivered,
               bg: _C.statDone,
@@ -374,9 +382,8 @@ class _AdminOrdersPageState extends State<AdminOrdersPage> {
                     : 'delivered',
               ),
               active: _filterStatus == 'delivered',
-              width: isNarrow
-                  ? (constraints.maxWidth / 2 - 8).clamp(0.0, double.infinity)
-                  : (constraints.maxWidth / 4 - 12).clamp(0.0, double.infinity),
+              width: cardWidth,
+              isNarrow: isNarrow,
             ),
           ],
         );
@@ -394,16 +401,17 @@ class _AdminOrdersPageState extends State<AdminOrdersPage> {
     required VoidCallback onTap,
     required bool active,
     required double width,
+    bool isNarrow = false,
   }) {
     return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 160),
         width: width,
-        padding: const EdgeInsets.all(18),
+        padding: EdgeInsets.all(isNarrow ? 12 : 18),
         decoration: BoxDecoration(
           color: active ? accent : bg,
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(12),
           border: Border.all(
             color: active ? accent : bg,
             width: active ? 2 : 1,
@@ -429,12 +437,12 @@ class _AdminOrdersPageState extends State<AdminOrdersPage> {
           children: [
             Row(
               children: [
-                Icon(icon, color: active ? Colors.white : accent, size: 20),
+                Icon(icon, color: active ? Colors.white : accent, size: isNarrow ? 18 : 20),
                 const Spacer(),
                 Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 7,
-                    vertical: 3,
+                  padding: EdgeInsets.symmetric(
+                    horizontal: isNarrow ? 6 : 7,
+                    vertical: isNarrow ? 2 : 3,
                   ),
                   decoration: BoxDecoration(
                     color: active
@@ -445,7 +453,7 @@ class _AdminOrdersPageState extends State<AdminOrdersPage> {
                   child: Text(
                     '+$weeklyCount this week',
                     style: TextStyle(
-                      fontSize: 10,
+                      fontSize: isNarrow ? 9 : 10,
                       fontWeight: FontWeight.w600,
                       color: active ? Colors.white : accent,
                     ),
@@ -453,11 +461,11 @@ class _AdminOrdersPageState extends State<AdminOrdersPage> {
                 ),
               ],
             ),
-            const SizedBox(height: 12),
+            SizedBox(height: isNarrow ? 8 : 12),
             Text(
               '$count',
               style: TextStyle(
-                fontSize: 28,
+                fontSize: isNarrow ? 22 : 28,
                 fontWeight: FontWeight.w800,
                 color: active ? Colors.white : _C.textPrimary,
               ),
@@ -466,10 +474,12 @@ class _AdminOrdersPageState extends State<AdminOrdersPage> {
             Text(
               label,
               style: TextStyle(
-                fontSize: 13,
+                fontSize: isNarrow ? 11 : 13,
                 color: active ? Colors.white.withOpacity(0.85) : _C.textSub,
                 fontWeight: FontWeight.w500,
               ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
           ],
         ),
@@ -487,117 +497,138 @@ class _AdminOrdersPageState extends State<AdminOrdersPage> {
   ) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final isNarrow = constraints.maxWidth < 640;
+        final isNarrow = constraints.maxWidth < 700;
+        final searchField = Container(
+          height: 42,
+          decoration: BoxDecoration(
+            color: _C.surface,
+            border: Border.all(color: _C.border),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: TextField(
+            controller: _searchCtrl,
+            onChanged: (v) => setState(() => _searchQuery = v.trim()),
+            style: const TextStyle(
+              fontSize: 13,
+              color: _C.textPrimary,
+            ),
+            decoration: InputDecoration(
+              hintText: 'Search orders…',
+              hintStyle: const TextStyle(
+                fontSize: 13,
+                color: _C.textMuted,
+              ),
+              prefixIcon: const Icon(
+                Icons.search,
+                size: 18,
+                color: _C.textMuted,
+              ),
+              suffixIcon: _searchQuery.isNotEmpty
+                  ? IconButton(
+                      icon: const Icon(
+                        Icons.close,
+                        size: 16,
+                        color: _C.textMuted,
+                      ),
+                      onPressed: () {
+                        _searchCtrl.clear();
+                        setState(() => _searchQuery = '');
+                      },
+                    )
+                  : null,
+              border: InputBorder.none,
+              contentPadding: const EdgeInsets.symmetric(
+                vertical: 11,
+              ),
+            ),
+          ),
+        );
+
+        final countBadge = Container(
+          padding: const EdgeInsets.symmetric(
+            horizontal: 12,
+            vertical: 10,
+          ),
+          decoration: BoxDecoration(
+            color: _C.surface,
+            border: Border.all(color: _C.border),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Text(
+            '${filtered.length} orders',
+            style: const TextStyle(
+              fontSize: 13,
+              color: _C.textSub,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        );
+
+        final exportBtn = _outlineBtn(
+          icon: Icons.download_outlined,
+          label: 'Export',
+          onTap: () => _exportCsv(filtered, context),
+        );
+
+        final sortBtn = _outlineBtn(icon: Icons.sort, label: 'Sort', onTap: () {});
+
+        final addOrderBtn = ElevatedButton.icon(
+          onPressed: () {},
+          icon: const Icon(Icons.add, size: 16),
+          label: const Text('Add order'),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: _C.brand,
+            foregroundColor: Colors.white,
+            elevation: 0,
+            padding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 11,
+            ),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+            textStyle: const TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        );
+
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Row 1: search + right-side actions
-            Row(
-              children: [
-                // Search
-                Expanded(
-                  child: Container(
-                    height: 42,
-                    decoration: BoxDecoration(
-                      color: _C.surface,
-                      border: Border.all(color: _C.border),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: TextField(
-                      controller: _searchCtrl,
-                      onChanged: (v) => setState(() => _searchQuery = v.trim()),
-                      style: const TextStyle(
-                        fontSize: 13,
-                        color: _C.textPrimary,
-                      ),
-                      decoration: InputDecoration(
-                        hintText: 'Search orders…',
-                        hintStyle: const TextStyle(
-                          fontSize: 13,
-                          color: _C.textMuted,
-                        ),
-                        prefixIcon: const Icon(
-                          Icons.search,
-                          size: 18,
-                          color: _C.textMuted,
-                        ),
-                        suffixIcon: _searchQuery.isNotEmpty
-                            ? IconButton(
-                                icon: const Icon(
-                                  Icons.close,
-                                  size: 16,
-                                  color: _C.textMuted,
-                                ),
-                                onPressed: () {
-                                  _searchCtrl.clear();
-                                  setState(() => _searchQuery = '');
-                                },
-                              )
-                            : null,
-                        border: InputBorder.none,
-                        contentPadding: const EdgeInsets.symmetric(
-                          vertical: 11,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                // Total count badge
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 10,
-                  ),
-                  decoration: BoxDecoration(
-                    color: _C.surface,
-                    border: Border.all(color: _C.border),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Text(
-                    '${filtered.length} orders',
-                    style: const TextStyle(
-                      fontSize: 13,
-                      color: _C.textSub,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                // Export CSV
-                _outlineBtn(
-                  icon: Icons.download_outlined,
-                  label: 'Export',
-                  onTap: () => _exportCsv(filtered, context),
-                ),
-                const SizedBox(width: 10),
-                // Sort / Add order (decorative for now)
-                _outlineBtn(icon: Icons.sort, label: 'Sort', onTap: () {}),
-                const SizedBox(width: 10),
-                // Add order button
-                ElevatedButton.icon(
-                  onPressed: () {},
-                  icon: const Icon(Icons.add, size: 16),
-                  label: const Text('Add order'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: _C.brand,
-                    foregroundColor: Colors.white,
-                    elevation: 0,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 11,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    textStyle: const TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ],
-            ),
+            if (isNarrow) ...[
+              Row(
+                children: [
+                  Expanded(child: searchField),
+                  const SizedBox(width: 8),
+                  countBadge,
+                ],
+              ),
+              const SizedBox(height: 10),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  exportBtn,
+                  sortBtn,
+                  addOrderBtn,
+                ],
+              ),
+            ] else
+              Row(
+                children: [
+                  Expanded(child: searchField),
+                  const SizedBox(width: 10),
+                  countBadge,
+                  const SizedBox(width: 10),
+                  exportBtn,
+                  const SizedBox(width: 10),
+                  sortBtn,
+                  const SizedBox(width: 10),
+                  addOrderBtn,
+                ],
+              ),
             const SizedBox(height: 12),
             // Row 2: active filter chips
             if (_filterStatus != null || _searchQuery.isNotEmpty)
@@ -690,91 +721,109 @@ class _AdminOrdersPageState extends State<AdminOrdersPage> {
     List<Map<String, String>> allRows,
     OrdersProvider p,
   ) {
-    return Container(
-      decoration: BoxDecoration(
-        color: _C.surface,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: _C.border),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          // ── Table header
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            decoration: BoxDecoration(
-              color: const Color(0xFFF8F9FB),
-              borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(14),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        const minTableWidth = 850.0;
+        final needsScroll = constraints.maxWidth < minTableWidth;
+        final tableContent = SizedBox(
+          width: needsScroll ? minTableWidth : constraints.maxWidth,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // ── Table header
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF8F9FB),
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(14),
+                  ),
+                  border: Border(bottom: BorderSide(color: _C.border)),
+                ),
+                child: const Row(
+                  children: [
+                    SizedBox(width: 36), // checkbox placeholder
+                    _TH('ORDER NUMBER', flex: 3),
+                    _TH('CUSTOMER', flex: 3),
+                    _TH('CATEGORY', flex: 2),
+                    _TH('PRICE', flex: 2),
+                    _TH('DATE', flex: 2),
+                    _TH('PAYMENT', flex: 2),
+                    _TH('STATUS', flex: 2),
+                    SizedBox(width: 40), // actions column
+                  ],
+                ),
               ),
-              border: Border(bottom: BorderSide(color: _C.border)),
-            ),
-            child: const Row(
-              children: [
-                SizedBox(width: 36), // checkbox placeholder
-                _TH('ORDER NUMBER', flex: 3),
-                _TH('CUSTOMER', flex: 3),
-                _TH('CATEGORY', flex: 2),
-                _TH('PRICE', flex: 2),
-                _TH('DATE', flex: 2),
-                _TH('PAYMENT', flex: 2),
-                _TH('STATUS', flex: 2),
-                SizedBox(width: 40), // actions column
-              ],
-            ),
-          ),
 
-          // ── Empty state
-          if (filtered.isEmpty)
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 60),
-              child: Column(
-                children: [
-                  Icon(
-                    Icons.receipt_long_outlined,
-                    size: 52,
-                    color: _C.textMuted,
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    allRows.isEmpty
-                        ? 'No orders yet.'
-                        : 'No orders match your filters.',
-                    style: const TextStyle(fontSize: 14, color: _C.textSub),
-                  ),
-                ],
-              ),
-            )
-          else
-            // ── Rows
-            ...filtered.asMap().entries.map((entry) {
-              final idx = entry.key;
-              final row = entry.value;
-              final all = p.ordersNewestFirst;
-              final full = all.firstWhere(
-                (o) => o.orderId == row['id'],
-                orElse: () => all.isNotEmpty
-                    ? all.first
-                    : PlacedOrder(
-                        orderId: row['id'] ?? '',
-                        transactionId: row['transactionId'] ?? '',
-                        paymentMethod: row['method'] ?? '',
-                        total: double.tryParse(row['total'] ?? '0') ?? 0,
-                        createdAt: row['created'] ?? '',
-                        status: row['status'] ?? '',
+              // ── Empty state
+              if (filtered.isEmpty)
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 60),
+                  child: Column(
+                    children: [
+                      Icon(
+                        Icons.receipt_long_outlined,
+                        size: 52,
+                        color: _C.textMuted,
                       ),
-              );
-              return _buildRow(context, row, full, p, isAlt: idx.isOdd);
-            }),
-        ],
-      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        allRows.isEmpty
+                            ? 'No orders yet.'
+                            : 'No orders match your filters.',
+                        style: const TextStyle(fontSize: 14, color: _C.textSub),
+                      ),
+                    ],
+                  ),
+                )
+              else
+                // ── Rows
+                ...filtered.asMap().entries.map((entry) {
+                  final idx = entry.key;
+                  final row = entry.value;
+                  final all = p.ordersNewestFirst;
+                  final full = all.firstWhere(
+                    (o) => o.orderId == row['id'],
+                    orElse: () => all.isNotEmpty
+                        ? all.first
+                        : PlacedOrder(
+                            orderId: row['id'] ?? '',
+                            transactionId: row['transactionId'] ?? '',
+                            paymentMethod: row['method'] ?? '',
+                            total: double.tryParse(row['total'] ?? '0') ?? 0,
+                            createdAt: row['created'] ?? '',
+                            status: row['status'] ?? '',
+                          ),
+                  );
+                  return _buildRow(context, row, full, p, isAlt: idx.isOdd);
+                }),
+            ],
+          ),
+        );
+
+        return Container(
+          decoration: BoxDecoration(
+            color: _C.surface,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: _C.border),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.04),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          clipBehavior: Clip.antiAlias,
+          child: needsScroll
+              ? SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  physics: const BouncingScrollPhysics(),
+                  child: tableContent,
+                )
+              : tableContent,
+        );
+      },
     );
   }
 
@@ -864,6 +913,8 @@ class _AdminOrdersPageState extends State<AdminOrdersPage> {
                   fontWeight: FontWeight.w600,
                   color: _C.textPrimary,
                 ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
             ),
             // Date
@@ -963,6 +1014,9 @@ class _AdminOrdersPageState extends State<AdminOrdersPage> {
       child: Text(
         label[0].toUpperCase() + label.substring(1),
         style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: fg),
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        textAlign: TextAlign.center,
       ),
     );
   }

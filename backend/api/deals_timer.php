@@ -27,11 +27,20 @@ if ($method === 'OPTIONS') {
     exit;
 }
 
-// Parse ID from URL: /deals_timer/{id}
-$uri = $_SERVER['REQUEST_URI'] ?? '';
-$parts = explode('/', trim(parse_url($uri, PHP_URL_PATH), '/'));
-$lastPart = end($parts);
-$urlId = is_numeric($lastPart) ? (int)$lastPart : null;
+// Parse ID from $_GET or URL path: /deals_timer/{id}
+$urlId = null;
+if (!empty($_GET['id']) && is_numeric($_GET['id'])) {
+    $urlId = (int)$_GET['id'];
+} else {
+    $uri = $_SERVER['REQUEST_URI'] ?? '';
+    $pathOnly = parse_url($uri, PHP_URL_PATH);
+    $parts = explode('/', trim($pathOnly, '/'));
+    $lastPart = preg_replace('/\.php$/i', '', end($parts));
+    if (is_numeric($lastPart)) {
+        $urlId = (int)$lastPart;
+    }
+}
+
 
 // ── GET ──────────────────────────────────────────────────────────────────────
 if ($method === 'GET') {

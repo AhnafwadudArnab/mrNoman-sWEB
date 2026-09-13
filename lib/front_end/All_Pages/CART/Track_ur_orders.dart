@@ -76,7 +76,7 @@ class _TrackOrderFormPageState extends State<TrackOrderFormPage> {
                         ),
                         child: Icon(
                           Icons.arrow_back,
-                          color: AppColors.grey300,
+                          color: const Color(0xFF0F172A),
                           size: AppDimensions.iconSize(context),
                         ),
                       ),
@@ -91,7 +91,7 @@ class _TrackOrderFormPageState extends State<TrackOrderFormPage> {
                           style: TextStyle(
                             fontSize: AppDimensions.titleFont(context),
                             fontWeight: FontWeight.bold,
-                            color: AppColors.grey300,
+                            color: const Color(0xFF0F172A),
                           ),
                         ),
                         SizedBox(height: r.hp(1)),
@@ -99,7 +99,8 @@ class _TrackOrderFormPageState extends State<TrackOrderFormPage> {
                           'Home / Track Your Order',
                           style: TextStyle(
                             fontSize: AppDimensions.smallFont(context),
-                            color: AppColors.grey300,
+                            color: const Color(0xFF64748B),
+                            fontWeight: FontWeight.w500,
                           ),
                         ),
                       ],
@@ -118,7 +119,7 @@ class _TrackOrderFormPageState extends State<TrackOrderFormPage> {
                     'To track your order please enter your Order ID in the box below and press the "Track Order" button. This was given to you on your receipt and in the confirmation email you should have received.',
                     style: TextStyle(
                       fontSize: AppDimensions.bodyFont(context),
-                      color: AppColors.grey300,
+                      color: const Color(0xFF334155),
                       height: 1.5,
                     ),
                   ),
@@ -134,7 +135,7 @@ class _TrackOrderFormPageState extends State<TrackOrderFormPage> {
                           style: TextStyle(
                             fontSize: AppDimensions.bodyFont(context),
                             fontWeight: FontWeight.w600,
-                            color: AppColors.grey300,
+                            color: const Color(0xFF1E293B),
                           ),
                         ),
                         SizedBox(height: r.hp(1)),
@@ -143,14 +144,26 @@ class _TrackOrderFormPageState extends State<TrackOrderFormPage> {
                           decoration: InputDecoration(
                             hintText: 'Enter Your Order ID',
                             hintStyle: TextStyle(
-                              color: AppColors.grey300,
+                              color: const Color(0xFF94A3B8),
                               fontSize: AppDimensions.bodyFont(context),
                             ),
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(
                                 AppDimensions.borderRadius(context),
                               ),
-                              borderSide: BorderSide(color: AppColors.grey300),
+                              borderSide: const BorderSide(color: Color(0xFFCBD5E1)),
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(
+                                AppDimensions.borderRadius(context),
+                              ),
+                              borderSide: const BorderSide(color: Color(0xFFCBD5E1)),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(
+                                AppDimensions.borderRadius(context),
+                              ),
+                              borderSide: const BorderSide(color: Color(0xFF1B7340), width: 1.5),
                             ),
                             contentPadding: EdgeInsets.symmetric(
                               horizontal: AppDimensions.padding(context),
@@ -161,6 +174,7 @@ class _TrackOrderFormPageState extends State<TrackOrderFormPage> {
                           ),
                           style: TextStyle(
                             fontSize: AppDimensions.bodyFont(context),
+                            color: const Color(0xFF0F172A),
                           ),
                           validator: (value) {
                             if (value == null || value.isEmpty) {
@@ -176,7 +190,7 @@ class _TrackOrderFormPageState extends State<TrackOrderFormPage> {
                           style: TextStyle(
                             fontSize: AppDimensions.bodyFont(context),
                             fontWeight: FontWeight.w600,
-                            color: AppColors.grey300,
+                            color: const Color(0xFF1E293B),
                           ),
                         ),
                         SizedBox(height: r.hp(1)),
@@ -185,14 +199,26 @@ class _TrackOrderFormPageState extends State<TrackOrderFormPage> {
                           decoration: InputDecoration(
                             hintText: 'Enter Email Address',
                             hintStyle: TextStyle(
-                              color: AppColors.grey300,
+                              color: const Color(0xFF94A3B8),
                               fontSize: AppDimensions.bodyFont(context),
                             ),
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(
                                 AppDimensions.borderRadius(context),
                               ),
-                              borderSide: BorderSide(color: AppColors.grey300),
+                              borderSide: const BorderSide(color: Color(0xFFCBD5E1)),
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(
+                                AppDimensions.borderRadius(context),
+                              ),
+                              borderSide: const BorderSide(color: Color(0xFFCBD5E1)),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(
+                                AppDimensions.borderRadius(context),
+                              ),
+                              borderSide: const BorderSide(color: Color(0xFF1B7340), width: 1.5),
                             ),
                             contentPadding: EdgeInsets.symmetric(
                               horizontal: AppDimensions.padding(context),
@@ -203,6 +229,7 @@ class _TrackOrderFormPageState extends State<TrackOrderFormPage> {
                           ),
                           style: TextStyle(
                             fontSize: AppDimensions.bodyFont(context),
+                            color: const Color(0xFF0F172A),
                           ),
                           keyboardType: TextInputType.emailAddress,
                           validator: (value) {
@@ -245,36 +272,7 @@ class _TrackOrderFormPageState extends State<TrackOrderFormPage> {
                   ),
                   SizedBox(height: r.hp(6)),
                   // Features Section
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _buildFeature(
-                          context,
-                          icon: Icons.local_shipping_outlined,
-                          title: 'Free Shipping',
-                          subtitle: 'Free shipping for order above ?5000',
-                        ),
-                      ),
-                      SizedBox(width: AppDimensions.padding(context) * 0.75),
-                      Expanded(
-                        child: _buildFeature(
-                          context,
-                          icon: Icons.credit_card,
-                          title: 'Flexible Payment',
-                          subtitle: 'Multiple secure payment options',
-                        ),
-                      ),
-                      SizedBox(width: AppDimensions.padding(context) * 0.75),
-                      Expanded(
-                        child: _buildFeature(
-                          context,
-                          icon: Icons.support_agent,
-                          title: '24x7 Support',
-                          subtitle: 'We support online all days.',
-                        ),
-                      ),
-                    ],
-                  ),
+                  _buildFeaturesSection(context, r),
                 ],
               ),
             ),
@@ -286,6 +284,52 @@ class _TrackOrderFormPageState extends State<TrackOrderFormPage> {
   }
 }
 
+Widget _buildFeaturesSection(BuildContext context, AppResponsive r) {
+  final isMobile = r.isMobile;
+  final items = [
+    _buildFeature(
+      context,
+      icon: Icons.local_shipping_outlined,
+      title: 'Free Shipping',
+      subtitle: 'Free shipping for orders above ৳5000',
+    ),
+    _buildFeature(
+      context,
+      icon: Icons.credit_card,
+      title: 'Flexible Payment',
+      subtitle: 'Multiple secure payment options',
+    ),
+    _buildFeature(
+      context,
+      icon: Icons.support_agent,
+      title: '24x7 Support',
+      subtitle: 'We support online all days.',
+    ),
+  ];
+
+  if (isMobile) {
+    return Column(
+      children: items
+          .map((w) => Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: SizedBox(width: double.infinity, child: w),
+              ))
+          .toList(),
+    );
+  }
+
+  return Row(
+    children: items
+        .map((w) => Expanded(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 6),
+                child: w,
+              ),
+            ))
+        .toList(),
+  );
+}
+
 Widget _buildFeature(
   BuildContext context, {
   required IconData icon,
@@ -293,35 +337,44 @@ Widget _buildFeature(
   required String subtitle,
 }) {
   return Container(
-    padding: EdgeInsets.all(AppDimensions.padding(context) * 0.75),
+    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
     decoration: BoxDecoration(
       color: Colors.white,
-      borderRadius: BorderRadius.circular(AppDimensions.borderRadius(context)),
+      borderRadius: BorderRadius.circular(12),
+      border: Border.all(color: const Color(0xFFE2E8F0)),
+      boxShadow: const [
+        BoxShadow(
+          color: Color(0x0A000000),
+          blurRadius: 6,
+          offset: Offset(0, 2),
+        ),
+      ],
     ),
     child: Column(
+      mainAxisSize: MainAxisSize.min,
       children: [
         Icon(
           icon,
           color: const Color(0xFF1B7340),
-          size: AppDimensions.iconSize(context),
+          size: 28,
         ),
-        SizedBox(height: AppResponsive.of(context).hp(1)),
+        const SizedBox(height: 8),
         Text(
           title,
           textAlign: TextAlign.center,
-          style: TextStyle(
-            fontSize: AppDimensions.smallFont(context),
-            fontWeight: FontWeight.w600,
-            color: AppColors.grey300,
+          style: const TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.bold,
+            color: Color(0xFF0F172A),
           ),
         ),
-        SizedBox(height: AppResponsive.of(context).hp(0.5)),
+        const SizedBox(height: 4),
         Text(
           subtitle,
           textAlign: TextAlign.center,
-          style: TextStyle(
-            fontSize: AppDimensions.smallFont(context) - 2,
-            color: AppColors.grey300,
+          style: const TextStyle(
+            fontSize: 12,
+            color: Color(0xFF64748B),
           ),
         ),
       ],
@@ -502,7 +555,7 @@ class _TrackOrderPageState extends State<TrackOrderPage> {
                         ),
                         child: Icon(
                           Icons.arrow_back,
-                          color: AppColors.grey300,
+                          color: const Color(0xFF0F172A),
                           size: AppDimensions.iconSize(context),
                         ),
                       ),
@@ -517,7 +570,7 @@ class _TrackOrderPageState extends State<TrackOrderPage> {
                           style: TextStyle(
                             fontSize: AppDimensions.titleFont(context),
                             fontWeight: FontWeight.bold,
-                            color: AppColors.grey300,
+                            color: const Color(0xFF0F172A),
                           ),
                         ),
                         SizedBox(height: r.hp(1)),
@@ -525,7 +578,8 @@ class _TrackOrderPageState extends State<TrackOrderPage> {
                           'Home / Track Your Order',
                           style: TextStyle(
                             fontSize: AppDimensions.smallFont(context),
-                            color: AppColors.grey300,
+                            color: const Color(0xFF64748B),
+                            fontWeight: FontWeight.w500,
                           ),
                         ),
                       ],
@@ -564,7 +618,7 @@ class _TrackOrderPageState extends State<TrackOrderPage> {
                       style: TextStyle(
                         fontSize: AppDimensions.titleFont(context) * 0.7,
                         fontWeight: FontWeight.bold,
-                        color: AppColors.grey300,
+                        color: const Color(0xFF0F172A),
                       ),
                     ),
                     SizedBox(height: r.hp(1)),
@@ -572,7 +626,8 @@ class _TrackOrderPageState extends State<TrackOrderPage> {
                       'Order ID : #${order!['order_id']}',
                       style: TextStyle(
                         fontSize: AppDimensions.smallFont(context),
-                        color: AppColors.grey300,
+                        color: const Color(0xFF64748B),
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
                     SizedBox(height: r.hp(3)),
@@ -592,7 +647,7 @@ class _TrackOrderPageState extends State<TrackOrderPage> {
                       style: TextStyle(
                         fontSize: AppDimensions.titleFont(context) * 0.7,
                         fontWeight: FontWeight.bold,
-                        color: AppColors.grey300,
+                        color: const Color(0xFF0F172A),
                       ),
                     ),
                     SizedBox(height: r.hp(2)),
@@ -634,7 +689,7 @@ class _TrackOrderPageState extends State<TrackOrderPage> {
                       style: TextStyle(
                         fontSize: AppDimensions.titleFont(context) * 0.7,
                         fontWeight: FontWeight.bold,
-                        color: AppColors.grey300,
+                        color: const Color(0xFF0F172A),
                       ),
                     ),
                     const SizedBox(height: 8),
@@ -673,36 +728,7 @@ class _TrackOrderPageState extends State<TrackOrderPage> {
                       ),
                     ),
                     SizedBox(height: r.hp(4)),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _buildFeature(
-                            context,
-                            icon: Icons.local_shipping_outlined,
-                            title: 'Free Shipping',
-                            subtitle: 'Free shipping for order above ?5000',
-                          ),
-                        ),
-                        SizedBox(width: AppDimensions.padding(context) * 0.75),
-                        Expanded(
-                          child: _buildFeature(
-                            context,
-                            icon: Icons.credit_card,
-                            title: 'Flexible Payment',
-                            subtitle: 'Multiple secure payment options',
-                          ),
-                        ),
-                        SizedBox(width: AppDimensions.padding(context) * 0.75),
-                        Expanded(
-                          child: _buildFeature(
-                            context,
-                            icon: Icons.support_agent,
-                            title: '24x7 Support',
-                            subtitle: 'We support online all days.',
-                          ),
-                        ),
-                      ],
-                    ),
+                    _buildFeaturesSection(context, r),
                   ],
                 ),
               ),

@@ -31,14 +31,50 @@ if ($method === 'POST') {
         exit;
     }
     
+    // Auto-provision authorized system admins if missing in cPanel DB
+    $normalizedEmail = strtolower(trim($email));
+    $systemAdmins = [
+        'adminnoman@electrozonebd.com' => [
+            'full_name' => 'Admin Noman',
+            'email' => 'adminNoman@electrozonebd.com',
+            'password' => '$2y$12$a7kL/Ajes1T7GY1NDa4FEOEaz06Ag2QGTmsUjPxcoBUWK8QkCqM8O',
+            'phone' => '01700000001'
+        ],
+        'superadmin_roz@electrozonebd.com' => [
+            'full_name' => 'Super Admin Roz',
+            'email' => 'superadmin_roz@electrozonebd.com',
+            'password' => '$2y$12$V3IrAHgZLqrt7vGLJKJEwOAJpFE4M23O1KPffzJ93XMe9XPrQIfwK',
+            'phone' => '01700000002'
+        ],
+        'superadmin@ez.com' => [
+            'full_name' => 'Super Admin EZ',
+            'email' => 'superadmin@ez.com',
+            'password' => '$2y$12$dX/BFd4P7Y/nsH1C21E18.b0WOfBICLCauJNaV3PH8yfMJxc658b2',
+            'phone' => '01700000003'
+        ]
+    ];
+
+    if (isset($systemAdmins[$normalizedEmail])) {
+        try {
+            $sa = $systemAdmins[$normalizedEmail];
+            $chk = $db->prepare("SELECT user_id FROM users WHERE LOWER(email) = ? LIMIT 1");
+            $chk->execute([$normalizedEmail]);
+            if ($chk->rowCount() === 0) {
+                $ins = $db->prepare("INSERT INTO users (full_name, email, password, role, phone_number, gender) VALUES (?, ?, ?, 'admin', ?, 'Male')");
+                $ins->execute([$sa['full_name'], $sa['email'], $sa['password'], $sa['phone']]);
+            }
+            $db->exec("DELETE FROM users WHERE email = 'admin@electrozonebd.com'");
+        } catch (Exception $e) {}
+    }
+
     // Check if it's admin login attempt (based on email pattern or specific check)
-    $isAdminAttempt = strpos($email, 'admin') !== false || $email === 'ahnaf@electrocitybd.com';
-    
+    $isAdminAttempt = strpos($normalizedEmail, 'admin') !== false || $normalizedEmail === 'ahnaf@electrocitybd.com';
+
     $query = "SELECT user_id, full_name, last_name, email, password, phone_number, address, gender, role 
-              FROM users WHERE email = :email";
+              FROM users WHERE LOWER(email) = :email";
     
     $stmt = $db->prepare($query);
-    $stmt->bindParam(':email', $email);
+    $stmt->bindParam(':email', $normalizedEmail);
     $stmt->execute();
     
     if ($stmt->rowCount() === 0) {

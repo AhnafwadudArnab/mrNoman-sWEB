@@ -69,7 +69,7 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
     filtered = _rankedSearchResults();
 
     const Color brandOrange = Color(0xFFF59E0B);
-    final isMobile = MediaQuery.of(context).size.width < 768;
+    final isMobile = MediaQuery.of(context).size.width < 950;
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -87,9 +87,9 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
           Container(
             width: double.infinity,
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            decoration: BoxDecoration(
-              color: AppColors.grey300,
-              border: Border(bottom: BorderSide(color: AppColors.grey300)),
+            decoration: const BoxDecoration(
+              color: Color(0xFFF8FAFC),
+              border: Border(bottom: BorderSide(color: Color(0xFFE2E8F0))),
             ),
             child: Row(
               children: [
@@ -99,7 +99,7 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
                     style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
-                      color: AppColors.grey300,
+                      color: Color(0xFF0F172A),
                     ),
                   ),
                 ),
@@ -132,7 +132,7 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // LEFT SIDEBAR: FILTERS ? desktop only
+                      // LEFT SIDEBAR: FILTERS - desktop only
                       if (!isMobile) _buildFilterSidebar(brandOrange),
 
                       // RIGHT SIDE: PRODUCT GRID
@@ -147,14 +147,15 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
                                       Icon(
                                         Icons.search_off,
                                         size: 80,
-                                        color: AppColors.grey300,
+                                        color: Color(0xFF94A3B8),
                                       ),
                                       SizedBox(height: 16),
                                       Text(
                                         'No products found',
                                         style: TextStyle(
                                           fontSize: 18,
-                                          color: AppColors.grey300,
+                                          fontWeight: FontWeight.w600,
+                                          color: Color(0xFF475569),
                                         ),
                                       ),
                                     ],

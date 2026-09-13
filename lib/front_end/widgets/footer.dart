@@ -42,73 +42,136 @@ class FooterSection extends StatelessWidget {
         ),
         Container(
           width: double.infinity,
-          padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 2),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           color: AppColors.background,
-          child: Stack(
-            alignment: Alignment.center,
-            children: [
-              Center(
-                child: Text(
-                  '© 2026 ElectroZoneBD. All Rights Reserved.',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: AppDimensions.smallFont(context),
-                    fontWeight: FontWeight.w600,
-                    color: const Color.fromARGB(255, 7, 3, 3),
-                  ),
-                ),
-              ),
-              if (scrollController != null)
-                Positioned(
-                  right: 0,
-                  child: GestureDetector(
-                    onTap: () {
-                      scrollController!.animateTo(
-                        0,
-                        duration: const Duration(milliseconds: 800),
-                        curve: Curves.easeInOut,
-                      );
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 8,
+          child: isMobile
+              ? Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (scrollController != null) ...[
+                      GestureDetector(
+                        onTap: () {
+                          scrollController!.animateTo(
+                            0,
+                            duration: const Duration(milliseconds: 800),
+                            curve: Curves.easeInOut,
+                          );
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 8,
+                          ),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFFAB12F),
+                            borderRadius: BorderRadius.circular(20),
+                            boxShadow: const [
+                              BoxShadow(
+                                color: Color(0x1A000000),
+                                blurRadius: 8,
+                                offset: Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                'Back to Top',
+                                style: TextStyle(
+                                  fontSize: AppDimensions.smallFont(context),
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              const Icon(
+                                Icons.arrow_upward,
+                                color: Colors.white,
+                                size: 16,
+                              ),
+                            ],
+                          ),
+                        ),
                       ),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFFAB12F),
-                        borderRadius: BorderRadius.circular(20),
-                        boxShadow: [
-                          BoxShadow(
-                            color: const Color(0x1A000000),
-                            blurRadius: 8,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            'Back to Top',
-                            style: TextStyle(
-                              fontSize: AppDimensions.smallFont(context),
-                              fontWeight: FontWeight.w600,
-                              color: Colors.white,
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          const Icon(
-                            Icons.arrow_upward,
-                            color: Colors.white,
-                            size: 16,
-                          ),
-                        ],
+                      const SizedBox(height: 8),
+                    ],
+                    Text(
+                      '© 2026 ElectroZoneBD. All Rights Reserved.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: AppDimensions.smallFont(context),
+                        fontWeight: FontWeight.w600,
+                        color: const Color.fromARGB(255, 7, 3, 3),
                       ),
                     ),
-                  ),
+                  ],
+                )
+              : Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    Center(
+                      child: Text(
+                        '© 2026 ElectroZoneBD. All Rights Reserved.',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: AppDimensions.smallFont(context),
+                          fontWeight: FontWeight.w600,
+                          color: const Color.fromARGB(255, 7, 3, 3),
+                        ),
+                      ),
+                    ),
+                    if (scrollController != null)
+                      Positioned(
+                        right: 0,
+                        child: GestureDetector(
+                          onTap: () {
+                            scrollController!.animateTo(
+                              0,
+                              duration: const Duration(milliseconds: 800),
+                              curve: Curves.easeInOut,
+                            );
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 8,
+                            ),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFFAB12F),
+                              borderRadius: BorderRadius.circular(20),
+                              boxShadow: const [
+                                BoxShadow(
+                                  color: Color(0x1A000000),
+                                  blurRadius: 8,
+                                  offset: Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  'Back to Top',
+                                  style: TextStyle(
+                                    fontSize: AppDimensions.smallFont(context),
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                const Icon(
+                                  Icons.arrow_upward,
+                                  color: Colors.white,
+                                  size: 16,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
                 ),
-            ],
-          ),
         ),
       ],
     );

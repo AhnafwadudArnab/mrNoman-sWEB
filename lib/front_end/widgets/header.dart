@@ -562,18 +562,21 @@ class _HeaderState extends State<Header> {
                   ),
                 ),
 
-                // Spacer only on larger screens to push icons to the right
-                if (!isSmall) const Spacer(),
-
                 // Search bar - Hidden on mobile/small tablets
                 if (!isSmall)
-                  Container(
-                    width: width * 0.4, // Responsive width
-                    constraints: const BoxConstraints(maxWidth: 500),
-                    child: _buildSearchField(isSmall: false),
-                  ),
-
-                if (!isSmall) const Spacer(),
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Center(
+                        child: ConstrainedBox(
+                          constraints: const BoxConstraints(maxWidth: 520),
+                          child: _buildSearchField(isSmall: false),
+                        ),
+                      ),
+                    ),
+                  )
+                else
+                  const Spacer(),
 
                 // Right side items (Icons Row)
                 Row(
@@ -597,7 +600,7 @@ class _HeaderState extends State<Header> {
                       icon: Icons.favorite_outline,
                       label: 'Wishlist',
                       count: wishlistCount,
-                      showLabel: width > 950, // Increased threshold
+                      showLabel: width >= 1150,
                       onTap: () {
                         Navigator.of(context).push(
                           MaterialPageRoute(
@@ -611,14 +614,14 @@ class _HeaderState extends State<Header> {
                       icon: Icons.shopping_bag_outlined,
                       label: 'Cart',
                       count: cartCount,
-                      showLabel: width > 850, // Increased threshold
+                      showLabel: width >= 1150,
                       onTap: () => _openCart(context),
                     ),
                     SizedBox(width: isMobile ? 2 : (isSmall ? 4 : 12)),
                     _buildHeaderAction(
                       icon: Icons.account_circle_outlined,
                       label: _isLoggedIn ? 'Account' : 'Login',
-                      showLabel: width > 750, // Increased threshold
+                      showLabel: width >= 1150,
                       onTap: () {
                         if (_isLoggedIn) {
                           _navigateToProfile();
@@ -638,7 +641,7 @@ class _HeaderState extends State<Header> {
                       _buildHeaderAction(
                         icon: Icons.admin_panel_settings_outlined,
                         label: 'Admin',
-                        showLabel: width > 750,
+                        showLabel: width >= 1150,
                         onTap: () {
                           Navigator.of(context)
                               .push(
@@ -652,7 +655,7 @@ class _HeaderState extends State<Header> {
                     ],
                   ],
                 ),
-                if (!isSmall) const SizedBox(width: 20),
+                if (!isSmall) const SizedBox(width: 12),
               ],
             ),
             if (_isSearchExpanded && isSmall)

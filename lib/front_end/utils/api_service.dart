@@ -9,22 +9,30 @@ import 'constants.dart';
 
 String _apiBase() => ApiService.overrideBaseUrl ?? AppConfig.apiBaseUrl;
 
-/// Convert endpoint to .php file (e.g., /products ? /products.php)
+/// Convert endpoint to .php file (e.g., /products -> /products.php, /deals_timer/3 -> /deals_timer.php?id=3)
 /// Used for PHP dev server compatibility
 String _toPHP(String endpoint) {
   // Split path and query
   final qIdx = endpoint.indexOf('?');
-  if (qIdx == -1) {
-    // No query, simple case
-    if (endpoint.endsWith('.php')) return endpoint;
-    return endpoint.endsWith('/') ? '${endpoint}index.php' : '$endpoint.php';
+  String path = qIdx == -1 ? endpoint : endpoint.substring(0, qIdx);
+  final query = qIdx == -1 ? '' : endpoint.substring(qIdx);
+
+  // Check if path ends with a numeric ID segment like /deals_timer/3 or /payment_methods/2
+  final idMatch = RegExp(r'^(.*)/(\d+)(\.php)?$').firstMatch(path);
+  if (idMatch != null) {
+    var basePath = idMatch.group(1)!;
+    final id = idMatch.group(2)!;
+    if (!basePath.endsWith('.php')) {
+      basePath = basePath.endsWith('/') ? '${basePath}index.php' : '$basePath.php';
+    }
+    return query.isEmpty ? '$basePath?id=$id' : '$basePath$query&id=$id';
   }
-  // Has query string
-  final path = endpoint.substring(0, qIdx);
-  final query = endpoint.substring(qIdx);
+
   if (path.endsWith('.php')) return endpoint;
-  return '${path.endsWith('/') ? '${path}index.php' : '$path.php'}$query';
+  final phpPath = path.endsWith('/') ? '${path}index.php' : '$path.php';
+  return '$phpPath$query';
 }
+
 
 class ApiService {
   static const String _tokenKey = 'electrocity_jwt_token';
