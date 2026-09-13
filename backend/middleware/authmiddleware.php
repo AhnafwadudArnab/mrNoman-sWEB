@@ -48,12 +48,22 @@ class AuthMiddleware {
 
     private static function _extractToken(): ?string {
         $headers = function_exists('getallheaders') ? getallheaders() : [];
-        $auth = $headers['Authorization'] ?? $headers['authorization'] ?? '';
+        $auth = $headers['Authorization'] ?? $headers['authorization'] ?? $headers['X-Authorization'] ?? $headers['x-authorization'] ?? '';
         if (!$auth) {
-            $auth = $_SERVER['HTTP_AUTHORIZATION'] ?? $_SERVER['REDIRECT_HTTP_AUTHORIZATION'] ?? '';
+            $auth = $_SERVER['HTTP_AUTHORIZATION'] ?? $_SERVER['REDIRECT_HTTP_AUTHORIZATION'] ?? $_SERVER['HTTP_X_AUTHORIZATION'] ?? '';
+        }
+        if (!$auth && function_exists('apache_request_headers')) {
+            $apache_headers = apache_request_headers();
+            $auth = $apache_headers['Authorization'] ?? $apache_headers['authorization'] ?? $apache_headers['X-Authorization'] ?? $apache_headers['x-authorization'] ?? '';
+        }
+        if (!$auth) {
+            $auth = $_SERVER['Authorization'] ?? $_GET['token'] ?? '';
         }
         if ($auth && stripos($auth, 'Bearer ') === 0) {
             return trim(substr($auth, 7));
+        }
+        if ($auth && !str_contains($auth, ' ')) {
+            return trim($auth);
         }
         return null;
     }

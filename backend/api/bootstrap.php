@@ -55,9 +55,19 @@ function loadEnv(string $file): void {
     }
 }
 
-loadEnv(__DIR__ . '/../.env');
+if (is_file(__DIR__ . '/../.env')) {
+    loadEnv(__DIR__ . '/../.env');
+} elseif (is_file(__DIR__ . '/.env')) {
+    loadEnv(__DIR__ . '/.env');
+}
 
-$CONFIG = require __DIR__ . '/../config.php';
+if (is_file(__DIR__ . '/../config.php')) {
+    $CONFIG = require __DIR__ . '/../config.php';
+} elseif (is_file(__DIR__ . '/config.php')) {
+    $CONFIG = require __DIR__ . '/config.php';
+} else {
+    $CONFIG = [];
+}
 
 function db(): PDO {
     static $pdo = null;
@@ -132,12 +142,15 @@ function getJsonBody(): array {
 
 function bearerToken(): ?string {
     $headers = function_exists('getallheaders') ? getallheaders() : [];
-    $auth = $headers['Authorization'] ?? $headers['authorization'] ?? '';
+    $auth = $headers['Authorization'] ?? $headers['authorization'] ?? $headers['X-Authorization'] ?? $headers['x-authorization'] ?? '';
     if (!$auth) {
-        $auth = $_SERVER['HTTP_AUTHORIZATION'] ?? $_SERVER['REDIRECT_HTTP_AUTHORIZATION'] ?? '';
+        $auth = $_SERVER['HTTP_AUTHORIZATION'] ?? $_SERVER['REDIRECT_HTTP_AUTHORIZATION'] ?? $_SERVER['HTTP_X_AUTHORIZATION'] ?? '';
     }
     if ($auth && stripos($auth, 'Bearer ') === 0) {
         return trim(substr($auth, 7));
+    }
+    if ($auth && !str_contains($auth, ' ')) {
+        return trim($auth);
     }
     return null;
 }

@@ -57,6 +57,7 @@ class _DealsOfTheDayState extends State<DealsOfTheDay> {
     } else if (_loadTriggered && refreshVersion != _lastRefreshVersion) {
       _lastRefreshVersion = refreshVersion;
       _loadDealsFromDb();
+      _loadTimerFromApi();
     }
   }
 
@@ -159,10 +160,14 @@ class _DealsOfTheDayState extends State<DealsOfTheDay> {
             remaining = _durationFromFields(activeTimer);
           }
 
+          // If marked active by admin, ensure positive countdown time
+          if (isActive && remaining.inSeconds <= 0) {
+            remaining = const Duration(days: 3, hours: 11, minutes: 15);
+          }
+
           setState(() {
             _remaining = remaining;
-            // Only active if timer is marked active AND has remaining time
-            _isTimerActive = isActive && remaining.inSeconds > 0;
+            _isTimerActive = isActive;
           });
 
           if (_isTimerActive) {
@@ -335,9 +340,10 @@ class _DealsOfTheDayState extends State<DealsOfTheDay> {
     final r = AppResponsive.of(context);
     final isMobileView = r.isMobile || r.isSmallMobile;
 
-    // Auto-hide section if timer expired and no deals
-    final timerExpired = _remaining.inSeconds <= 0;
-    final shouldHide = timerExpired && !hasOffers;
+    // If admin disabled Deals of the Day, hide the section completely
+    if (!_isTimerActive) {
+      return const SizedBox.shrink();
+    }
 
     if (!hasOffers && _isLoadingDeals) {
       return Padding(
@@ -346,16 +352,7 @@ class _DealsOfTheDayState extends State<DealsOfTheDay> {
       );
     }
 
-    // Hide section completely if timer expired and no active deals
-    if (shouldHide) {
-      return const SizedBox.shrink();
-    }
-
-    // Also hide if timer not active and no deals
-    if (!_isTimerActive && !hasOffers) {
-      return const SizedBox.shrink();
-    }
-
+    // Hide if no deals are available
     if (!hasOffers) {
       return const SizedBox.shrink();
     }

@@ -2,6 +2,7 @@ import 'package:electrocitybd1/front_end/pages/home_page.dart';
 import 'package:electrocitybd1/front_end/All_Pages/Registrations/login.dart';
 import 'package:electrocitybd1/front_end/Admin_Panel/A_customers.dart';
 import 'package:electrocitybd1/front_end/Admin_Panel/A_payments.dart';
+import 'package:electrocitybd1/front_end/Admin_Panel/Admin_sidebar.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
@@ -224,7 +225,19 @@ class _MyAppState extends State<MyApp> {
           : (kIsWeb &&
                   (Uri.base.fragment.contains('admin') ||
                       Uri.base.queryParameters['page'] == 'admin'))
-              ? const AdminLayoutPage()
+              ? AdminLayoutPage(
+                  initialItem: () {
+                    final tab = (Uri.base.queryParameters['tab'] ?? '').toLowerCase();
+                    if (tab == 'deals' || tab == 'deal') return AdminSidebarItem.deals;
+                    if (tab == 'brands' || tab == 'brand') return AdminSidebarItem.brands;
+                    if (tab == 'banners' || tab == 'banner') return AdminSidebarItem.banners;
+                    if (tab == 'products' || tab == 'product') return AdminSidebarItem.productList;
+                    if (tab == 'orders' || tab == 'order') return AdminSidebarItem.orders;
+                    if (tab == 'carts' || tab == 'cart') return AdminSidebarItem.carts;
+                    if (tab == 'settings') return AdminSidebarItem.settings;
+                    return AdminSidebarItem.dashboard;
+                  }(),
+                )
               : const HomePage(),
     );
   }

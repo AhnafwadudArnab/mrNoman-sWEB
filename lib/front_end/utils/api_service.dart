@@ -172,7 +172,10 @@ class ApiService {
     final headers = <String, String>{'Content-Type': 'application/json'};
     if (withAuth) {
       final token = await getToken();
-      if (token != null) headers['Authorization'] = 'Bearer $token';
+      if (token != null) {
+        headers['Authorization'] = 'Bearer $token';
+        headers['X-Authorization'] = 'Bearer $token';
+      }
     }
     return headers;
   }

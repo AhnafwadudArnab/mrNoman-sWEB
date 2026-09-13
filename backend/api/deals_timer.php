@@ -13,10 +13,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(200);
     exit;
 }
-header('Content-Type: application/json');
+header('Cache-Control: no-cache, no-store, must-revalidate');
+header('Pragma: no-cache');
+header('Expires: 0');
 require_once __DIR__ . '/bootstrap.php';
-require_once __DIR__ . '/../config/cors.php';
-require_once __DIR__ . '/../middleware/authmiddleware.php';
+if (file_exists(__DIR__ . '/../config/cors.php')) {
+    require_once __DIR__ . '/../config/cors.php';
+} elseif (file_exists(__DIR__ . '/config/cors.php')) {
+    require_once __DIR__ . '/config/cors.php';
+}
+if (file_exists(__DIR__ . '/../middleware/authmiddleware.php')) {
+    require_once __DIR__ . '/../middleware/authmiddleware.php';
+} elseif (file_exists(__DIR__ . '/middleware/authmiddleware.php')) {
+    require_once __DIR__ . '/middleware/authmiddleware.php';
+}
 
 $db = db();
 $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
@@ -45,33 +55,34 @@ if (!empty($_GET['id']) && is_numeric($_GET['id'])) {
 // ── GET ──────────────────────────────────────────────────────────────────────
 if ($method === 'GET') {
     try {
-        // Check if table has multi-timer columns (title, end_time)
-        $cols = $db->query("SHOW COLUMNS FROM deals_timer")->fetchAll(PDO::FETCH_COLUMN);
-        $hasTitle = in_array('title', $cols);
+        _ensureMultiTimerSchema($db);
+        $rows = $db->query('SELECT * FROM deals_timer ORDER BY timer_id ASC')->fetchAll(PDO::FETCH_ASSOC);
 
-        if ($hasTitle) {
+        // If no timer exists at all, seed a default active one
+        if (empty($rows)) {
+            $db->exec("INSERT INTO deals_timer (title, description, end_time, days, hours, minutes, seconds, is_active)
+                       VALUES ('Deals of the Day', 'Special daily offers', DATE_ADD(NOW(), INTERVAL 7 DAY), 7, 0, 0, 0, 1)");
             $rows = $db->query('SELECT * FROM deals_timer ORDER BY timer_id ASC')->fetchAll(PDO::FETCH_ASSOC);
-            echo json_encode(['success' => true, 'timers' => $rows]);
-        } else {
-            // Legacy single-timer mode
-            $stmt = $db->prepare('SELECT * FROM deals_timer WHERE timer_id = 1');
-            $stmt->execute();
-            $timer = $stmt->fetch(PDO::FETCH_ASSOC);
-            if (!is_array($timer)) {
-                $timer = [
-                    'timer_id' => 1,
-                    'title' => 'Deals Timer',
-                    'description' => '',
-                    'end_time' => null,
-                    'days' => 3,
-                    'hours' => 11,
-                    'minutes' => 15,
-                    'seconds' => 0,
-                    'is_active' => 1,
-                ];
-            }
-            echo json_encode(['success' => true, 'timer' => $timer, 'timers' => [$timer]]);
         }
+
+        // Identify the active timer (or first timer)
+        $activeTimer = null;
+        foreach ($rows as $r) {
+            if (!empty($r['is_active'])) {
+                $activeTimer = $r;
+                break;
+            }
+        }
+        if (!$activeTimer && !empty($rows)) {
+            $activeTimer = $rows[0];
+        }
+
+        echo json_encode([
+            'success' => true,
+            'is_active' => $activeTimer ? (int)$activeTimer['is_active'] : 1,
+            'timer' => $activeTimer,
+            'timers' => $rows,
+        ]);
     } catch (Exception $e) {
         http_response_code(500);
         echo json_encode(['success' => false, 'error' => $e->getMessage()]);
@@ -128,7 +139,16 @@ if ($method === 'PUT') {
     try { AuthMiddleware::authenticateAdmin(); }
     catch (Exception $e) { http_response_code(401); echo json_encode(['error' => 'Unauthorized']); exit; }
 
-    if (!$urlId) { http_response_code(400); echo json_encode(['error' => 'Timer ID required']); exit; }
+    if (!$urlId) {
+        $first = $db->query('SELECT timer_id FROM deals_timer ORDER BY is_active DESC, timer_id ASC LIMIT 1')->fetch(PDO::FETCH_ASSOC);
+        if ($first) {
+            $urlId = (int)$first['timer_id'];
+        } else {
+            http_response_code(400);
+            echo json_encode(['error' => 'No timer found to update']);
+            exit;
+        }
+    }
 
     $data = json_decode(file_get_contents('php://input'), true);
     if (!is_array($data)) { http_response_code(400); echo json_encode(['error' => 'Invalid data']); exit; }

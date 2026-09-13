@@ -41,22 +41,21 @@ class _AdminDealsPageState extends State<AdminDealsPage>
   List<Map<String, dynamic>> _timers = [];
   bool _loadingTimers = true;
   String? _timerError;
-  Timer? _tick;
+
+  bool get _isDealsActive {
+    return _timers.any((t) => t['is_active'] == 1 || t['is_active'] == true || t['is_active'] == '1');
+  }
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
     _loadAll();
-    _tick = Timer.periodic(const Duration(seconds: 1), (_) {
-      if (mounted) setState(() {});
-    });
   }
 
   @override
   void dispose() {
     _tabController.dispose();
-    _tick?.cancel();
     _productIdController.dispose();
     _dealPriceController.dispose();
     _startDateController.dispose();
@@ -268,13 +267,72 @@ class _AdminDealsPageState extends State<AdminDealsPage>
     }
   }
 
+  Future<void> _toggleMasterDeals(bool active) async {
+    // Optimistically update all timers in memory
+    setState(() {
+      for (final t in _timers) {
+        t['is_active'] = active ? 1 : 0;
+      }
+    });
+
+    try {
+      await ApiService.put('/deals_timer', {'is_active': active});
+      ApiService.invalidateCache('/deals_timer');
+      ApiService.invalidateCache('/deals');
+      if (mounted) {
+        context.read<ProductRefreshNotifier>().refresh();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            backgroundColor: active ? Colors.green : Colors.grey.shade800,
+            content: Text(
+              active
+                  ? 'Deals of the Day enabled on storefront'
+                  : 'Deals of the Day disabled on storefront',
+            ),
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      }
+    } catch (e) {
+      // Revert on error
+      setState(() {
+        for (final t in _timers) {
+          t['is_active'] = !active ? 1 : 0;
+        }
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to update deals status: $e'), backgroundColor: Colors.red),
+        );
+      }
+    }
+  }
+
   Future<void> _toggleTimerActive(Map<String, dynamic> timer, bool active) async {
     final id = _getTimerId(timer);
+    // Optimistically update local state immediately
+    setState(() {
+      timer['is_active'] = active ? 1 : 0;
+    });
+
     try {
       await ApiService.put('/deals_timer/$id', {'is_active': active});
       ApiService.invalidateCache('/deals_timer');
-      _loadTimers();
+      if (mounted) {
+        context.read<ProductRefreshNotifier>().refresh();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            backgroundColor: active ? Colors.green : Colors.grey.shade800,
+            content: Text(active ? 'Timer activated' : 'Timer paused'),
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      }
     } catch (e) {
+      // Revert on error
+      setState(() {
+        timer['is_active'] = !active ? 1 : 0;
+      });
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Failed: $e'), backgroundColor: Colors.red),
@@ -407,6 +465,80 @@ class _AdminDealsPageState extends State<AdminDealsPage>
               ],
             ),
           ],
+        ),
+
+        // Master Deals of the Day Visibility Switch
+        Container(
+          margin: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          decoration: BoxDecoration(
+            color: _isDealsActive ? Colors.green.shade50 : AdminTheme.surface,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: _isDealsActive ? Colors.green.shade300 : AdminTheme.border,
+              width: 1.5,
+            ),
+          ),
+          child: Row(
+            children: [
+              Icon(
+                _isDealsActive ? Icons.check_circle : Icons.pause_circle_outline,
+                color: _isDealsActive ? Colors.green.shade700 : AdminTheme.textMuted,
+                size: 24,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        const Text(
+                          'Deals of the Day Section:',
+                          style: TextStyle(
+                            color: AdminTheme.textPrimary,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: _isDealsActive ? Colors.green.shade700 : Colors.grey.shade600,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Text(
+                            _isDealsActive ? 'ON' : 'OFF',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      _isDealsActive
+                          ? 'Section is active and visible on the storefront homepage'
+                          : 'Section is hidden from the storefront homepage',
+                      style: TextStyle(
+                        color: _isDealsActive ? Colors.green.shade800 : AdminTheme.textSecondary,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Switch(
+                value: _isDealsActive,
+                activeColor: Colors.green,
+                onChanged: (v) => _toggleMasterDeals(v),
+              ),
+            ],
+          ),
         ),
 
         // Tabs Bar
@@ -750,7 +882,12 @@ class _AdminDealsPageState extends State<AdminDealsPage>
                               'Choose product...',
                               style: TextStyle(color: AdminTheme.textMuted, fontSize: 13),
                             ),
-                            value: int.tryParse(_productIdController.text.trim()),
+                            value: () {
+                              final currentId = int.tryParse(_productIdController.text.trim());
+                              if (currentId == null) return null;
+                              final exists = _products.any((p) => (int.tryParse(p['product_id']?.toString() ?? p['id']?.toString() ?? '') ?? 0) == currentId);
+                              return exists ? currentId : null;
+                            }(),
                             items: _products.map((p) {
                               final pid = int.tryParse(p['product_id']?.toString() ?? p['id']?.toString() ?? '') ?? 0;
                               final pname = (p['product_name'] ?? 'Product #$pid').toString();
@@ -1200,30 +1337,11 @@ class _AdminDealsPageState extends State<AdminDealsPage>
                       ],
                       const SizedBox(height: 16),
 
-                      // Countdown clock display
-                      if (remaining != null) ...[
-                        Row(
-                          children: [
-                            _buildCountBox('DAYS', '${remaining.inDays}'),
-                            const SizedBox(width: 8),
-                            _buildCountBox('HOURS', '${remaining.inHours % 24}'.padLeft(2, '0')),
-                            const SizedBox(width: 8),
-                            _buildCountBox('MINS', '${remaining.inMinutes % 60}'.padLeft(2, '0')),
-                            const SizedBox(width: 8),
-                            _buildCountBox('SECS', '${remaining.inSeconds % 60}'.padLeft(2, '0')),
-                          ],
-                        ),
-                        const SizedBox(height: 12),
-                        Text(
-                          'Ends at: ${_formatDate(rawEnd)}',
-                          style: const TextStyle(color: AdminTheme.textMuted, fontSize: 12),
-                        ),
-                      ] else ...[
-                        const Text(
-                          'No end date set for this timer',
-                          style: TextStyle(color: AdminTheme.textMuted, fontSize: 13),
-                        ),
-                      ],
+                      // Isolated Countdown clock display
+                      _TimerClockDisplay(
+                        rawEnd: rawEnd,
+                        formattedEnd: _formatDate(rawEnd),
+                      ),
                       const SizedBox(height: 12),
                       const Divider(),
                       Row(
@@ -1256,36 +1374,6 @@ class _AdminDealsPageState extends State<AdminDealsPage>
     );
   }
 
-  Widget _buildCountBox(String label, String val) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-      decoration: BoxDecoration(
-        color: const Color(0xFFEFF6FF),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: const Color(0xFFBFDBFE)),
-      ),
-      child: Column(
-        children: [
-          Text(
-            val,
-            style: const TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFF1D4ED8),
-            ),
-          ),
-          Text(
-            label,
-            style: const TextStyle(
-              fontSize: 10,
-              fontWeight: FontWeight.w600,
-              color: Color(0xFF3B82F6),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 
   void _showCreateTimerDialog() {
     final titleC = TextEditingController(text: 'Special Deals');
@@ -1532,3 +1620,126 @@ class _AdminDealsPageState extends State<AdminDealsPage>
     border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
   );
 }
+
+class _TimerClockDisplay extends StatefulWidget {
+  final String rawEnd;
+  final String formattedEnd;
+
+  const _TimerClockDisplay({
+    super.key,
+    required this.rawEnd,
+    required this.formattedEnd,
+  });
+
+  @override
+  State<_TimerClockDisplay> createState() => _TimerClockDisplayState();
+}
+
+class _TimerClockDisplayState extends State<_TimerClockDisplay> {
+  Timer? _ticker;
+  Duration? _remaining;
+
+  @override
+  void initState() {
+    super.initState();
+    _calc();
+    _ticker = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (mounted) {
+        setState(_calc);
+      }
+    });
+  }
+
+  void _calc() {
+    if (widget.rawEnd.isEmpty) {
+      _remaining = null;
+      return;
+    }
+    final end = DateTime.tryParse(widget.rawEnd);
+    if (end == null) {
+      _remaining = null;
+      return;
+    }
+    final diff = end.difference(DateTime.now());
+    _remaining = diff.isNegative ? Duration.zero : diff;
+  }
+
+  @override
+  void didUpdateWidget(covariant _TimerClockDisplay oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.rawEnd != widget.rawEnd) {
+      _calc();
+    }
+  }
+
+  @override
+  void dispose() {
+    _ticker?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final remaining = _remaining;
+    if (remaining == null) {
+      return const Text(
+        'No end date set for this timer',
+        style: TextStyle(color: AdminTheme.textMuted, fontSize: 13),
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            _buildCountBox('DAYS', '${remaining.inDays}'),
+            const SizedBox(width: 8),
+            _buildCountBox('HOURS', '${remaining.inHours % 24}'.padLeft(2, '0')),
+            const SizedBox(width: 8),
+            _buildCountBox('MINS', '${remaining.inMinutes % 60}'.padLeft(2, '0')),
+            const SizedBox(width: 8),
+            _buildCountBox('SECS', '${remaining.inSeconds % 60}'.padLeft(2, '0')),
+          ],
+        ),
+        const SizedBox(height: 12),
+        Text(
+          'Ends at: ${widget.formattedEnd}',
+          style: const TextStyle(color: AdminTheme.textMuted, fontSize: 12),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildCountBox(String label, String val) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+      decoration: BoxDecoration(
+        color: const Color(0xFFEFF6FF),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: const Color(0xFFBFDBFE)),
+      ),
+      child: Column(
+        children: [
+          Text(
+            val,
+            style: const TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF1D4ED8),
+            ),
+          ),
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.w600,
+              color: Color(0xFF3B82F6),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+

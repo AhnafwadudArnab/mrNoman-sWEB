@@ -13,10 +13,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(200);
     exit;
 }
-header('Content-Type: application/json');
+header('Cache-Control: no-cache, no-store, must-revalidate');
+header('Pragma: no-cache');
+header('Expires: 0');
 require_once __DIR__ . '/bootstrap.php';
-require_once __DIR__ . '/../config/cors.php';
-require_once __DIR__ . '/../middleware/authmiddleware.php';
+if (file_exists(__DIR__ . '/../config/cors.php')) {
+    require_once __DIR__ . '/../config/cors.php';
+} elseif (file_exists(__DIR__ . '/config/cors.php')) {
+    require_once __DIR__ . '/config/cors.php';
+}
+if (file_exists(__DIR__ . '/../middleware/authmiddleware.php')) {
+    require_once __DIR__ . '/../middleware/authmiddleware.php';
+} elseif (file_exists(__DIR__ . '/middleware/authmiddleware.php')) {
+    require_once __DIR__ . '/middleware/authmiddleware.php';
+}
 
 $db = db();
 $method = $_SERVER['REQUEST_METHOD'];
@@ -27,6 +37,9 @@ function requestDealId(array $data = []): int {
     }
     if (isset($data['deal_id']) && is_numeric($data['deal_id'])) {
         return (int)$data['deal_id'];
+    }
+    if (isset($data['id']) && is_numeric($data['id'])) {
+        return (int)$data['id'];
     }
     $path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
     $segments = array_values(array_filter(explode('/', trim($path, '/'))));
@@ -74,13 +87,33 @@ switch ($method) {
             $row = $s->fetch();
             $data['deal_price'] = $row ? round((float)$row['price'] * 0.85, 2) : 0;
         }
+
+        // Check if deal already exists for this product - if so, update it
+        $chk = $db->prepare("SELECT deal_id FROM deals_of_the_day WHERE product_id = ?");
+        $chk->execute([$pid]);
+        $existing = $chk->fetch(PDO::FETCH_ASSOC);
+        if ($existing) {
+            $stmt = $db->prepare("
+                UPDATE deals_of_the_day 
+                SET deal_price = ?, 
+                    start_date = COALESCE(?, start_date), 
+                    end_date = COALESCE(?, end_date) 
+                WHERE deal_id = ?
+            ");
+            $stmt->execute([
+                (float)$data['deal_price'],
+                $data['start_date'] ?? null,
+                $data['end_date'] ?? null,
+                $existing['deal_id']
+            ]);
+            http_response_code(200);
+            echo json_encode(['message' => 'Deal updated', 'deal_id' => (int)$existing['deal_id']]);
+            exit;
+        }
+
         $stmt = $db->prepare("
             INSERT INTO deals_of_the_day (product_id, deal_price, start_date, end_date)
             VALUES (?, ?, COALESCE(?, NOW()), COALESCE(?, DATE_ADD(NOW(), INTERVAL 365 DAY)))
-            ON DUPLICATE KEY UPDATE
-                deal_price = VALUES(deal_price),
-                start_date = VALUES(start_date),
-                end_date = VALUES(end_date)
         ");
         $stmt->execute([
             $pid,
@@ -89,7 +122,7 @@ switch ($method) {
             $data['end_date'] ?? null,
         ]);
         http_response_code(201);
-        echo json_encode(['message' => 'Deal created', 'deal_id' => $db->lastInsertId()]);
+        echo json_encode(['message' => 'Deal created', 'deal_id' => (int)$db->lastInsertId()]);
         break;
 
     case 'PUT':
