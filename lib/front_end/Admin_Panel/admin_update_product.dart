@@ -1213,11 +1213,13 @@ class _DbProductTile extends StatelessWidget {
       final base = ApiService.overrideBaseUrl ?? AppConstants.baseUrl;
       if (pickedBytes != null && pickedFileName != null) {
         final request = http.MultipartRequest(
-          'PUT',
+          'POST',
           Uri.parse('$base/products?id=$pid'),
         );
         final token = await ApiService.getToken();
         if (token != null) request.headers['Authorization'] = 'Bearer $token';
+        request.fields['product_id'] = pid.toString();
+        request.fields['_method'] = 'PUT';
         request.fields['product_name'] = nameC.text.trim();
         request.fields['price'] = priceC.text.trim();
         request.fields['stock_quantity'] = stockC.text.trim();
@@ -1233,7 +1235,11 @@ class _DbProductTile extends StatelessWidget {
             filename: pickedFileName!,
           ),
         );
-        await request.send();
+        final streamed = await request.send();
+        final res = await http.Response.fromStream(streamed);
+        if (res.statusCode < 200 || res.statusCode >= 300) {
+          throw ApiException('Failed to update product: ${res.body}', res.statusCode);
+        }
       } else {
         await ApiService.put('/products?id=$pid', {
           'product_name': nameC.text.trim(),

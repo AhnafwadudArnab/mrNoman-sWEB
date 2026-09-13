@@ -11,12 +11,7 @@ class ProductRefreshNotifier extends ChangeNotifier {
 
   /// Clears all product-related caches and signals widgets to reload.
   void refresh() {
-    ApiService.invalidateCache('/products');
-    ApiService.invalidateCache('/deals');
-    ApiService.invalidateCache('/best_sellers');
-    ApiService.invalidateCache('/trending');
-    ApiService.invalidateCache('/tech_part');
-    ApiService.invalidateCache('/Flash_Sales');
+    ApiService.invalidateCache();
     _version++;
     notifyListeners();
   }

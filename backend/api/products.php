@@ -29,8 +29,10 @@ $product = new ProductController($db);
 $method = $_SERVER['REQUEST_METHOD'];
 
 if ($method === 'GET') {
-    // Cache public product listings for 5 minutes in browser/CDN
-    header('Cache-Control: public, max-age=300, stale-while-revalidate=60');
+    // Never cache dynamic API responses — ensure real-time updates when admin modifies products
+    header('Cache-Control: no-cache, no-store, must-revalidate');
+    header('Pragma: no-cache');
+    header('Expires: 0');
     header('Vary: Accept-Encoding');
 
     if (isset($_GET['id'])) {
@@ -81,6 +83,16 @@ if ($method === 'POST') {
     if (!empty($_FILES['image'])) {
         $path = saveUploadedImage($_FILES['image']);
         if ($path) $data['image_url'] = $path;
+    }
+    
+    // Check if this is an update request (?id=X, product_id in body, or _method=PUT)
+    $updateId = $_GET['id'] ?? $data['product_id'] ?? $data['id'] ?? null;
+    if ($updateId && (int)$updateId > 0) {
+        $updated = $product->update((int)$updateId, $data);
+        ob_clean();
+        echo json_encode($updated);
+        ob_end_flush();
+        exit;
     }
     
     // Debug log

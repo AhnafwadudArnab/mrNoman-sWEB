@@ -74,7 +74,7 @@ RewriteRule ^ index.html [L]
   ExpiresByType application/wasm          "access plus 1 year"
 </IfModule>
 
-# Service worker and manifest — never cache
+# Service worker, bootstrap and index — validate cache; versioned assets — cache aggressively
 <IfModule mod_headers.c>
   <FilesMatch "flutter_service_worker\.js$">
     Header set Cache-Control "no-cache, no-store, must-revalidate"
@@ -82,15 +82,36 @@ RewriteRule ^ index.html [L]
     Header set Expires "0"
   </FilesMatch>
   <FilesMatch "flutter_bootstrap\.js$">
-    Header set Cache-Control "no-cache, no-store, must-revalidate"
+    Header set Cache-Control "no-cache, must-revalidate"
   </FilesMatch>
   <FilesMatch "main\.dart\.js$">
-    Header set Cache-Control "no-cache, no-store, must-revalidate"
-    Header set Pragma "no-cache"
-    Header set Expires "0"
+    Header set Cache-Control "public, max-age=604800, stale-while-revalidate=86400"
   </FilesMatch>
   <FilesMatch "index\.html$">
     Header set Cache-Control "no-cache, no-store, must-revalidate"
+  </FilesMatch>
+  <FilesMatch "\.wasm$">
+    Header set Cache-Control "public, max-age=31536000, immutable"
+  </FilesMatch>
+</IfModule>
+
+# Pre-compressed Gzip support for ultra-fast transfer of .js and .wasm
+<IfModule mod_rewrite.c>
+  RewriteCond %{HTTP:Accept-Encoding} gzip
+  RewriteCond %{REQUEST_FILENAME}\.gz -f
+  RewriteRule ^(.*)\.(js|wasm)$ $1.$2.gz [L]
+</IfModule>
+
+<IfModule mod_headers.c>
+  <FilesMatch "\.js\.gz$">
+    Header set Content-Encoding gzip
+    Header set Content-Type application/javascript
+    Header set Cache-Control "public, max-age=604800, stale-while-revalidate=86400"
+  </FilesMatch>
+  <FilesMatch "\.wasm\.gz$">
+    Header set Content-Encoding gzip
+    Header set Content-Type application/wasm
+    Header set Cache-Control "public, max-age=31536000, immutable"
   </FilesMatch>
 </IfModule>
 

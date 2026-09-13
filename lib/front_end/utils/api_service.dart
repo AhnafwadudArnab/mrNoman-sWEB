@@ -427,7 +427,11 @@ class ApiService {
             body: jsonEncode(data),
           )
           .timeout(_requestTimeout);
-      return _handleResponse(res);
+      final handled = await _handleResponse(res);
+      if (!endpoint.contains('login') && !endpoint.contains('register')) {
+        invalidateCache();
+      }
+      return handled;
     });
   }
 
@@ -444,7 +448,9 @@ class ApiService {
             body: jsonEncode(data),
           )
           .timeout(_requestTimeout);
-      return _handleResponse(res);
+      final handled = await _handleResponse(res);
+      invalidateCache();
+      return handled;
     });
   }
 
@@ -454,7 +460,9 @@ class ApiService {
       final res = await http
           .delete(Uri.parse('$base$phpEndpoint'), headers: await _headers())
           .timeout(_requestTimeout);
-      return _handleResponse(res);
+      final handled = await _handleResponse(res);
+      invalidateCache();
+      return handled;
     });
   }
 
