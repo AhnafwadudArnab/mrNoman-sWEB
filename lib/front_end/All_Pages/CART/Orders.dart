@@ -439,40 +439,15 @@ class _SubmitOrderPageState extends State<SubmitOrderPage> {
     String? orderId;
     List<CartItem> capturedItems = [];
     double capturedTotal = 0.0;
+    double capturedSubtotal = 0.0;
+    double capturedDelivery = 0.0;
+    double capturedDiscount = 0.0;
     try {
       final token = await ApiService.getToken();
 
-      // If token exists but is expired/invalid, the API will return 401.
-      // Guest users (no token) are now supported ? order proceeds without auth.
-      // If a logged-in user's token expired, show re-login prompt.
-      final isLoggedIn = await AuthSession.isLoggedIn();
-      if (isLoggedIn && (token == null || token.isEmpty)) {
-        // Token was cleared (expired) but user thinks they're logged in
-        if (!context.mounted) return;
-        showDialog(
-          context: context,
-          builder: (ctx) => AlertDialog(
-            title: const Text('Session Expired'),
-            content: const Text(
-              'Your session has expired. Please log in again to place your order.\n\n'
-              'Your cart has been preserved.',
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(ctx),
-                child: const Text('Cancel'),
-              ),
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(ctx);
-                  Navigator.pushNamed(context, '/login');
-                },
-                child: const Text('Log In'),
-              ),
-            ],
-          ),
-        );
-        return;
+      // Allow guest checkout: If user has no valid token, proceed seamlessly as guest
+      if (token == null || token.isEmpty) {
+        await AuthSession.setLoggedIn(false);
       }
 
       // Validate name
@@ -579,6 +554,9 @@ class _SubmitOrderPageState extends State<SubmitOrderPage> {
       // Capture cart items before clearing (for invoice)
       capturedItems = List<CartItem>.from(cartProvider.items);
       capturedTotal = _grandTotal;
+      capturedSubtotal = cartProvider.getCartTotal();
+      capturedDelivery = _deliveryCharge;
+      capturedDiscount = _couponDiscount;
 
       // Only clear cart after successful order creation
       await cartProvider.clearCart();
@@ -600,7 +578,7 @@ class _SubmitOrderPageState extends State<SubmitOrderPage> {
         showDialog(
           context: context,
           builder: (ctx) => AlertDialog(
-            title: const Text('?? Stock Unavailable'),
+            title: const Text('Stock Unavailable'),
             content: Text(e.message),
             actions: [
               TextButton(
@@ -663,11 +641,12 @@ class _SubmitOrderPageState extends State<SubmitOrderPage> {
       context: context,
       barrierDismissible: false,
       builder: (dialogContext) => Dialog(
+        insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         backgroundColor: Colors.white,
         child: Container(
           constraints: const BoxConstraints(maxWidth: 440),
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -716,18 +695,23 @@ class _SubmitOrderPageState extends State<SubmitOrderPage> {
                   children: [
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
                         const Text(
                           'Order ID:',
                           style: TextStyle(fontSize: 12, color: Color(0xFF64748B)),
                         ),
-                        SelectableText(
-                          orderId ?? 'EC-${DateTime.now().millisecondsSinceEpoch}',
-                          style: const TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                            fontFamily: 'monospace',
-                            color: Color(0xFF0F172A),
+                        const SizedBox(width: 8),
+                        Flexible(
+                          child: SelectableText(
+                            orderId ?? 'EC-${DateTime.now().millisecondsSinceEpoch}',
+                            textAlign: TextAlign.end,
+                            style: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              fontFamily: 'monospace',
+                              color: Color(0xFF0F172A),
+                            ),
                           ),
                         ),
                       ],
@@ -736,17 +720,22 @@ class _SubmitOrderPageState extends State<SubmitOrderPage> {
                       const SizedBox(height: 6),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
                           const Text(
                             'Transaction ID:',
                             style: TextStyle(fontSize: 12, color: Color(0xFF64748B)),
                           ),
-                          SelectableText(
-                            transactionId,
-                            style: const TextStyle(
-                              fontSize: 12,
-                              fontFamily: 'monospace',
-                              color: Color(0xFF0F172A),
+                          const SizedBox(width: 8),
+                          Flexible(
+                            child: SelectableText(
+                              transactionId,
+                              textAlign: TextAlign.end,
+                              style: const TextStyle(
+                                fontSize: 11.5,
+                                fontFamily: 'monospace',
+                                color: Color(0xFF0F172A),
+                              ),
                             ),
                           ),
                         ],
@@ -755,17 +744,22 @@ class _SubmitOrderPageState extends State<SubmitOrderPage> {
                     const SizedBox(height: 6),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
                         const Text(
                           'Delivery Area:',
                           style: TextStyle(fontSize: 12, color: Color(0xFF64748B)),
                         ),
-                        Text(
-                          _isInsideDhaka ? "Inside Dhaka (৳${_insideDhakaCharge.toStringAsFixed(0)})" : "Outside Dhaka (৳${_outsideDhakaCharge.toStringAsFixed(0)})",
-                          style: const TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w500,
-                            color: Color(0xFF0F172A),
+                        const SizedBox(width: 8),
+                        Flexible(
+                          child: Text(
+                            _isInsideDhaka ? "Inside Dhaka (৳${_insideDhakaCharge.toStringAsFixed(0)})" : "Outside Dhaka (৳${_outsideDhakaCharge.toStringAsFixed(0)})",
+                            textAlign: TextAlign.end,
+                            style: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                              color: Color(0xFF0F172A),
+                            ),
                           ),
                         ),
                       ],
@@ -779,8 +773,8 @@ class _SubmitOrderPageState extends State<SubmitOrderPage> {
                           style: TextStyle(fontSize: 12, color: Color(0xFF64748B)),
                         ),
                         Text(
-                          '৳${(capturedTotal - _couponDiscount - _deliveryCharge).toStringAsFixed(2)}',
-                          style: const TextStyle(fontSize: 12, color: Color(0xFF0F172A)),
+                          '৳${capturedSubtotal.toStringAsFixed(2)}',
+                          style: const TextStyle(fontSize: 12, color: Color(0xFF0F172A), fontWeight: FontWeight.w600),
                         ),
                       ],
                     ),
@@ -793,12 +787,12 @@ class _SubmitOrderPageState extends State<SubmitOrderPage> {
                           style: TextStyle(fontSize: 12, color: Color(0xFF64748B)),
                         ),
                         Text(
-                          '৳${_deliveryCharge.toStringAsFixed(2)}',
-                          style: const TextStyle(fontSize: 12, color: Color(0xFF2563EB)),
+                          '৳${capturedDelivery.toStringAsFixed(2)}',
+                          style: const TextStyle(fontSize: 12, color: Color(0xFF2563EB), fontWeight: FontWeight.w600),
                         ),
                       ],
                     ),
-                    if (_couponDiscount > 0) ...[
+                    if (capturedDiscount > 0) ...[
                       const SizedBox(height: 4),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -808,7 +802,7 @@ class _SubmitOrderPageState extends State<SubmitOrderPage> {
                             style: TextStyle(fontSize: 12, color: Color(0xFF10B981)),
                           ),
                           Text(
-                            '-৳${_couponDiscount.toStringAsFixed(2)}',
+                            '-৳${capturedDiscount.toStringAsFixed(2)}',
                             style: const TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.bold,
@@ -831,7 +825,7 @@ class _SubmitOrderPageState extends State<SubmitOrderPage> {
                           ),
                         ),
                         Text(
-                          '৳${_grandTotal.toStringAsFixed(2)}',
+                          '৳${capturedTotal.toStringAsFixed(2)}',
                           style: const TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 16,
@@ -2424,14 +2418,14 @@ class _OnlinePaymentSheetState extends State<_OnlinePaymentSheet> {
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.bold,
-                    color: AppColors.grey300,
+                    color: Color(0xFF0F172A),
                   ),
                 ),
               ],
             ),
             Text(
               'Trx ID: EC-${DateTime.now().millisecondsSinceEpoch.toString().substring(7)}',
-              style: const TextStyle(fontSize: 10, color: AppColors.grey300),
+              style: const TextStyle(fontSize: 11, color: Color(0xFF64748B)),
             ),
           ],
         ),
@@ -2557,11 +2551,12 @@ class _OnlinePaymentSheetState extends State<_OnlinePaymentSheet> {
         const SizedBox(height: 24),
         const Text(
           'Special Offers and Savings',
-          style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+          style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
         ),
+        const SizedBox(height: 2),
         const Text(
           'Automatically Applied with Eligible Payments',
-          style: TextStyle(fontSize: 11, color: AppColors.grey300),
+          style: TextStyle(fontSize: 11, color: Color(0xFF64748B)),
         ),
         const Divider(height: 20),
         const SizedBox(height: 40),
@@ -2594,15 +2589,15 @@ class _OnlinePaymentSheetState extends State<_OnlinePaymentSheet> {
           style: TextStyle(
             fontSize: 13,
             fontWeight: bold ? FontWeight.bold : FontWeight.normal,
-            color: AppColors.grey300,
+            color: bold ? const Color(0xFF0F172A) : const Color(0xFF334155),
           ),
         ),
         Text(
           value,
           style: TextStyle(
             fontSize: 13,
-            fontWeight: bold ? FontWeight.bold : FontWeight.normal,
-            color: AppColors.grey300,
+            fontWeight: bold ? FontWeight.bold : FontWeight.w600,
+            color: bold ? const Color(0xFF0F172A) : const Color(0xFF334155),
           ),
         ),
       ],
@@ -2660,9 +2655,9 @@ class _OnlinePaymentSheetState extends State<_OnlinePaymentSheet> {
           const Text(
             'Pay with Mobile Banking',
             style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-              color: AppColors.grey300,
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF0F172A),
             ),
           ),
           const SizedBox(height: 12),
@@ -2677,7 +2672,7 @@ class _OnlinePaymentSheetState extends State<_OnlinePaymentSheet> {
                     : _tabIndex == 2
                     ? 'Net Banking coming soon'
                     : 'More options coming soon',
-                style: const TextStyle(color: AppColors.grey300),
+                style: const TextStyle(color: Color(0xFF64748B)),
               ),
             ),
           ),
@@ -2702,7 +2697,7 @@ class _OnlinePaymentSheetState extends State<_OnlinePaymentSheet> {
               elevation: 0,
             ),
             child: Text(
-              'Pay ৳${widget.grandTotal.toStringAsFixed(2)}',
+              'Pay Tk ${widget.grandTotal.toStringAsFixed(2)}',
               style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
           ),
@@ -2773,22 +2768,26 @@ class _OnlinePaymentSheetState extends State<_OnlinePaymentSheet> {
               children: [
                 const Text(
                   'Secured by ',
-                  style: TextStyle(fontSize: 10, color: AppColors.grey300),
+                  style: TextStyle(fontSize: 10, color: Color(0xFF64748B)),
                 ),
-                const Icon(Icons.lock_outline, size: 12, color: AppColors.grey300),
+                const Icon(Icons.lock_outline, size: 12, color: Color(0xFF64748B)),
                 const SizedBox(width: 4),
                 Container(
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 4,
+                    horizontal: 5,
                     vertical: 2,
                   ),
                   decoration: BoxDecoration(
-                    border: Border.all(color: AppColors.grey300),
+                    border: Border.all(color: const Color(0xFF94A3B8)),
                     borderRadius: BorderRadius.circular(3),
                   ),
                   child: const Text(
                     'PCI DSS',
-                    style: TextStyle(fontSize: 9, color: AppColors.grey300),
+                    style: TextStyle(
+                      fontSize: 9,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF64748B),
+                    ),
                   ),
                 ),
               ],
@@ -2999,6 +2998,9 @@ class _PaymentInstructionPageState extends State<_PaymentInstructionPage> {
         : isUpay
         ? widget.config.upayNumber
         : widget.config.bkashNumber;
+    if (_receiverNumber.trim().isEmpty) {
+      _receiverNumber = '01840658317';
+    }
     final r = AppResponsive.of(context);
     final maxWidth = r.value(
       smallMobile: 360.0,
@@ -3029,7 +3031,7 @@ class _PaymentInstructionPageState extends State<_PaymentInstructionPage> {
               ),
             ),
             const SizedBox(width: 8),
-            const Text('ElectroZoneBD', style: TextStyle(color: Colors.black)),
+            const Text('ElectroZoneBD', style: TextStyle(color: Color(0xFF0F172A), fontWeight: FontWeight.bold)),
           ],
         ),
         iconTheme: const IconThemeData(color: Colors.black),
@@ -3056,7 +3058,7 @@ class _PaymentInstructionPageState extends State<_PaymentInstructionPage> {
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: AppColors.grey300),
+                    border: Border.all(color: const Color(0xFFE2E8F0)),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -3109,7 +3111,7 @@ class _PaymentInstructionPageState extends State<_PaymentInstructionPage> {
                       const SizedBox(height: 12),
                       const Text(
                         'Transaction ID',
-                        style: TextStyle(fontWeight: FontWeight.w600),
+                        style: TextStyle(fontWeight: FontWeight.w600, color: Color(0xFF0F172A)),
                       ),
                       const SizedBox(height: 6),
                       TextField(
@@ -3122,7 +3124,7 @@ class _PaymentInstructionPageState extends State<_PaymentInstructionPage> {
                         ),
                       ),
                       const SizedBox(height: 12),
-                      // ?? Warning about Transaction ID
+                      // Warning about Transaction ID
                       Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
@@ -3141,7 +3143,7 @@ class _PaymentInstructionPageState extends State<_PaymentInstructionPage> {
                             const SizedBox(width: 10),
                             Expanded(
                               child: Text(
-                                '?? Be careful! If your transaction ID doesn\'t match your bank transfer, your order will be cancelled by the shop owner.',
+                                'Be careful! If your transaction ID doesn\'t match your mobile bank transfer, your order will be cancelled by the shop owner.',
                                 style: TextStyle(
                                   fontSize: 12,
                                   color: Colors.amber[900],
@@ -3163,9 +3165,22 @@ class _PaymentInstructionPageState extends State<_PaymentInstructionPage> {
                         widget.onVerify(_txnController.text.trim()),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF1769E0),
+                      foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      elevation: 0,
                     ),
-                    child: const Text('VERIFY'),
+                    child: const Text(
+                      'VERIFY',
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 1.2,
+                        color: Colors.white,
+                      ),
+                    ),
                   ),
                 ),
               ],
@@ -3173,7 +3188,7 @@ class _PaymentInstructionPageState extends State<_PaymentInstructionPage> {
           ),
         ),
       ),
-      backgroundColor: AppColors.grey300,
+      backgroundColor: const Color(0xFFF1F5F9),
     );
   }
 

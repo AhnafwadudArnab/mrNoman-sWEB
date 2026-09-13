@@ -20,8 +20,8 @@ class PHPMailerEmailService implements EmailServiceInterface {
     
     public function __construct(array $config = []) {
         $this->config = $config;
-        $this->fromEmail = $config['mail']['from_address'] ?? 'noreply@electrocitybd.com';
-        $this->fromName = $config['mail']['from_name'] ?? 'ElectroCityBD';
+        $this->fromEmail = $config['mail']['from_address'] ?? 'electrozonebd1@gmail.com';
+        $this->fromName = $config['mail']['from_name'] ?? 'ElectroZoneBD';
         
         $composerAutoload = __DIR__ . '/../vendor/autoload.php';
         
@@ -56,7 +56,11 @@ class PHPMailerEmailService implements EmailServiceInterface {
         $this->mailer->Host       = $this->config['smtp']['host'] ?? 'smtp.gmail.com';
         $this->mailer->SMTPAuth   = true;
         $this->mailer->Username   = $this->config['smtp']['username'] ?? $this->fromEmail;
-        $this->mailer->Password   = $this->config['smtp']['password'] ?? '';
+        $password                 = $this->config['smtp']['password'] ?? '';
+        if (stripos($this->mailer->Host, 'gmail') !== false) {
+            $password = str_replace(' ', '', $password);
+        }
+        $this->mailer->Password   = $password;
         if ($secure === 'ssl' || $secure === 'smtps') {
             $this->mailer->SMTPSecure = PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_SMTPS;
         } elseif ($secure === 'none' || $secure === '') {
@@ -98,7 +102,7 @@ class PHPMailerEmailService implements EmailServiceInterface {
             
             // Set email content
             $this->mailer->isHTML(true);
-            $this->mailer->Subject = 'Password Reset Code - ElectroCityBD';
+            $this->mailer->Subject = 'Password Reset Code - ElectroZoneBD';
             $this->mailer->Body = $this->getEmailTemplate($code, $userName);
             $this->mailer->AltBody = $this->getTextTemplate($code, $userName);
             
@@ -140,7 +144,7 @@ class PHPMailerEmailService implements EmailServiceInterface {
         <div style="padding: 30px; background: #f9f9f9;">
             <p>$greeting</p>
             
-            <p>We received a request to reset your password for your ElectroCityBD account.</p>
+            <p>We received a request to reset your password for your ElectroZoneBD account.</p>
             
             <p><strong>Your 6-digit reset code is:</strong></p>
             
@@ -158,10 +162,10 @@ class PHPMailerEmailService implements EmailServiceInterface {
             </div>
             
             <p>Best regards,<br>
-            <strong>ElectroCityBD Team</strong></p>
+            <strong>ElectroZoneBD Team</strong></p>
         </div>
         <div style="text-align: center; padding: 20px; color: #666; font-size: 12px;">
-            <p>© 2026 ElectroCityBD. All rights reserved.</p>
+            <p>© 2026 ElectroZoneBD. All rights reserved.</p>
             <p>This is an automated email. Please do not reply.</p>
         </div>
     </div>
@@ -179,7 +183,7 @@ HTML;
         return <<<TEXT
 $greeting
 
-We received a request to reset your password for your ElectroCityBD account.
+We received a request to reset your password for your ElectroZoneBD account.
 
 Your 6-digit Reset Code: $code
 
@@ -188,10 +192,10 @@ This code will expire in 1 hour.
 If you didn't request this password reset, please ignore this email.
 
 Best regards,
-ElectroCityBD Team
+ElectroZoneBD Team
 
 ---
-© 2026 ElectroCityBD. All rights reserved.
+© 2026 ElectroZoneBD. All rights reserved.
 This is an automated email. Please do not reply.
 TEXT;
     }

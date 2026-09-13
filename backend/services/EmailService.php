@@ -35,7 +35,11 @@ class EmailService {
             $this->mailer->Host = $mailConfig['host'];
             $this->mailer->SMTPAuth = true;
             $this->mailer->Username = $mailConfig['username'];
-            $this->mailer->Password = $mailConfig['password'];
+            $password = $mailConfig['password'];
+            if (stripos($mailConfig['host'] ?? '', 'gmail') !== false) {
+                $password = str_replace(' ', '', $password);
+            }
+            $this->mailer->Password = $password;
             $this->mailer->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
             $this->mailer->Port = $mailConfig['port'];
             $this->mailer->setFrom($mailConfig['from_address'], $mailConfig['from_name']);
@@ -196,8 +200,8 @@ class EmailService {
             </p>
         </div>
         <div class="footer">
-            <p>ElectrocityBD - Your Trusted Electronics Store</p>
-            <p>If you have any questions, contact us at support@electrocitybd.com</p>
+            <p>ElectroZoneBD - Your Trusted Electronics Store</p>
+            <p>If you have any questions, contact us at electrozonebd1@gmail.com</p>
         </div>
     </div>
 </body>
@@ -340,7 +344,7 @@ HTML;
             </p>
             
             <p style="margin-top: 30px; font-size: 14px; color: #666;">
-                Need help? Contact us at support@electrocitybd.com
+                Need help? Contact us at electrozonebd1@gmail.com
             </p>
         </div>
     </div>

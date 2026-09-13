@@ -26,10 +26,12 @@ return [
     'mail' => [
         'host' => Env::get('SMTP_HOST', Env::get('MAIL_HOST', 'smtp.gmail.com')),
         'port' => (int)Env::get('SMTP_PORT', Env::get('MAIL_PORT', 587)),
-        'username' => Env::get('SMTP_USERNAME', Env::get('MAIL_USERNAME', '')),
-        'password' => Env::get('SMTP_PASSWORD', Env::get('MAIL_PASSWORD', '')),
-        'from_address' => Env::get('MAIL_FROM_ADDRESS', 'noreply@electrocitybd.com'),
-        'from_name' => Env::get('MAIL_FROM_NAME', 'ElectrocityBD'),
+        'username' => Env::get('SMTP_USERNAME', Env::get('MAIL_USERNAME', 'electrozonebd1@gmail.com')),
+        'password' => (stripos(Env::get('SMTP_HOST', Env::get('MAIL_HOST', 'smtp.gmail.com')), 'gmail') !== false)
+            ? str_replace(' ', '', Env::get('SMTP_PASSWORD', Env::get('MAIL_PASSWORD', '')))
+            : Env::get('SMTP_PASSWORD', Env::get('MAIL_PASSWORD', '')),
+        'from_address' => Env::get('MAIL_FROM_ADDRESS', 'electrozonebd1@gmail.com'),
+        'from_name' => Env::get('MAIL_FROM_NAME', 'ElectroZoneBD'),
         'encryption' => Env::get('SMTP_SECURE', 'tls'),
     ],
     'security' => [

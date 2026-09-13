@@ -514,7 +514,7 @@ class _TrackOrderPageState extends State<TrackOrderPage> {
   }
 
   String _formatBDT(double v) {
-    return 'Tk ${v.toStringAsFixed(0)}';
+    return '৳${v.toStringAsFixed(0)}';
   }
 
   @override
@@ -739,129 +739,131 @@ class _TrackOrderPageState extends State<TrackOrderPage> {
   }
 
   Widget _buildTimeline(BuildContext context) {
-    final r = AppResponsive.of(context);
     final s = _statusLabel();
     final placed = true;
-    final accepted = s != 'pending' ? true : false;
+    final accepted = s != 'pending';
     final inProgress = s == 'processing' || s == 'shipped' || s == 'delivered';
     final onTheWay = s == 'shipped' || s == 'delivered';
     final delivered = s == 'delivered';
 
+    final steps = [
+      {
+        'icon': Icons.shopping_bag,
+        'label': 'Order Placed',
+        'isCompleted': placed,
+        'date': (order?['order_date'] ?? '').toString().split('T').first,
+      },
+      {
+        'icon': Icons.done_all,
+        'label': 'Accepted',
+        'isCompleted': accepted,
+        'date': '',
+      },
+      {
+        'icon': Icons.local_shipping,
+        'label': 'In Progress',
+        'isCompleted': inProgress,
+        'date': '',
+      },
+      {
+        'icon': Icons.directions_car,
+        'label': 'On the Way',
+        'isCompleted': onTheWay,
+        'date': '',
+      },
+      {
+        'icon': Icons.home,
+        'label': 'Delivered',
+        'isCompleted': delivered,
+        'date': '',
+      },
+    ];
+
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          _buildStatusItem(
-            context: context,
-            icon: Icons.shopping_bag,
-            label: 'Order Placed',
-            date: (order?['order_date'] ?? '').toString().split('T').first,
-            time: '',
-            isCompleted: placed,
-            isActive: placed,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(minWidth: 420),
+        child: IntrinsicWidth(
+          child: Column(
+            children: [
+              // Row 1: Circles and Connecting Lines strictly on horizontal center
+              Row(
+                children: [
+                  for (int i = 0; i < steps.length; i++) ...[
+                    Container(
+                      width: 44,
+                      height: 44,
+                      decoration: BoxDecoration(
+                        color: (steps[i]['isCompleted'] as bool)
+                            ? const Color(0xFF1B7340)
+                            : const Color(0xFFE2E8F0),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        steps[i]['icon'] as IconData,
+                        color: (steps[i]['isCompleted'] as bool)
+                            ? Colors.white
+                            : const Color(0xFF94A3B8),
+                        size: 22,
+                      ),
+                    ),
+                    if (i < steps.length - 1)
+                      Expanded(
+                        child: Container(
+                          height: 3.5,
+                          color: (steps[i + 1]['isCompleted'] as bool)
+                              ? const Color(0xFF1B7340)
+                              : const Color(0xFFE2E8F0),
+                        ),
+                      ),
+                  ],
+                ],
+              ),
+              const SizedBox(height: 10),
+              // Row 2: Labels aligned under circles
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  for (int i = 0; i < steps.length; i++) ...[
+                    SizedBox(
+                      width: 72,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            steps[i]['label'] as String,
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: (steps[i]['isCompleted'] as bool)
+                                  ? FontWeight.bold
+                                  : FontWeight.w600,
+                              color: (steps[i]['isCompleted'] as bool)
+                                  ? const Color(0xFF0F172A)
+                                  : const Color(0xFF64748B),
+                            ),
+                          ),
+                          if ((steps[i]['date'] as String).isNotEmpty) ...[
+                            const SizedBox(height: 3),
+                            Text(
+                              steps[i]['date'] as String,
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(
+                                fontSize: 9.5,
+                                color: Color(0xFF475569),
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                    if (i < steps.length - 1) const Spacer(),
+                  ],
+                ],
+              ),
+            ],
           ),
-          _buildStatusConnector(context, true),
-          _buildStatusItem(
-            context: context,
-            icon: Icons.done_all,
-            label: 'Accepted',
-            date: '',
-            time: '',
-            isCompleted: accepted,
-            isActive: accepted && !inProgress,
-          ),
-          _buildStatusConnector(context, false),
-          _buildStatusItem(
-            context: context,
-            icon: Icons.local_shipping,
-            label: 'In Progress',
-            date: '',
-            time: '',
-            isCompleted: inProgress,
-            isActive: inProgress && !onTheWay,
-          ),
-          _buildStatusConnector(context, false),
-          _buildStatusItem(
-            context: context,
-            icon: Icons.directions_car,
-            label: 'On the Way',
-            date: '',
-            time: '',
-            isCompleted: onTheWay,
-            isActive: onTheWay && !delivered,
-          ),
-          _buildStatusConnector(context, false),
-          _buildStatusItem(
-            context: context,
-            icon: Icons.home,
-            label: 'Delivered',
-            date: '',
-            time: '',
-            isCompleted: delivered,
-            isActive: delivered,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildStatusItem({
-    required BuildContext context,
-    required IconData icon,
-    required String label,
-    required String date,
-    required String time,
-    required bool isCompleted,
-    required bool isActive,
-  }) {
-    final r = AppResponsive.of(context);
-
-    return SizedBox(
-      width: r.wp(15),
-      child: Column(
-        children: [
-          Container(
-            width: AppDimensions.iconSize(context) * 2,
-            height: AppDimensions.iconSize(context) * 2,
-            decoration: BoxDecoration(
-              color: isCompleted ? const Color(0xFF1B7340) : Colors.black12,
-              shape: BoxShape.circle,
-            ),
-            child: Icon(
-              icon,
-              color: isCompleted ? Colors.white : AppColors.grey200,
-              size: AppDimensions.iconSize(context),
-            ),
-          ),
-          SizedBox(height: r.hp(1)),
-          Text(
-            label,
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: AppDimensions.smallFont(context),
-              fontWeight: FontWeight.w600,
-              color: AppColors.grey300,
-            ),
-          ),
-          SizedBox(height: r.hp(0.5)),
-          Text(
-            date,
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: AppDimensions.smallFont(context) - 2,
-              color: AppColors.grey300,
-            ),
-          ),
-          Text(
-            time,
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: AppDimensions.smallFont(context) - 2,
-              color: AppColors.grey300,
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -873,29 +875,20 @@ class _TrackOrderPageState extends State<TrackOrderPage> {
         Text(
           k,
           style: TextStyle(
-            fontWeight: bold ? FontWeight.w600 : FontWeight.w400,
+            fontWeight: bold ? FontWeight.w700 : FontWeight.w500,
+            fontSize: bold ? 14 : 13,
+            color: bold ? const Color(0xFF0F172A) : const Color(0xFF64748B),
           ),
         ),
         Text(
           v,
           style: TextStyle(
-            fontWeight: bold ? FontWeight.w700 : FontWeight.w500,
+            fontWeight: bold ? FontWeight.w700 : FontWeight.w600,
+            fontSize: bold ? 15 : 13,
+            color: bold ? const Color(0xFF10B981) : const Color(0xFF0F172A),
           ),
         ),
       ],
-    );
-  }
-
-  Widget _buildStatusConnector(BuildContext context, bool isCompleted) {
-    final r = AppResponsive.of(context);
-
-    return Padding(
-      padding: EdgeInsets.only(bottom: r.hp(2.5)),
-      child: Container(
-        width: r.wp(3),
-        height: AppDimensions.borderRadius(context) * 0.5,
-        color: isCompleted ? const Color(0xFF1B7340) : Colors.black12,
-      ),
     );
   }
 
@@ -909,44 +902,43 @@ class _TrackOrderPageState extends State<TrackOrderPage> {
     String? brandName,
     double? currentPrice,
   }) {
-    final r = AppResponsive.of(context);
     final lineTotal = unitPrice * quantity;
 
     return Container(
-      padding: EdgeInsets.all(AppDimensions.padding(context) * 0.75),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(
-          AppDimensions.borderRadius(context),
-        ),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
       ),
       child: Row(
         children: [
           ClipRRect(
-            borderRadius: BorderRadius.circular(
-              AppDimensions.borderRadius(context),
-            ),
-            child: imageUrl.isNotEmpty
-                ? Image.network(
-                    ImageResolver.resolveUrl(imageUrl),
-                    width: AppDimensions.imageSize(context) * 0.4,
-                    height: AppDimensions.imageSize(context) * 0.4,
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => Container(
-                      width: AppDimensions.imageSize(context) * 0.4,
-                      height: AppDimensions.imageSize(context) * 0.4,
-                      color: Colors.black12,
-                      child: Icon(Icons.image, color: AppColors.grey300),
+            borderRadius: BorderRadius.circular(8),
+            child: Container(
+              width: 70,
+              height: 70,
+              color: const Color(0xFFF1F5F9),
+              child: imageUrl.isNotEmpty
+                  ? Image.network(
+                      ImageResolver.resolveUrl(imageUrl),
+                      width: 70,
+                      height: 70,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => const Icon(
+                        Icons.shopping_bag_outlined,
+                        color: Colors.orange,
+                        size: 28,
+                      ),
+                    )
+                  : const Icon(
+                      Icons.shopping_bag_outlined,
+                      color: Colors.orange,
+                      size: 28,
                     ),
-                  )
-                : Container(
-                    width: AppDimensions.imageSize(context) * 0.4,
-                    height: AppDimensions.imageSize(context) * 0.4,
-                    color: Colors.black12,
-                    child: Icon(Icons.image, color: AppColors.grey300),
-                  ),
+            ),
           ),
-          SizedBox(width: AppDimensions.padding(context) * 0.75),
+          const SizedBox(width: 14),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -954,25 +946,26 @@ class _TrackOrderPageState extends State<TrackOrderPage> {
                 Text(
                   [
                     if (brandName != null && brandName.isNotEmpty)
-                      '$brandName ?',
+                      '$brandName •',
                     productName,
                   ].join(' '),
-                  style: TextStyle(
-                    fontSize: AppDimensions.bodyFont(context),
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.grey300,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF0F172A),
                   ),
                 ),
-                SizedBox(height: r.hp(0.5)),
+                const SizedBox(height: 5),
                 Text(
                   [
                     if (color.isNotEmpty) 'Color: $color',
                     'Qty: $quantity',
-                    'Unit: ?${unitPrice.toStringAsFixed(0)}',
+                    'Unit: ৳${unitPrice.toStringAsFixed(0)}',
                   ].join('  |  '),
-                  style: TextStyle(
-                    fontSize: AppDimensions.smallFont(context),
-                    color: AppColors.grey300,
+                  style: const TextStyle(
+                    fontSize: 12.5,
+                    color: Color(0xFF475569),
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
               ],
@@ -980,11 +973,11 @@ class _TrackOrderPageState extends State<TrackOrderPage> {
           ),
           const SizedBox(width: 8),
           Text(
-            '?${lineTotal.toStringAsFixed(0)}',
-            style: TextStyle(
-              fontSize: AppDimensions.bodyFont(context),
-              fontWeight: FontWeight.w700,
-              color: AppColors.grey300,
+            '৳${lineTotal.toStringAsFixed(0)}',
+            style: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF0F172A),
             ),
           ),
         ],

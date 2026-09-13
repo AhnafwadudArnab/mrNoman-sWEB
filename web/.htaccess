@@ -11,13 +11,13 @@ RewriteRule ^ https://%1%{REQUEST_URI} [R=301,L]
 
 # Serve uploaded images directly (MUST be before the api route rule)
 RewriteCond %{REQUEST_URI} ^/api/public/uploads/(.+)$
-RewriteRule ^api/public/uploads/(.+)$ backend/public/uploads/$1 [L]
+RewriteRule ^api/public/uploads/(.+)$ api/public/uploads/$1 [L]
 
 # Route /api/* requests to backend folder
 RewriteCond %{REQUEST_URI} ^/api(/.*)?$ [NC]
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
-RewriteRule ^api(/.*)?$ backend/public/index.php [L,QSA]
+RewriteRule ^api(/.*)?$ api/public/index.php [L,QSA]
 
 # Fix asset image paths: DB stores assets/trends/x.jpg but Flutter build puts them at assets/assets/trends/x.jpg
 RewriteCond %{REQUEST_FILENAME} !-f

@@ -380,6 +380,46 @@ class _HeaderState extends State<Header> {
     );
   }
 
+  void _openSidebar(BuildContext context) {
+    final scaffold = Scaffold.maybeOf(context);
+    if (scaffold != null && scaffold.hasDrawer) {
+      scaffold.openDrawer();
+      return;
+    }
+    showGeneralDialog(
+      context: context,
+      barrierDismissible: true,
+      barrierLabel: 'Close Menu',
+      barrierColor: Colors.black54,
+      transitionDuration: const Duration(milliseconds: 260),
+      pageBuilder: (dialogCtx, anim1, anim2) {
+        return Align(
+          alignment: Alignment.centerLeft,
+          child: Material(
+            color: Colors.white,
+            elevation: 16,
+            child: SizedBox(
+              width: 290,
+              height: MediaQuery.of(dialogCtx).size.height,
+              child: const SafeArea(
+                child: Sidebar(width: 290),
+              ),
+            ),
+          ),
+        );
+      },
+      transitionBuilder: (context, anim1, anim2, child) {
+        return SlideTransition(
+          position: Tween<Offset>(
+            begin: const Offset(-1.0, 0.0),
+            end: Offset.zero,
+          ).animate(CurvedAnimation(parent: anim1, curve: Curves.easeOutCubic)),
+          child: child,
+        );
+      },
+    );
+  }
+
   void _navigateToProfile() {
     Navigator.of(context)
         .push(MaterialPageRoute(builder: (_) => const ProfilePage()))
@@ -445,6 +485,7 @@ class _HeaderState extends State<Header> {
     final width = MediaQuery.of(context).size.width;
     final isSmall = width <= 768;
     final isMobile = width <= 480;
+    final showHamburger = width < 1024;
     final cartCount = context.watch<CartProvider>().getItemCount();
     final wishlistCount = context.watch<WishlistProvider>().wishlistCount;
     final double headerHeight = _isSearchExpanded && isSmall ? 124.0 : 64.0;
@@ -462,42 +503,15 @@ class _HeaderState extends State<Header> {
           children: [
             Row(
               children: [
-                // Hamburger Menu for Mobile & Tablet
-                if (isSmall) ...[
+                // Hamburger Menu for Mobile & Tablet (when permanent sidebar is hidden)
+                if (showHamburger) ...[
                   Builder(
                     builder: (menuCtx) => IconButton(
                       icon: const Icon(Icons.menu, color: Colors.black, size: 24),
                       padding: const EdgeInsets.only(right: 4),
                       constraints: const BoxConstraints(),
                       tooltip: 'Menu',
-                      onPressed: () {
-                        final scaffold = Scaffold.maybeOf(menuCtx);
-                        if (scaffold != null && scaffold.hasDrawer) {
-                          scaffold.openDrawer();
-                        } else {
-                          showModalBottomSheet(
-                            context: menuCtx,
-                            isScrollControlled: true,
-                            backgroundColor: Colors.transparent,
-                            builder: (_) => FractionallySizedBox(
-                              heightFactor: 0.9,
-                              alignment: Alignment.centerLeft,
-                              child: Container(
-                                width: 290,
-                                decoration: const BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.horizontal(
-                                    right: Radius.circular(16),
-                                  ),
-                                ),
-                                child: const SafeArea(
-                                  child: Sidebar(width: 290),
-                                ),
-                              ),
-                            ),
-                          );
-                        }
-                      },
+                      onPressed: () => _openSidebar(menuCtx),
                     ),
                   ),
                   const SizedBox(width: 4),

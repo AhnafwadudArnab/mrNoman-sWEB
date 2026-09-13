@@ -53,6 +53,12 @@ class _SidebarState extends State<Sidebar> {
   final Map<int, bool> _loadingBrands = {};
 
   @override
+  void initState() {
+    super.initState();
+    _loadCategories();
+  }
+
+  @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     final ready = context.watch<ApiReadyNotifier>().isReady;
@@ -141,8 +147,13 @@ class _SidebarState extends State<Sidebar> {
         : int.tryParse(raw?.toString() ?? '') ?? 0;
     final categoryName = category['category_name']?.toString() ?? 'Products';
 
-    // Close drawer on mobile
-    if (Scaffold.of(context).isDrawerOpen) Navigator.of(context).pop();
+    // Close drawer or dialog if open
+    final scaffold = Scaffold.maybeOf(context);
+    if (scaffold?.isDrawerOpen ?? false) {
+      Navigator.of(context).pop();
+    } else if (Navigator.of(context).canPop()) {
+      Navigator.of(context).pop();
+    }
 
     Navigator.of(context).push(
       MaterialPageRoute(
@@ -209,7 +220,10 @@ class _SidebarState extends State<Sidebar> {
                       ),
                       trailing: const Icon(Icons.chevron_right, size: 18),
                       onTap: () {
-                        if (Scaffold.of(context).isDrawerOpen) {
+                        final scaffold = Scaffold.maybeOf(context);
+                        if (scaffold?.isDrawerOpen ?? false) {
+                          Navigator.of(context).pop();
+                        } else if (Navigator.of(context).canPop()) {
                           Navigator.of(context).pop();
                         }
                         if (loggedIn) {
@@ -257,9 +271,17 @@ class _SidebarState extends State<Sidebar> {
               builder: (context, snapshot) {
                 if (snapshot.data != true) return const SizedBox.shrink();
                 return InkWell(
-                  onTap: () => Navigator.of(context).push(
-                    MaterialPageRoute(builder: (_) => const AdminLayoutPage()),
-                  ),
+                  onTap: () {
+                    final scaffold = Scaffold.maybeOf(context);
+                    if (scaffold?.isDrawerOpen ?? false) {
+                      Navigator.of(context).pop();
+                    } else if (Navigator.of(context).canPop()) {
+                      Navigator.of(context).pop();
+                    }
+                    Navigator.of(context).push(
+                      MaterialPageRoute(builder: (_) => const AdminLayoutPage()),
+                    );
+                  },
                   child: Padding(
                     padding: const EdgeInsets.symmetric(vertical: 10),
                     child: Row(

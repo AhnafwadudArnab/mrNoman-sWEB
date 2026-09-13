@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
@@ -14,6 +13,7 @@ import 'package:electrocitybd1/front_end/Admin_Panel/admin_theme.dart';
 import 'package:electrocitybd1/front_end/Provider/Banner_provider.dart';
 import 'package:electrocitybd1/front_end/utils/api_service.dart';
 import 'package:electrocitybd1/front_end/utils/image_resolver.dart';
+import 'package:electrocitybd1/front_end/utils/optimized_image_widget.dart';
 
 class AdminBannersPage extends StatefulWidget {
   final bool embedded;
@@ -201,45 +201,24 @@ class _AdminBannersPageState extends State<AdminBannersPage> {
     BoxFit fit = BoxFit.cover,
   }) {
     final cleanPath = path.trim();
-    final preview = cleanPath.isEmpty
-        ? Center(
-            child: Text(
-              emptyText,
-              textAlign: TextAlign.center,
-              style: TextStyle(color: AdminTheme.textSecondary, fontSize: 13),
-            ),
-          )
-        : _isNetworkOrUploadPath(cleanPath)
-        ? Image.network(
-            _resolvePreviewUrl(cleanPath),
-            fit: fit,
-            width: double.infinity,
-            height: double.infinity,
-            errorBuilder: (_, __, ___) => const Center(
-              child: Icon(Icons.broken_image, color: Colors.redAccent),
-            ),
-          )
-        : cleanPath.startsWith('assets/')
-        ? Image.asset(
-            cleanPath,
-            fit: fit,
-            width: double.infinity,
-            height: double.infinity,
-            errorBuilder: (_, __, ___) => const Center(
-              child: Icon(Icons.broken_image, color: Colors.redAccent),
-            ),
-          )
-        : kIsWeb
-        ? Center(child: Icon(Icons.image, color: AdminTheme.textMuted))
-        : Image.file(
-            File(cleanPath),
-            fit: fit,
-            width: double.infinity,
-            height: double.infinity,
-            errorBuilder: (_, __, ___) => const Center(
-              child: Icon(Icons.broken_image, color: Colors.redAccent),
-            ),
-          );
+    if (cleanPath.isEmpty) {
+      return Container(
+        height: height,
+        width: double.infinity,
+        decoration: BoxDecoration(
+          color: darkBg,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: AdminTheme.border),
+        ),
+        child: Center(
+          child: Text(
+            emptyText,
+            textAlign: TextAlign.center,
+            style: TextStyle(color: AdminTheme.textSecondary, fontSize: 13),
+          ),
+        ),
+      );
+    }
 
     return Container(
       height: height,
@@ -250,7 +229,12 @@ class _AdminBannersPageState extends State<AdminBannersPage> {
         border: Border.all(color: AdminTheme.border),
       ),
       clipBehavior: Clip.antiAlias,
-      child: preview,
+      child: OptimizedImageWidget(
+        imageUrl: cleanPath,
+        fit: fit,
+        width: double.infinity,
+        height: double.infinity,
+      ),
     );
   }
 

@@ -1,4 +1,5 @@
-﻿import 'package:electrocitybd1/front_end/pages/home_page.dart';
+import 'package:electrocitybd1/front_end/pages/home_page.dart';
+import 'package:electrocitybd1/front_end/All_Pages/Registrations/login.dart';
 import 'package:electrocitybd1/front_end/Admin_Panel/A_customers.dart';
 import 'package:electrocitybd1/front_end/Admin_Panel/A_payments.dart';
 import 'package:flutter/foundation.dart';
@@ -209,6 +210,15 @@ class _MyAppState extends State<MyApp> {
         ),
       ),
       navigatorObservers: [_scrollObserver],
+      routes: {
+        '/login': (context) => const LogIn(),
+      },
+      onGenerateRoute: (settings) {
+        if (settings.name == '/login') {
+          return MaterialPageRoute(builder: (_) => const LogIn());
+        }
+        return null;
+      },
       home: (kIsWeb && Uri.base.queryParameters['page'] == 'payments')
           ? const AdminPaymentsPage()
           : (kIsWeb &&

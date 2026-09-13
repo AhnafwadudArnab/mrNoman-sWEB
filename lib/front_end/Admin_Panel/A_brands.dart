@@ -2,7 +2,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:electrocitybd1/front_end/utils/api_service.dart';
-import 'package:electrocitybd1/front_end/utils/image_resolver.dart';
+import 'package:electrocitybd1/front_end/utils/optimized_image_widget.dart';
 import 'package:electrocitybd1/front_end/Admin_Panel/Admin_sidebar.dart';
 import 'package:electrocitybd1/front_end/Admin_Panel/A_customers.dart';
 import 'package:electrocitybd1/front_end/Admin_Panel/admin_scaffold.dart';
@@ -109,7 +109,7 @@ class _AdminBrandsPageState extends State<AdminBrandsPage> {
                       : existingLogo.isNotEmpty
                       ? ClipRRect(
                           borderRadius: BorderRadius.circular(8),
-                          child: ImageResolver.image(
+                          child: OptimizedImageWidget(
                             imageUrl: existingLogo,
                             fit: BoxFit.contain,
                           ),
@@ -510,16 +510,11 @@ class _BrandCard extends StatelessWidget {
             child: Padding(
               padding: const EdgeInsets.all(12),
               child: logo.isNotEmpty
-                  ? ImageResolver.image(
+                  ? OptimizedImageWidget(
                       imageUrl: logo,
                       fit: BoxFit.contain,
                       width: double.infinity,
                       height: double.infinity,
-                      placeholder: const Icon(
-                        Icons.business,
-                        color: Colors.black,
-                        size: 32,
-                      ),
                     )
                   : const Icon(Icons.business, color: Colors.black, size: 32),
             ),

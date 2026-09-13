@@ -3,6 +3,7 @@ import 'package:electrocitybd1/config/app_colors.dart';
 
 import '../../All_Pages/CART/Orders.dart';
 import '../../All_Pages/CART/Track_ur_orders.dart';
+import '../../All_Pages/Registrations/login.dart' show LogIn;
 import '../../utils/api_service.dart';
 import '../../utils/image_resolver.dart';
 
@@ -16,6 +17,7 @@ class MyOrdersPage extends StatefulWidget {
 class _MyOrdersPageState extends State<MyOrdersPage> {
   List<OrderModel> _orders = [];
   bool _loading = true;
+  bool _isLoggedIn = true;
   String? _error;
   String _selectedFilter = 'All';
 
@@ -37,14 +39,16 @@ class _MyOrdersPageState extends State<MyOrdersPage> {
       });
     try {
       final token = await ApiService.getToken();
-      if (token == null) {
+      if (token == null || token.isEmpty) {
         if (mounted)
           setState(() {
+            _isLoggedIn = false;
             _loading = false;
             _orders = [];
           });
         return;
       }
+      _isLoggedIn = true;
       final list = await ApiService.getOrders() as List<dynamic>;
       final parsed = list
           .map(
@@ -205,7 +209,63 @@ class _MyOrdersPageState extends State<MyOrdersPage> {
           else
             const SizedBox.shrink(),
           const SizedBox(height: 12),
-          if (_filtered.isEmpty)
+          if (!_isLoggedIn)
+            Center(
+              child: Container(
+                constraints: const BoxConstraints(maxWidth: 440),
+                padding: const EdgeInsets.all(28),
+                margin: const EdgeInsets.symmetric(vertical: 24),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: const Color(0xFFE2E8F0)),
+                ),
+                child: Column(
+                  children: [
+                    const Icon(
+                      Icons.lock_outline_rounded,
+                      size: 48,
+                      color: Color(0xFFFFA500),
+                    ),
+                    const SizedBox(height: 14),
+                    const Text(
+                      'Sign In to View Orders',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF0F172A),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    const Text(
+                      'Please log in to your account to view your live orders and delivery tracking.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(fontSize: 13, color: Color(0xFF64748B)),
+                    ),
+                    const SizedBox(height: 20),
+                    ElevatedButton.icon(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const LogIn()),
+                        ).then((_) => _loadOrders());
+                      },
+                      icon: const Icon(Icons.login, size: 16),
+                      label: const Text('Log In'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: _brandOrange,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            )
+          else if (_filtered.isEmpty)
             Center(
               child: Padding(
                 padding: const EdgeInsets.all(32),
@@ -595,14 +655,14 @@ class _MyOrdersPageState extends State<MyOrdersPage> {
                     'Delivery Address',
                     style: const TextStyle(
                       fontSize: 12,
-                      color: AppColors.textSecondary,
+                      color: Color(0xFF64748B),
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   const SizedBox(height: 6),
                   Text(
                     order.deliveryAddress!,
-                    style: const TextStyle(fontSize: 13, color: AppColors.textPrimary),
+                    style: const TextStyle(fontSize: 13, color: Color(0xFF0F172A), fontWeight: FontWeight.w500),
                   ),
                 ],
               ],
@@ -647,12 +707,12 @@ class _MyOrdersPageState extends State<MyOrdersPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SizedBox(
-            width: 110,
+            width: 120,
             child: Text(
               label,
-              style: TextStyle(
-                fontSize: 12,
-                color: AppColors.grey300,
+              style: const TextStyle(
+                fontSize: 12.5,
+                color: Color(0xFF64748B),
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -662,8 +722,8 @@ class _MyOrdersPageState extends State<MyOrdersPage> {
               value,
               style: const TextStyle(
                 fontSize: 13,
-                color: AppColors.grey300,
-                fontWeight: FontWeight.w500,
+                color: Color(0xFF0F172A),
+                fontWeight: FontWeight.w600,
               ),
             ),
           ),
@@ -705,7 +765,7 @@ class _MyOrdersPageState extends State<MyOrdersPage> {
             child: Container(
               width: 70,
               height: 70,
-              color: AppColors.grey300,
+              color: const Color(0xFFF1F5F9),
               child: item.imagePath != null && item.imagePath!.isNotEmpty
                   ? ImageResolver.image(
                       imageUrl: item.imagePath!,
@@ -730,23 +790,23 @@ class _MyOrdersPageState extends State<MyOrdersPage> {
                   style: const TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 14,
-                    color: AppColors.grey300,
+                    color: Color(0xFF0F172A),
                   ),
                 ),
                 const SizedBox(height: 6),
                 Text(
-                  'Qty: ${item.qty} ? ?${item.price.toStringAsFixed(0)} = ?${(item.qty * item.price).toStringAsFixed(0)}',
-                  style: TextStyle(
-                    color: AppColors.grey300,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
+                  'Qty: ${item.qty} × ৳${item.price.toStringAsFixed(0)} = ৳${(item.qty * item.price).toStringAsFixed(0)}',
+                  style: const TextStyle(
+                    color: Color(0xFF334155),
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
                 if (item.color.isNotEmpty) ...[
                   const SizedBox(height: 3),
                   Text(
                     'Color: ${item.color}',
-                    style: TextStyle(color: AppColors.grey300, fontSize: 11),
+                    style: const TextStyle(color: Color(0xFF64748B), fontSize: 11),
                   ),
                 ],
               ],

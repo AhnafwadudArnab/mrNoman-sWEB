@@ -1,5 +1,7 @@
 import 'package:electrocitybd1/front_end/All_Pages/Registrations/signup.dart'
     show Signup;
+import 'package:electrocitybd1/front_end/All_Pages/Registrations/login.dart'
+    show LogIn;
 import 'package:electrocitybd1/config/app_colors.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -17,14 +19,16 @@ import 'My_order.dart';
 import 'Wishlist_provider.dart';
 
 class ProfilePage extends StatefulWidget {
-  const ProfilePage({super.key});
+  final String? initialMenu;
+  const ProfilePage({super.key, this.initialMenu});
 
   @override
   State<ProfilePage> createState() => _ProfilePageState();
 }
 
 class _ProfilePageState extends State<ProfilePage> {
-  String selectedMenu = "Personal Information";
+  late String selectedMenu;
+  bool _isLoggedIn = true;
 
   // Edit mode flag for personal info
   bool isEditingPersonalInfo = false;
@@ -103,10 +107,21 @@ class _ProfilePageState extends State<ProfilePage> {
   @override
   void initState() {
     super.initState();
+    selectedMenu = widget.initialMenu ?? "Personal Information";
     _loadUserData();
   }
 
   Future<void> _loadUserData() async {
+    final loggedIn = await AuthSession.isLoggedIn();
+    if (!loggedIn) {
+      if (mounted) {
+        setState(() {
+          _isLoggedIn = false;
+        });
+      }
+      return;
+    }
+    _isLoggedIn = true;
     try {
       final profile = await ApiService.getProfile();
       if (!mounted) return;
@@ -238,7 +253,6 @@ class _ProfilePageState extends State<ProfilePage> {
       {"name": "Personal Information", "icon": Icons.person_outline},
       {"name": "My Orders", "icon": Icons.shopping_bag_outlined},
       {"name": "Manage Address", "icon": Icons.location_on_outlined},
-      {"name": "Payment Method", "icon": Icons.payment_outlined},
       {"name": "Password Manager", "icon": Icons.lock_outline},
       {"name": "Logout", "icon": Icons.logout},
     ];
@@ -290,7 +304,6 @@ class _ProfilePageState extends State<ProfilePage> {
       "Personal Information",
       "My Orders",
       "Manage Address",
-      "Payment Method",
       "Password Manager",
       "Logout",
     ];
@@ -429,7 +442,6 @@ class _ProfilePageState extends State<ProfilePage> {
       "Personal Information",
       "My Orders",
       "Manage Address",
-      "Payment Method",
       "Password Manager",
       "Logout",
     ];
@@ -478,6 +490,9 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   Widget _buildProfileForm() {
+    if (!_isLoggedIn) {
+      return _buildLoginPrompt();
+    }
     switch (selectedMenu) {
       case "Personal Information":
         return _buildPersonalInfo();
@@ -494,6 +509,100 @@ class _ProfilePageState extends State<ProfilePage> {
       default:
         return _buildPersonalInfo();
     }
+  }
+
+  Widget _buildLoginPrompt() {
+    return Center(
+      child: Container(
+        constraints: const BoxConstraints(maxWidth: 480),
+        padding: const EdgeInsets.all(32),
+        margin: const EdgeInsets.symmetric(vertical: 24),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: const Color(0xFFE2E8F0)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.04),
+              blurRadius: 16,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 72,
+              height: 72,
+              decoration: BoxDecoration(
+                color: const Color(0xFFFAB12F).withOpacity(0.12),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.lock_outline_rounded,
+                color: Color(0xFFFAB12F),
+                size: 38,
+              ),
+            ),
+            const SizedBox(height: 20),
+            const Text(
+              'Sign In Required',
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF0F172A),
+              ),
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'Please log in to your account to view your profile details, check order history, manage addresses, and update password.',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 14, color: Color(0xFF64748B), height: 1.5),
+            ),
+            const SizedBox(height: 24),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const LogIn()),
+                  ).then((_) => _loadUserData());
+                },
+                icon: const Icon(Icons.login, size: 18),
+                label: const Text(
+                  'Log In to Account',
+                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFFFAB12F),
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  elevation: 0,
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            TextButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const Signup()),
+                ).then((_) => _loadUserData());
+              },
+              child: const Text(
+                'Don\'t have an account? Sign Up',
+                style: TextStyle(color: Color(0xFF2563EB), fontWeight: FontWeight.w600),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   Widget _buildPersonalInfo() {
@@ -1720,7 +1829,7 @@ class _ProfilePageState extends State<ProfilePage> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text("Profile updated successfully! (Saved to database)"),
+          content: Text("Updated successfully!"),
           backgroundColor: Colors.green,
         ),
       );
@@ -1884,7 +1993,7 @@ class _ProfilePageState extends State<ProfilePage> {
       newPasswordController.clear();
       confirmPasswordController.clear();
       _showSnackBar(
-        "Password updated successfully! (Saved to database)",
+        "Updated successfully!",
         Colors.green,
       );
     } on ApiException catch (e) {

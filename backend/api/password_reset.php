@@ -43,8 +43,8 @@ switch ($action) {
                         'password' => getenv('SMTP_PASSWORD') ?: (getenv('MAIL_PASSWORD') ?: ''),
                     ],
                     'mail' => [
-                        'from_address' => getenv('MAIL_FROM_ADDRESS') ?: (getenv('SMTP_USERNAME') ?: (getenv('MAIL_USERNAME') ?: 'noreply@electrocitybd.com')),
-                        'from_name'    => getenv('MAIL_FROM_NAME') ?: 'ElectroCityBD',
+                        'from_address' => getenv('MAIL_FROM_ADDRESS') ?: (getenv('SMTP_USERNAME') ?: (getenv('MAIL_USERNAME') ?: 'electrozonebd1@gmail.com')),
+                        'from_name'    => getenv('MAIL_FROM_NAME') ?: 'ElectroZoneBD',
                     ],
                 ];
                 $factory = EmailServiceFactory::getInstance($config);

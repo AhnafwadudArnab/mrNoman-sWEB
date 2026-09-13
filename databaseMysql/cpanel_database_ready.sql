@@ -199,7 +199,7 @@ CREATE TABLE `products` (
   FULLTEXT KEY `ft_product_search` (`product_name`,`description`),
   CONSTRAINT `products_ibfk_1` FOREIGN KEY (`category_id`) REFERENCES `categories` (`category_id`) ON DELETE SET NULL,
   CONSTRAINT `products_ibfk_2` FOREIGN KEY (`brand_id`) REFERENCES `brands` (`brand_id`) ON DELETE SET NULL
-) ENGINE=InnoDB AUTO_INCREMENT=129 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=133 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 INSERT INTO `products` (`product_id`, `category_id`, `brand_id`, `product_name`, `description`, `price`, `regular_price`, `stock_quantity`, `image_url`, `specs_json`, `created_at`, `min_stock_threshold`, `max_stock_threshold`, `stock_status`) VALUES
 (109, 22, 96, 'Miyoko Blender 600W', 'High-power 600W blender for smoothies, juices and shakes. 1.5L jar.', '1800.00', '2250.00', 50, 'assets/prod/blender.jpg', NULL, '2026-09-03 17:10:04', 5, 1000, 'IN_STOCK'),
@@ -221,7 +221,11 @@ INSERT INTO `products` (`product_id`, `category_id`, `brand_id`, `product_name`,
 (125, 24, 97, 'Rice Cooker 2.8L Large', 'Large capacity rice cooker 2.8L with steamer basket, keep-warm.', '2800.00', '3500.00', 40, 'assets/prod/riceCooker2.jpg', NULL, '2026-09-03 17:10:04', 5, 1000, 'IN_STOCK'),
 (126, 22, 96, 'Hand Blender Pro 500W', 'Professional hand blender 500W with whisk and chopper attachments.', '2200.00', '2750.00', 30, 'assets/prod/hand_blender23.jpg', NULL, '2026-09-03 17:10:04', 5, 1000, 'IN_STOCK'),
 (127, 17, 96, 'Mini Cooker Multi 1.8L', 'Compact multi-cooker 1.8L with non-stick coating, steam, boil, fry.', '1800.00', '2250.00', 45, 'assets/prod/mini2cokker.jpg', NULL, '2026-09-03 17:10:04', 5, 1000, 'IN_STOCK'),
-(128, 22, 103, 'Food Chopper 300W', 'Electric food chopper 300W with 1.2L bowl, stainless steel blades.', '1200.00', '1500.00', 55, 'assets/prod/chopper.jpg', NULL, '2026-09-03 17:10:04', 5, 1000, 'IN_STOCK');
+(128, 22, 103, 'Food Chopper 300W', 'Electric food chopper 300W with 1.2L bowl, stainless steel blades.', '1200.00', '1500.00', 55, 'assets/prod/chopper.jpg', NULL, '2026-09-03 17:10:04', 5, 1000, 'IN_STOCK'),
+(129, 20, 97, 'Smart RGB LED Strip Light 5M', 'RGB multi-color smart LED strip light 5 meters with remote control, music sync, adhesive tape.', '1200.00', '1500.00', 40, 'assets/prod/5.jpg', NULL, '2026-09-03 17:10:04', 5, 1000, 'IN_STOCK'),
+(130, 20, 105, 'Kennede Rechargeable LED Emergency Light', 'High-brightness rechargeable emergency LED lantern with handle, 360-degree illumination, 8 hours backup.', '950.00', '1200.00', 50, 'assets/prod/5.png', NULL, '2026-09-03 17:10:04', 5, 1000, 'IN_STOCK'),
+(131, 21, 99, 'Smart WiFi Security Camera', '1080P HD wireless security camera, night vision, two-way audio, motion alert.', '2800.00', '3500.00', 25, 'assets/prod/2.png', NULL, '2026-09-03 17:10:04', 5, 1000, 'IN_STOCK'),
+(132, 21, 100, 'Smart Bluetooth Audio Speaker', 'Portable wireless bluetooth speaker with deep bass, FM radio, 1200mAh battery.', '1600.00', '2000.00', 30, 'assets/prod/3.png', NULL, '2026-09-03 17:10:04', 5, 1000, 'IN_STOCK');
 
 
 -- --------------------------------------------------------

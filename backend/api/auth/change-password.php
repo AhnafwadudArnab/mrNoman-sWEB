@@ -4,7 +4,7 @@ require_once __DIR__ . '/../bootstrap.php';
 require_once __DIR__ . '/../../config/cors.php';
 require_once __DIR__ . '/../../middleware/authmiddleware.php';
 $method = $_SERVER['REQUEST_METHOD'];
-if ($method !== 'PUT') {
+if ($method !== 'PUT' && $method !== 'POST') {
     http_response_code(405);
     echo json_encode(['message' => 'Method not allowed']);
     exit;
@@ -12,8 +12,8 @@ if ($method !== 'PUT') {
 
 $u = AuthMiddleware::authenticate();
 $data = getJsonBody();
-$current = $data['currentPassword'] ?? '';
-$new = $data['newPassword'] ?? '';
+$current = $data['currentPassword'] ?? $data['current_password'] ?? '';
+$new = $data['newPassword'] ?? $data['new_password'] ?? '';
 if ($current === '' || $new === '') {
     http_response_code(400);
     echo json_encode(['message' => 'currentPassword and newPassword required']);

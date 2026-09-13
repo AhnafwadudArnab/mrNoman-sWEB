@@ -34,7 +34,7 @@ class ProductController {
     }
     
     public function getAll($data) {
-        $limit = isset($data['limit']) ? (int)$data['limit'] : 100;
+        $limit = isset($data['limit']) ? (int)$data['limit'] : 500;
         $offset = isset($data['offset']) ? (int)$data['offset'] : 0;
 
         // Direct search query — delegate to search()

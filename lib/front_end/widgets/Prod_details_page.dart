@@ -9,6 +9,7 @@ import '../All_Pages/CART/Orders.dart';
 import '../pages/Profiles/Wishlist_provider.dart';
 import '../Dimensions/responsive_dimensions.dart';
 import '../utils/image_resolver.dart';
+import '../utils/optimized_image_widget.dart';
 
 class ProductDetailsPage extends StatefulWidget {
   final ProductData product;
@@ -131,14 +132,22 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
       children: [
         Container(
           height: imageHeight,
+          width: double.infinity,
           decoration: BoxDecoration(
             color: const Color(0xFFF7F7F7),
             borderRadius: BorderRadius.circular(12),
-            image: DecorationImage(
-              image: _resolve(images[_activeImageIndex]),
-              fit: BoxFit.contain,
-            ),
           ),
+          clipBehavior: Clip.antiAlias,
+          child: images.isEmpty
+              ? const Center(
+                  child: Icon(Icons.image, size: 60, color: Colors.grey),
+                )
+              : OptimizedImageWidget(
+                  imageUrl: images[_activeImageIndex.clamp(0, images.length - 1)],
+                  fit: BoxFit.contain,
+                  width: double.infinity,
+                  height: imageHeight,
+                ),
         ),
         SizedBox(height: r.hp(2)),
         SizedBox(
@@ -159,14 +168,12 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
                   ),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
-                  child: Image(
-                    image: _resolve(images[index]),
-                    width: 60,
-                    height: 60,
-                    fit: BoxFit.cover,
-                  ),
+                clipBehavior: Clip.antiAlias,
+                child: OptimizedImageWidget(
+                  imageUrl: images[index],
+                  width: 60,
+                  height: 60,
+                  fit: BoxFit.cover,
                 ),
               ),
             ),

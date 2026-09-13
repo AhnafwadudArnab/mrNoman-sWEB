@@ -69,7 +69,13 @@ class AuthSession {
 
   static Future<bool> isLoggedIn() async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getBool(_loggedInKey) ?? false;
+    final loggedIn = prefs.getBool(_loggedInKey) ?? false;
+    final token = prefs.getString(_tokenKey);
+    if (loggedIn && (token == null || token.trim().isEmpty)) {
+      await prefs.remove(_loggedInKey);
+      return false;
+    }
+    return loggedIn && token != null && token.trim().isNotEmpty;
   }
 
   static Future<void> setLoggedIn(bool value) async {

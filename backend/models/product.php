@@ -40,18 +40,35 @@ class Product {
         if ($category) {
             // Support category_id (integer > 0), category name (string), or collection slug (string)
             if (is_numeric($category) && (int)$category > 0) {
-                $conditions[] = "p.category_id = :category";
-                $params[':category'] = (int)$category;
-            } elseif (!is_numeric($category)) {
-                // Try category name first, then collection slug
-                $conditions[] = "(c.category_name = :category_name OR p.product_id IN (
-                    SELECT cp.product_id 
-                    FROM collection_products cp
-                    JOIN collections col ON cp.collection_id = col.collection_id
-                    WHERE col.slug = :category_slug
-                ))";
-                $params[':category_name'] = $category;
-                $params[':category_slug'] = $category;
+                $catId = (int)$category;
+                if ($catId === 16) {
+                    // Parent category 'Home Appliances' includes child categories (Blenders, Irons, Rice Cookers, Air Fryers)
+                    $conditions[] = "p.category_id IN (16, 22, 23, 24, 25)";
+                } else {
+                    $conditions[] = "p.category_id = :category";
+                    $params[':category'] = $catId;
+                }
+            } elseif (!is_numeric($category) && trim((string)$category) !== '') {
+                $catTrim = trim((string)$category);
+                if (strcasecmp($catTrim, 'Home Appliances') === 0) {
+                    $conditions[] = "(c.category_name IN ('Home Appliances', 'Air Fryers', 'Blenders & Mixers', 'Irons & Steamers', 'Rice Cookers') OR p.category_id IN (16, 22, 23, 24, 25))";
+                } elseif (stripos($catTrim, 'Fan') !== false) {
+                    $conditions[] = "(c.category_name LIKE '%Fan%' OR p.category_id = 19)";
+                } elseif (stripos($catTrim, 'Personal Care') !== false) {
+                    $conditions[] = "(c.category_name LIKE '%Personal Care%' OR p.category_id = 18)";
+                } elseif (stripos($catTrim, 'Lighting') !== false) {
+                    $conditions[] = "(c.category_name LIKE '%Lighting%' OR p.category_id = 20)";
+                } else {
+                    $conditions[] = "(c.category_name = :category_name OR c.category_name LIKE :category_like OR p.product_id IN (
+                        SELECT cp.product_id 
+                        FROM collection_products cp
+                        JOIN collections col ON cp.collection_id = col.collection_id
+                        WHERE col.slug = :category_slug
+                    ))";
+                    $params[':category_name'] = $catTrim;
+                    $params[':category_like'] = '%' . $catTrim . '%';
+                    $params[':category_slug'] = $catTrim;
+                }
             }
             // category_id = 0 → no filter (return all)
         }

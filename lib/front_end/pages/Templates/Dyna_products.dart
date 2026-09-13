@@ -7,11 +7,12 @@ import '../../Dimensions/responsive_dimensions.dart';
 import '../../utils/image_resolver.dart';
 import '../../widgets/Sections/BestSellings/ProductData.dart';
 import '../../widgets/Sections/Trendings/trending_all_products.dart';
-import '../../widgets/app_drawer.dart';
 import '../../widgets/footer.dart';
 import '../../widgets/header.dart';
 import '../Profiles/Wishlist_provider.dart';
 import '../home_page.dart';
+import '../../widgets/Sidebar/sidebar.dart';
+import '../../utils/optimized_image_widget.dart';
 import 'category_products_page.dart';
 import 'package:electrocitybd1/front_end/pages/Templates/all_products_template.dart';
 
@@ -68,7 +69,7 @@ class _UniversalProductDetailsState extends State<UniversalProductDetails>
       backgroundColor: Colors.white,
       appBar: const Header(),
       drawer: r.isSmallMobile || r.isMobile || r.isTablet
-          ? const AppDrawer()
+          ? const Drawer(child: SafeArea(child: Sidebar(width: 290)))
           : null,
       body: SingleChildScrollView(
         child: Column(
@@ -329,30 +330,33 @@ class _UniversalProductDetailsState extends State<UniversalProductDetails>
       desktop: 500.0,
     );
 
+    final currentImage = widget.product.images.isNotEmpty
+        ? widget.product.images[_activeImageIndex.clamp(
+            0,
+            widget.product.images.length - 1,
+          )]
+        : '';
+
     return Column(
       children: [
         Container(
           height: imageHeight,
+          width: double.infinity,
           decoration: BoxDecoration(
             color: const Color(0xFFF7F7F7),
             borderRadius: BorderRadius.circular(8),
-            image: widget.product.images.isEmpty
-                ? null
-                : DecorationImage(
-                    image: _resolveImageProvider(
-                      widget.product.images[_activeImageIndex.clamp(
-                        0,
-                        widget.product.images.length - 1,
-                      )],
-                    ),
-                    fit: BoxFit.contain,
-                  ),
           ),
-          child: widget.product.images.isEmpty
+          clipBehavior: Clip.antiAlias,
+          child: currentImage.isEmpty
               ? const Center(
                   child: Icon(Icons.image, size: 80, color: AppColors.grey300),
                 )
-              : null,
+              : OptimizedImageWidget(
+                  imageUrl: currentImage,
+                  fit: BoxFit.contain,
+                  width: double.infinity,
+                  height: imageHeight,
+                ),
         ),
         SizedBox(
           height: r.value(
@@ -411,12 +415,13 @@ class _UniversalProductDetailsState extends State<UniversalProductDetails>
                             width: 2,
                           ),
                           borderRadius: BorderRadius.circular(8),
-                          image: DecorationImage(
-                            image: _resolveImageProvider(
-                              widget.product.images[index],
-                            ),
-                            fit: BoxFit.cover,
-                          ),
+                        ),
+                        clipBehavior: Clip.antiAlias,
+                        child: OptimizedImageWidget(
+                          imageUrl: widget.product.images[index],
+                          fit: BoxFit.cover,
+                          width: double.infinity,
+                          height: double.infinity,
                         ),
                       ),
                     );

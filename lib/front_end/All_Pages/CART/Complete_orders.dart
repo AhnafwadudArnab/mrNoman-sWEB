@@ -8,6 +8,7 @@ import 'package:printing/printing.dart';
 import '../../Dimensions/responsive_dimensions.dart';
 import '../../widgets/footer.dart';
 import '../../widgets/header.dart';
+import '../../widgets/Sidebar/sidebar.dart';
 import 'cart_models.dart';
 
 String _defaultDeliveryDate() {
@@ -103,7 +104,7 @@ class _OrderCompletedPageState extends State<OrderCompletedPage> {
                       crossAxisAlignment: pw.CrossAxisAlignment.start,
                       children: [
                         pw.Text(
-                          'ElectroCityBD',
+                          'ElectroZoneBD',
                           style: pw.TextStyle(
                             color: PdfColors.white,
                             fontSize: 26,
@@ -112,7 +113,7 @@ class _OrderCompletedPageState extends State<OrderCompletedPage> {
                         ),
                         pw.SizedBox(height: 8),
                         pw.Text(
-                          'ahnafwadudarnab@gmail.com',
+                          'electrozonebd1@gmail.com',
                           style: const pw.TextStyle(
                             color: PdfColors.white,
                             fontSize: 12,
@@ -120,7 +121,7 @@ class _OrderCompletedPageState extends State<OrderCompletedPage> {
                         ),
                         pw.SizedBox(height: 4),
                         pw.Text(
-                          '01840-658317',
+                          '+8801341-933958',
                           style: const pw.TextStyle(
                             color: PdfColors.white,
                             fontSize: 12,
@@ -365,7 +366,7 @@ class _OrderCompletedPageState extends State<OrderCompletedPage> {
                     ),
                     pw.SizedBox(height: 4),
                     pw.Text(
-                      'Email: ahnafwadudarnab@gmail.com | Phone: 01840-658317',
+                      'Email: electrozonebd1@gmail.com | Phone: +8801341-933958',
                       style: const pw.TextStyle(
                         fontSize: 10,
                         color: PdfColors.black,
@@ -434,17 +435,7 @@ class _OrderCompletedPageState extends State<OrderCompletedPage> {
 
     return Scaffold(
       appBar: const Header(),
-      drawer: Drawer(
-        child: ListView(
-          padding: EdgeInsets.zero,
-          children: const [
-            DrawerHeader(
-              decoration: BoxDecoration(color: Colors.orange),
-              child: Text('Menu', style: TextStyle(color: Colors.white)),
-            ),
-          ],
-        ),
-      ),
+      drawer: const Drawer(child: SafeArea(child: Sidebar(width: 290))),
       backgroundColor: AppColors.grey300,
       body: SingleChildScrollView(
         child: Column(
@@ -461,7 +452,7 @@ class _OrderCompletedPageState extends State<OrderCompletedPage> {
                   desktop: 40.0,
                 ),
               ),
-              color: AppColors.grey300,
+              color: const Color(0xFF0F172A),
               child: Column(
                 children: [
                   Text(
@@ -469,7 +460,7 @@ class _OrderCompletedPageState extends State<OrderCompletedPage> {
                     style: TextStyle(
                       fontSize: AppDimensions.titleFont(context),
                       fontWeight: FontWeight.bold,
-                      color: AppColors.grey300,
+                      color: Colors.white,
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -484,27 +475,24 @@ class _OrderCompletedPageState extends State<OrderCompletedPage> {
                             ),
                           );
                         },
-                        child: Text(
+                        child: const Text(
                           'Home',
                           style: TextStyle(
-                            color: AppColors.grey300,
+                            color: Color(0xFF94A3B8),
                             fontSize: 14,
                           ),
                         ),
                       ),
-                      Text(
+                      const Text(
                         '  /  ',
-                        style: TextStyle(color: AppColors.grey300, fontSize: 11),
+                        style: TextStyle(color: Color(0xFF64748B), fontSize: 12),
                       ),
-                      TextButton(
-                        onPressed: null,
-                        child: Text(
-                          'Order Completed',
-                          style: TextStyle(
-                            color: AppColors.grey300,
-                            fontSize: 11,
-                            fontWeight: FontWeight.w600,
-                          ),
+                      const Text(
+                        'Order Completed',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
                     ],
@@ -577,35 +565,33 @@ class _OrderCompletedPageState extends State<OrderCompletedPage> {
                 vertical: 32,
                 horizontal: AppDimensions.padding(context),
               ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Wrap(
-                    alignment: WrapAlignment.center,
-                    spacing: 20,
-                    runSpacing: 16,
-                    children: [
-                      _buildFeatureItem(
-                        icon: Icons.local_shipping_outlined,
-                        color: const Color(0xFF1B4D3E),
-                        title: 'Free Shipping',
-                        subtitle: 'Free shipping for order above ৳5000',
-                      ),
-                      _buildFeatureItem(
-                        icon: Icons.payment_outlined,
-                        color: const Color(0xFFB8860B),
-                        title: 'Flexible Payment',
-                        subtitle: 'Multiple secure payment options',
-                      ),
-                      _buildFeatureItem(
-                        icon: Icons.headset_mic_outlined,
-                        color: const Color(0xFF1B4D3E),
-                        title: '24/7 Support',
-                        subtitle: 'We support online all days.',
-                      ),
-                    ],
-                  ),
-                ],
+              child: Center(
+                child: Wrap(
+                  alignment: WrapAlignment.center,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  spacing: 24,
+                  runSpacing: 20,
+                  children: [
+                    _buildFeatureItem(
+                      icon: Icons.local_shipping_outlined,
+                      color: const Color(0xFF1B4D3E),
+                      title: 'Free Shipping',
+                      subtitle: 'Free shipping for order above ৳5000',
+                    ),
+                    _buildFeatureItem(
+                      icon: Icons.payment_outlined,
+                      color: const Color(0xFFB8860B),
+                      title: 'Flexible Payment',
+                      subtitle: 'Multiple secure payment options',
+                    ),
+                    _buildFeatureItem(
+                      icon: Icons.headset_mic_outlined,
+                      color: const Color(0xFF1B4D3E),
+                      title: '24/7 Support',
+                      subtitle: 'We support online all days.',
+                    ),
+                  ],
+                ),
               ),
             ),
 
@@ -620,7 +606,7 @@ class _OrderCompletedPageState extends State<OrderCompletedPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: TextStyle(color: Colors.black54, fontSize: 12)),
+        Text(label, style: const TextStyle(color: Colors.white70, fontSize: 12)),
         const SizedBox(height: 4),
         Text(
           value,
@@ -698,32 +684,39 @@ class _OrderCompletedPageState extends State<OrderCompletedPage> {
     required String title,
     required String subtitle,
   }) {
-    return Row(
-      children: [
-        Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: color.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(12),
+    return Container(
+      constraints: const BoxConstraints(maxWidth: 280),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(icon, color: color, size: 28),
           ),
-          child: Icon(icon, color: color, size: 28),
-        ),
-        const SizedBox(width: 12),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              title,
-              style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+          const SizedBox(width: 12),
+          Flexible(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  subtitle,
+                  style: const TextStyle(color: Color(0xFF64748B), fontSize: 12),
+                ),
+              ],
             ),
-            const SizedBox(height: 4),
-            Text(
-              subtitle,
-              style: TextStyle(color: AppColors.grey300, fontSize: 12),
-            ),
-          ],
-        ),
-      ],
+          ),
+        ],
+      ),
     );
   }
 }

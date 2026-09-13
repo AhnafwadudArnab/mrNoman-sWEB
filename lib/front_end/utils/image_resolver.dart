@@ -112,8 +112,8 @@ class ImageResolver {
     final midBannerAsset = _midBannerAssetUrl(filename);
     if (midBannerAsset != null) return midBannerAsset;
 
-    // Canonical: http://127.0.0.1:8080/public/uploads/filename
-    return '$host/public/uploads/$filename';
+    final apiBase = _activeImageBaseUrl().replaceAll(RegExp(r'/api$'), '');
+    return '$apiBase/api/public/uploads/$filename';
   }
 
   static String? _midBannerAssetUrl(String filename) {
@@ -134,7 +134,8 @@ class ImageResolver {
     if (bannerName.isEmpty) return null;
 
     // Serve from backend's public assets folder
-    return '${_activeHost()}/public/assets/mid-banner-products/$bannerName';
+    final apiBase = _activeImageBaseUrl().replaceAll(RegExp(r'/api$'), '');
+    return '$apiBase/api/public/assets/mid-banner-products/$bannerName';
   }
 
   /// Resolves any image URL string to a fully qualified URL.
@@ -180,8 +181,8 @@ class ImageResolver {
     if (!imageUrl.contains('/')) {
       final mid = _midBannerAssetUrl(imageUrl);
       if (mid != null) return mid;
-      final host = _activeHost();
-      return '$host/public/uploads/$imageUrl';
+      final apiBase = base.replaceAll(RegExp(r'/api$'), '');
+      return '$apiBase/api/public/uploads/$imageUrl';
     }
 
     return '$base/$imageUrl';
@@ -198,13 +199,14 @@ class ImageResolver {
     return imageUrl;
   }
 
-  /// On Flutter Web, asset images must be loaded via absolute URL.
+  /// On Flutter Web, asset images loaded via network (fallback) must be URL-encoded.
   static String _webAssetUrl(String assetPath) {
     final base = getAppBaseUrl();
-    return '$base/$assetPath';
+    final cleanPath = _getAssetPath(assetPath);
+    return Uri.encodeFull('$base/$cleanPath');
   }
 
-  /// On Flutter Web, asset images are loaded via network from the app host.
+  /// Resolves an image path to an Image widget (Asset or Network).
   static Widget image({
     required String? imageUrl,
     BoxFit fit = BoxFit.cover,
@@ -220,20 +222,6 @@ class ImageResolver {
 
     if (isFlutterAsset(path)) {
       final assetPath = _getAssetPath(path);
-      if (kIsWeb) {
-        final networkAssetUrl = _webAssetUrl(assetPath);
-        return Image.network(
-          networkAssetUrl,
-          fit: fit,
-          width: width,
-          height: height,
-          loadingBuilder: (_, child, progress) => progress == null
-              ? child
-              : _placeholderBox(width: width, height: height),
-          errorBuilder: (_, __, ___) =>
-              _placeholderBox(width: width, height: height, child: placeholder),
-        );
-      }
       return Image.asset(
         assetPath,
         fit: fit,
@@ -290,12 +278,10 @@ class ImageResolver {
     }
 
     if (isAssetUrl(imageUrl)) {
-      if (kIsWeb) return NetworkImage(_webAssetUrl(assetPath(imageUrl)));
-      return AssetImage(assetPath(imageUrl));
+      return AssetImage(_getAssetPath(assetPath(imageUrl)));
     }
 
     if (isFlutterAsset(imageUrl)) {
-      if (kIsWeb) return NetworkImage(_webAssetUrl(_getAssetPath(imageUrl)));
       return AssetImage(_getAssetPath(imageUrl));
     }
 

@@ -260,14 +260,14 @@ class _SslPaymentPageState extends State<SslPaymentPage> {
                                 style: const TextStyle(
                                   fontSize: 13,
                                   fontWeight: FontWeight.bold,
-                                  color: AppColors.grey300,
+                                  color: Color(0xFF0F172A),
                                 ),
                               ),
                               Text(
                                 'Trx ID: $_trxId',
                                 style: const TextStyle(
-                                  fontSize: 10,
-                                  color: AppColors.grey300,
+                                  fontSize: 11,
+                                  color: Color(0xFF64748B),
                                 ),
                               ),
                             ],
@@ -282,12 +282,12 @@ class _SslPaymentPageState extends State<SslPaymentPage> {
                             decoration: BoxDecoration(
                               color: _isExpiringSoon
                                   ? Colors.red.shade50
-                                  : AppColors.grey200,
+                                  : const Color(0xFFF1F5F9),
                               borderRadius: BorderRadius.circular(6),
                               border: Border.all(
                                 color: _isExpiringSoon
                                     ? Colors.red.shade300
-                                    : AppColors.grey200,
+                                    : const Color(0xFFCBD5E1),
                               ),
                             ),
                             child: Text(
@@ -297,7 +297,7 @@ class _SslPaymentPageState extends State<SslPaymentPage> {
                                 fontWeight: FontWeight.bold,
                                 color: _isExpiringSoon
                                     ? Colors.red
-                                    : AppColors.grey200,
+                                    : const Color(0xFF0F172A),
                                 fontFeatures: const [
                                   FontFeature.tabularFigures(),
                                 ],
@@ -379,7 +379,7 @@ class _SslPaymentPageState extends State<SslPaymentPage> {
                     style: const TextStyle(
                       fontSize: 28,
                       fontWeight: FontWeight.bold,
-                      color: AppColors.grey300,
+                      color: Color(0xFF0F172A),
                     ),
                   ),
                 ],
@@ -392,7 +392,7 @@ class _SslPaymentPageState extends State<SslPaymentPage> {
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(6),
-                  border: Border.all(color: AppColors.grey300),
+                  border: Border.all(color: const Color(0xFFCBD5E1)),
                 ),
                 child: const Row(
                   children: [
@@ -424,12 +424,12 @@ class _SslPaymentPageState extends State<SslPaymentPage> {
         const SizedBox(height: 28),
         Text(
           _offersTitle,
-          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
         ),
         const SizedBox(height: 2),
         const Text(
           'Automatically Applied with Eligible Payments',
-          style: TextStyle(fontSize: 11, color: AppColors.grey300),
+          style: TextStyle(fontSize: 11, color: Color(0xFF64748B)),
         ),
         const Divider(height: 24),
         const SizedBox(height: 32),
@@ -457,13 +457,13 @@ class _SslPaymentPageState extends State<SslPaymentPage> {
     final style = TextStyle(
       fontSize: 13,
       fontWeight: bold ? FontWeight.bold : FontWeight.normal,
-      color: AppColors.grey300,
+      color: bold ? const Color(0xFF0F172A) : const Color(0xFF334155),
     );
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(label, style: style),
-        Text(value, style: style),
+        Text(value, style: style.copyWith(fontWeight: bold ? FontWeight.bold : FontWeight.w600)),
       ],
     );
   }
@@ -563,7 +563,7 @@ class _SslPaymentPageState extends State<SslPaymentPage> {
               elevation: 0,
             ),
             child: Text(
-              'Pay ?${(widget.grandTotal + _convenienceCharge).toStringAsFixed(2)}',
+              'Pay Tk ${(widget.grandTotal + _convenienceCharge).toStringAsFixed(2)}',
               style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
           ),
@@ -620,22 +620,26 @@ class _SslPaymentPageState extends State<SslPaymentPage> {
               children: [
                 const Text(
                   'Secured by ',
-                  style: TextStyle(fontSize: 10, color: AppColors.grey300),
+                  style: TextStyle(fontSize: 10, color: Color(0xFF64748B)),
                 ),
-                const Icon(Icons.lock_outline, size: 11, color: AppColors.grey300),
+                const Icon(Icons.lock_outline, size: 11, color: Color(0xFF64748B)),
                 const SizedBox(width: 4),
                 Container(
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 4,
+                    horizontal: 5,
                     vertical: 2,
                   ),
                   decoration: BoxDecoration(
-                    border: Border.all(color: AppColors.grey300),
+                    border: Border.all(color: const Color(0xFF94A3B8)),
                     borderRadius: BorderRadius.circular(3),
                   ),
                   child: const Text(
                     'PCI DSS',
-                    style: TextStyle(fontSize: 9, color: AppColors.grey300),
+                    style: TextStyle(
+                      fontSize: 9,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF64748B),
+                    ),
                   ),
                 ),
               ],
@@ -721,7 +725,7 @@ class _SslPaymentPageState extends State<SslPaymentPage> {
         padding: EdgeInsets.all(16),
         child: Text(
           'No mobile banking methods available.',
-          style: TextStyle(color: AppColors.grey300),
+          style: TextStyle(color: Color(0xFF64748B)),
         ),
       );
     }

@@ -66,16 +66,8 @@ if ($method === 'GET') {
         }
     }
     
-    // Get all products - with simple category filtering
-    $limit = isset($_GET['limit']) ? (int)$_GET['limit'] : 500;
-    $offset = isset($_GET['offset']) ? (int)$_GET['offset'] : 0;
-    
-    $query = 'SELECT * FROM products LIMIT ? OFFSET ?';
-    $stmt = $db->prepare($query);
-    $stmt->execute([$limit, $offset]);
-    $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
-    
-    echo json_encode($products);
+    // Get products with category, brand, search filtering and image normalization
+    echo json_encode($product->getAll($_GET));
     exit;
 }
 
