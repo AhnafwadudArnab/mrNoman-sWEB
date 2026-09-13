@@ -23,7 +23,7 @@ class Header extends StatefulWidget implements PreferredSizeWidget {
   const Header({super.key});
 
   @override
-  Size get preferredSize => const Size.fromHeight(124); // Large enough to accommodate expanded search
+  Size get preferredSize => const Size.fromHeight(64);
 
   @override
   State<Header> createState() => _HeaderState();
@@ -429,7 +429,10 @@ class _HeaderState extends State<Header> {
       onTap: onTap,
       borderRadius: BorderRadius.circular(8),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+        padding: EdgeInsets.symmetric(
+          horizontal: showLabel ? 8 : 4,
+          vertical: 6,
+        ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -452,7 +455,7 @@ class _HeaderState extends State<Header> {
               child: Icon(icon, color: Colors.black, size: 22),
             ),
             if (showLabel) ...[
-              const SizedBox(width: 8),
+              const SizedBox(width: 6),
               Text(
                 label,
                 style: const TextStyle(
@@ -475,101 +478,87 @@ class _HeaderState extends State<Header> {
     final isMobile = width <= 480;
     final cartCount = context.watch<CartProvider>().getItemCount();
     final wishlistCount = context.watch<WishlistProvider>().wishlistCount;
+    final double headerHeight = _isSearchExpanded && isSmall ? 124.0 : 64.0;
 
-    return AppBar(
-      automaticallyImplyLeading: false,
-      backgroundColor: const Color(0xFFFAB12F),
+    return Material(
+      color: const Color(0xFFFAB12F),
       elevation: 4,
       shadowColor: const Color(0x1A000000),
-      titleSpacing: 0,
-      toolbarHeight: _isSearchExpanded && isSmall ? 124 : 64,
-      flexibleSpace: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Color(0xFFFAB12F), Color(0xFFFAB12F), Color(0xFFFAB12F)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-        ),
-      ),
-      title: Padding(
-        padding: EdgeInsets.symmetric(horizontal: isMobile ? 4 : 12),
+      child: Container(
+        width: double.infinity,
+        height: headerHeight,
+        padding: EdgeInsets.symmetric(horizontal: isMobile ? 8 : 16),
         child: Column(
-          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Row(
               children: [
-                // Logo & Brand Name (Wrapped in Flexible to prevent overflow)
-                Flexible(
-                  child: InkWell(
-                    onTap: () => Navigator.of(context).pushAndRemoveUntil(
-                      MaterialPageRoute(builder: (_) => const HomePage()),
-                      (route) => false,
+                // 1. Logo & Brand Name (Fixed size, NEVER truncates "ElectroZoneBD")
+                InkWell(
+                  onTap: () => Navigator.of(context).pushAndRemoveUntil(
+                    MaterialPageRoute(builder: (_) => const HomePage()),
+                    (route) => false,
+                  ),
+                  borderRadius: BorderRadius.circular(12),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 2,
+                      vertical: 4,
                     ),
-                    borderRadius: BorderRadius.circular(12),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 4,
-                        vertical: 4,
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Container(
-                            height: isMobile ? 24 : (isSmall ? 32 : 42),
-                            width: isMobile ? 24 : (isSmall ? 32 : 42),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(
-                                isMobile ? 4 : 10,
-                              ),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: const Color(0x1A000000),
-                                  blurRadius: 8,
-                                  offset: const Offset(0, 2),
-                                ),
-                              ],
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          height: isMobile ? 28 : (isSmall ? 32 : 40),
+                          width: isMobile ? 28 : (isSmall ? 32 : 40),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(
+                              isMobile ? 6 : 10,
                             ),
-                            padding: const EdgeInsets.all(3),
-                            child: Image.asset(
-                              'assets/elogo.png',
-                              fit: BoxFit.contain,
-                              errorBuilder: (_, __, ___) => Icon(
-                                Icons.electric_bolt,
-                                color: const Color(0xFFFAB12F),
-                                size: isMobile ? 14 : 24,
+                            boxShadow: const [
+                              BoxShadow(
+                                color: Color(0x1A000000),
+                                blurRadius: 6,
+                                offset: Offset(0, 2),
                               ),
+                            ],
+                          ),
+                          padding: const EdgeInsets.all(3),
+                          child: Image.asset(
+                            'assets/elogo.png',
+                            fit: BoxFit.contain,
+                            errorBuilder: (_, __, ___) => Icon(
+                              Icons.electric_bolt,
+                              color: const Color(0xFFFAB12F),
+                              size: isMobile ? 16 : 24,
                             ),
                           ),
-                          const SizedBox(width: 6),
-                          Flexible(
-                            child: Text(
-                              'ElectroZoneBD',
-                              style: TextStyle(
-                                color: Colors.black,
-                                fontSize: isMobile ? 13 : 18,
-                                fontWeight: FontWeight.w900,
-                                letterSpacing: -0.5,
-                              ),
-                              overflow: TextOverflow.ellipsis,
-                              maxLines: 1,
-                            ),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          'ElectroZoneBD',
+                          style: TextStyle(
+                            color: Colors.black,
+                            fontSize: isMobile ? 15 : 18,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: -0.5,
                           ),
-                        ],
-                      ),
+                          maxLines: 1,
+                        ),
+                      ],
                     ),
                   ),
                 ),
 
-                // Search bar - Hidden on mobile/small tablets
+                // 2. Centered Search Bar on Desktop / Tablets
                 if (!isSmall)
                   Expanded(
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      padding: const EdgeInsets.symmetric(horizontal: 24),
                       child: Center(
                         child: ConstrainedBox(
-                          constraints: const BoxConstraints(maxWidth: 520),
+                          constraints: const BoxConstraints(maxWidth: 540),
                           child: _buildSearchField(isSmall: false),
                         ),
                       ),
@@ -578,24 +567,25 @@ class _HeaderState extends State<Header> {
                 else
                   const Spacer(),
 
-                // Right side items (Icons Row)
+                // 3. Far-Right Action Icons
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    // Search icon for mobile
                     if (isSmall)
                       IconButton(
                         icon: Icon(
                           _isSearchExpanded ? Icons.close : Icons.search,
                           color: Colors.black,
                         ),
+                        padding: const EdgeInsets.symmetric(horizontal: 4),
+                        constraints: const BoxConstraints(),
                         onPressed: () {
                           setState(
                             () => _isSearchExpanded = !_isSearchExpanded,
                           );
                         },
                       ),
-
+                    if (isSmall) const SizedBox(width: 4),
                     _buildHeaderAction(
                       icon: Icons.favorite_outline,
                       label: 'Wishlist',
@@ -609,7 +599,7 @@ class _HeaderState extends State<Header> {
                         );
                       },
                     ),
-                    SizedBox(width: isMobile ? 2 : (isSmall ? 4 : 12)),
+                    SizedBox(width: isMobile ? 2 : 6),
                     _buildHeaderAction(
                       icon: Icons.shopping_bag_outlined,
                       label: 'Cart',
@@ -617,7 +607,7 @@ class _HeaderState extends State<Header> {
                       showLabel: width >= 1150,
                       onTap: () => _openCart(context),
                     ),
-                    SizedBox(width: isMobile ? 2 : (isSmall ? 4 : 12)),
+                    SizedBox(width: isMobile ? 2 : 6),
                     _buildHeaderAction(
                       icon: Icons.account_circle_outlined,
                       label: _isLoggedIn ? 'Account' : 'Login',
@@ -637,7 +627,7 @@ class _HeaderState extends State<Header> {
                       },
                     ),
                     if (_isAdmin) ...[
-                      SizedBox(width: isMobile ? 2 : (isSmall ? 4 : 12)),
+                      SizedBox(width: isMobile ? 2 : 6),
                       _buildHeaderAction(
                         icon: Icons.admin_panel_settings_outlined,
                         label: 'Admin',
@@ -655,12 +645,11 @@ class _HeaderState extends State<Header> {
                     ],
                   ],
                 ),
-                if (!isSmall) const SizedBox(width: 12),
               ],
             ),
             if (_isSearchExpanded && isSmall)
               Padding(
-                padding: const EdgeInsets.only(top: 8, bottom: 8),
+                padding: const EdgeInsets.only(top: 8, bottom: 4),
                 child: _buildSearchField(isSmall: true),
               ),
           ],

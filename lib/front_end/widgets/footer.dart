@@ -375,15 +375,27 @@ class FooterSection extends StatelessWidget {
     );
   }
 
-  Widget _socialIcon(BuildContext context, FaIconData icon) {
+  Widget _socialIcon(BuildContext context, FaIconData icon, {String fallback = ''}) {
     return Padding(
-      padding: const EdgeInsets.only(right: 12),
+      padding: const EdgeInsets.only(right: 10),
       child: InkWell(
         onTap: () {},
-        child: FaIcon(
-          icon,
-          color: Colors.white,
-          size: AppDimensions.iconSize(context) * 0.6,
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          width: 32,
+          height: 32,
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.18),
+            shape: BoxShape.circle,
+            border: Border.all(color: Colors.white.withOpacity(0.3)),
+          ),
+          child: Center(
+            child: FaIcon(
+              icon,
+              color: Colors.white,
+              size: 15,
+            ),
+          ),
         ),
       ),
     );

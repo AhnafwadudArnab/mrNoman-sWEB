@@ -37,7 +37,23 @@ RewriteRule ^ index.html [L]
   AddType application/wasm .wasm
   AddType application/javascript .js .mjs
   AddType application/manifest+json .json
+  AddType font/otf .otf
+  AddType font/ttf .ttf
+  AddType font/woff .woff
+  AddType font/woff2 .woff2
+  AddType application/font-woff .woff
+  AddType application/font-woff2 .woff2
+  AddType image/svg+xml .svg
 </IfModule>
+
+# Allow cross-origin font and asset requests (essential for CanvasKit and Web Workers)
+<FilesMatch "\.(ttf|ttc|otf|eot|woff|woff2|font\.css|css|js|json|wasm)$">
+  <IfModule mod_headers.c>
+    Header set Access-Control-Allow-Origin "*"
+    Header set Access-Control-Allow-Methods "GET, OPTIONS"
+    Header set Access-Control-Allow-Headers "*"
+  </IfModule>
+</FilesMatch>
 
 # Cache static assets
 <IfModule mod_expires.c>
@@ -51,6 +67,9 @@ RewriteRule ^ index.html [L]
   ExpiresByType image/gif                 "access plus 1 year"
   ExpiresByType image/webp                "access plus 1 year"
   ExpiresByType image/svg+xml             "access plus 1 year"
+  ExpiresByType font/otf                  "access plus 1 year"
+  ExpiresByType font/ttf                  "access plus 1 year"
+  ExpiresByType font/woff                 "access plus 1 year"
   ExpiresByType font/woff2                "access plus 1 year"
   ExpiresByType application/wasm          "access plus 1 year"
 </IfModule>
