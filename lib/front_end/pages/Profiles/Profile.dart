@@ -215,8 +215,12 @@ class _ProfilePageState extends State<ProfilePage> {
                         Expanded(flex: 3, child: _buildProfileForm()),
                       ],
                     ),
-                  // Mobile & Tablet Layout - Only Show Form
-                  if (isMobileOrTablet) _buildProfileForm(),
+                  // Mobile & Tablet Layout - Show Horizontal Tab Selector and Form
+                  if (isMobileOrTablet) ...[
+                    _buildMobileTabSelector(),
+                    SizedBox(height: verticalPadding),
+                    _buildProfileForm(),
+                  ],
                   SizedBox(height: verticalPadding * 2),
                 ],
               ),
@@ -225,6 +229,56 @@ class _ProfilePageState extends State<ProfilePage> {
             const FooterSection(),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildMobileTabSelector() {
+    final menuItems = [
+      {"name": "Personal Information", "icon": Icons.person_outline},
+      {"name": "My Orders", "icon": Icons.shopping_bag_outlined},
+      {"name": "Manage Address", "icon": Icons.location_on_outlined},
+      {"name": "Payment Method", "icon": Icons.payment_outlined},
+      {"name": "Password Manager", "icon": Icons.lock_outline},
+      {"name": "Logout", "icon": Icons.logout},
+    ];
+
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: menuItems.map((item) {
+          final isSelected = item["name"] == selectedMenu;
+          final name = item["name"] as String;
+          final icon = item["icon"] as IconData;
+
+          return Padding(
+            padding: const EdgeInsets.only(right: 8, bottom: 4),
+            child: FilterChip(
+              avatar: Icon(
+                icon,
+                size: 16,
+                color: isSelected ? Colors.white : Colors.black87,
+              ),
+              label: Text(name),
+              selected: isSelected,
+              showCheckmark: false,
+              selectedColor: const Color(0xFFFAB12F),
+              backgroundColor: Colors.grey.shade100,
+              side: BorderSide(
+                color: isSelected ? const Color(0xFFFAB12F) : Colors.grey.shade300,
+                width: 1,
+              ),
+              labelStyle: TextStyle(
+                color: isSelected ? Colors.white : Colors.black87,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                fontSize: 12.5,
+              ),
+              onSelected: (_) {
+                setState(() => selectedMenu = name);
+              },
+            ),
+          );
+        }).toList(),
       ),
     );
   }

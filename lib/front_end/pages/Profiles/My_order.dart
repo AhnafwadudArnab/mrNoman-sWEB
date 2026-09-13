@@ -99,12 +99,13 @@ class _MyOrdersPageState extends State<MyOrdersPage> {
   @override
   Widget build(BuildContext context) {
     if (_loading && _orders.isEmpty) {
-      return Scaffold(
-        body: Center(
+      return Container(
+        padding: const EdgeInsets.symmetric(vertical: 40),
+        child: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const CircularProgressIndicator(),
+              const CircularProgressIndicator(color: _brandOrange),
               const SizedBox(height: 16),
               const Text(
                 'Loading orders...',
@@ -117,12 +118,13 @@ class _MyOrdersPageState extends State<MyOrdersPage> {
     }
 
     if (_error != null && _orders.isEmpty) {
-      return Scaffold(
-        body: Center(
+      return Container(
+        padding: const EdgeInsets.symmetric(vertical: 40),
+        child: Center(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.error_outline, size: 64, color: Colors.red[400]),
+              Icon(Icons.error_outline, size: 60, color: Colors.red[400]),
               const SizedBox(height: 16),
               Text(
                 'Error: $_error',
@@ -134,6 +136,7 @@ class _MyOrdersPageState extends State<MyOrdersPage> {
                 onPressed: _loadOrders,
                 icon: const Icon(Icons.refresh),
                 label: const Text('Retry'),
+                style: ElevatedButton.styleFrom(backgroundColor: _brandOrange),
               ),
             ],
           ),
@@ -142,31 +145,43 @@ class _MyOrdersPageState extends State<MyOrdersPage> {
     }
 
     if (_orders.isEmpty) {
-      return Scaffold(
-        body: Center(
+      return Container(
+        padding: const EdgeInsets.symmetric(vertical: 40),
+        child: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(
+              const Icon(
                 Icons.shopping_bag_outlined,
-                size: 80,
+                size: 72,
                 color: Colors.black26,
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 20),
               const Text(
                 'No orders yet',
                 style: TextStyle(
                   fontSize: 18,
-                  color: AppColors.grey300,
-                  fontWeight: FontWeight.w500,
+                  color: AppColors.textPrimary,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 8),
+              const Text(
+                'When you place orders, they will show up here.',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: AppColors.textSecondary,
+                ),
+              ),
+              const SizedBox(height: 20),
               ElevatedButton.icon(
                 onPressed: _loadOrders,
                 icon: const Icon(Icons.refresh),
-                label: const Text('Refresh'),
-                style: ElevatedButton.styleFrom(backgroundColor: _brandOrange),
+                label: const Text('Refresh Orders'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: _brandOrange,
+                  foregroundColor: Colors.white,
+                ),
               ),
             ],
           ),
@@ -176,61 +191,59 @@ class _MyOrdersPageState extends State<MyOrdersPage> {
 
     final visibleOrders = _paginatedOrders;
 
-    return Scaffold(
-      body: RefreshIndicator(
-        onRefresh: _loadOrders,
-        child: SingleChildScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildPremiumHeader(),
-              const SizedBox(height: 20),
-              _buildFilterCardsGrid(),
-              const SizedBox(height: 20),
-              if (_loading)
-                const LinearProgressIndicator()
-              else
-                const SizedBox.shrink(),
-              const SizedBox(height: 12),
-              if (_filtered.isEmpty)
-                Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(32),
-                    child: Column(
-                      children: [
-                        Icon(
-                          Icons.inbox_outlined,
-                          size: 64,
-                          color: Colors.black54,
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          'No $_selectedFilter orders',
-                          style: const TextStyle(fontSize: 16, color: AppColors.textSecondary, fontWeight: FontWeight.w500),
-                        ),
-                      ],
-                    ),
-                  ),
-                )
-              else
-                Column(
+    return Container(
+      padding: const EdgeInsets.all(4),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildPremiumHeader(),
+          const SizedBox(height: 16),
+          _buildFilterCardsGrid(),
+          const SizedBox(height: 16),
+          if (_loading)
+            const LinearProgressIndicator(color: _brandOrange)
+          else
+            const SizedBox.shrink(),
+          const SizedBox(height: 12),
+          if (_filtered.isEmpty)
+            Center(
+              child: Padding(
+                padding: const EdgeInsets.all(32),
+                child: Column(
                   children: [
-                    ListView.builder(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      itemCount: visibleOrders.length,
-                      itemBuilder: (context, i) =>
-                          _buildOrderCard(context, visibleOrders[i]),
+                    const Icon(
+                      Icons.inbox_outlined,
+                      size: 56,
+                      color: Colors.black38,
                     ),
-                    const SizedBox(height: 20),
-                    if (_totalPages > 1) _buildPaginationControls(),
+                    const SizedBox(height: 16),
+                    Text(
+                      'No $_selectedFilter orders',
+                      style: const TextStyle(
+                        fontSize: 15,
+                        color: AppColors.textSecondary,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
                   ],
                 ),
-            ],
-          ),
-        ),
+              ),
+            )
+          else
+            Column(
+              children: [
+                ListView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: visibleOrders.length,
+                  itemBuilder: (context, i) =>
+                      _buildOrderCard(context, visibleOrders[i]),
+                ),
+                const SizedBox(height: 20),
+                if (_totalPages > 1) _buildPaginationControls(),
+              ],
+            ),
+        ],
       ),
     );
   }
@@ -238,10 +251,10 @@ class _MyOrdersPageState extends State<MyOrdersPage> {
   Widget _buildPremiumHeader() {
     return Container(
       decoration: BoxDecoration(
-        gradient: LinearGradient(
+        gradient: const LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [_brandOrange, const Color(0xFFFF8C00)],
+          colors: [_brandOrange, Color(0xFFFF8C00)],
         ),
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
@@ -252,50 +265,44 @@ class _MyOrdersPageState extends State<MyOrdersPage> {
           ),
         ],
       ),
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'My Orders',
-                style: TextStyle(
-                  fontSize: 26,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'My Orders',
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 6),
-              Text(
-                'Track and manage your orders',
-                style: TextStyle(
-                  fontSize: 13,
-                  color: Colors.white.withOpacity(0.95),
-                  fontWeight: FontWeight.w500,
+                const SizedBox(height: 4),
+                Text(
+                  'Track and manage your orders',
+                  style: TextStyle(
+                    fontSize: 12.5,
+                    color: Colors.white.withOpacity(0.95),
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-          Container(
-            decoration: BoxDecoration(
-              color: const Color(0x40FFFFFF),
-              borderRadius: BorderRadius.circular(14),
-            ),
-            padding: const EdgeInsets.all(14),
-            child: const Icon(
-              Icons.shopping_bag,
-              color: Colors.white,
-              size: 32,
-            ),
+          IconButton(
+            onPressed: _loadOrders,
+            icon: const Icon(Icons.refresh, color: Colors.white, size: 24),
+            tooltip: 'Refresh Orders',
           ),
         ],
       ),
     );
   }
 
-  // Grid Layout with SSL Settings style
   Widget _buildFilterCardsGrid() {
     final filters = [
       {
@@ -318,12 +325,7 @@ class _MyOrdersPageState extends State<MyOrdersPage> {
       },
     ];
 
-    return GridView.count(
-      crossAxisCount: 2,
-      crossAxisSpacing: 16,
-      mainAxisSpacing: 16,
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
+    return Row(
       children: filters.map((filter) {
         final isActive = _selectedFilter == filter['label'];
         final count = filter['count'] as int;
@@ -331,84 +333,73 @@ class _MyOrdersPageState extends State<MyOrdersPage> {
         final icon = filter['icon'] as IconData;
         final cardColor = filter['color'] as Color;
 
-        return GestureDetector(
-          onTap: () => _setFilter(label),
-          child: Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: isActive ? Colors.white : AppColors.grey200,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: isActive ? cardColor : cardColor.withOpacity(0.3),
-                width: isActive ? 2.5 : 1.5,
+        return Expanded(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            child: InkWell(
+              onTap: () => _setFilter(label),
+              borderRadius: BorderRadius.circular(12),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+                decoration: BoxDecoration(
+                  color: isActive ? Colors.white : Colors.grey.shade100,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: isActive ? cardColor : Colors.grey.shade300,
+                    width: isActive ? 2 : 1,
+                  ),
+                  boxShadow: isActive
+                      ? [
+                          BoxShadow(
+                            color: cardColor.withOpacity(0.2),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ]
+                      : null,
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(icon, color: cardColor, size: 22),
+                    const SizedBox(height: 6),
+                    Text(
+                      label,
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: isActive ? FontWeight.bold : FontWeight.w500,
+                        color: isActive ? Colors.black87 : Colors.black54,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 4),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: cardColor.withOpacity(isActive ? 0.2 : 0.1),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Text(
+                        '$count',
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                          color: cardColor,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-              boxShadow: [
-                BoxShadow(
-                  color: isActive
-                      ? cardColor.withOpacity(0.25)
-                      : cardColor.withOpacity(0.08),
-                  blurRadius: 12,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(14),
-                  decoration: BoxDecoration(
-                    color: isActive
-                        ? cardColor.withOpacity(0.15)
-                        : cardColor.withOpacity(0.08),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: isActive
-                          ? cardColor.withOpacity(0.4)
-                          : cardColor.withOpacity(0.15),
-                    ),
-                  ),
-                  child: Icon(icon, color: cardColor, size: 32),
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  label,
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: isActive ? Colors.black87 : Colors.black54,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 12),
-                Container(
-                  decoration: BoxDecoration(
-                    color: isActive
-                        ? cardColor.withOpacity(0.15)
-                        : cardColor.withOpacity(0.08),
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: cardColor.withOpacity(0.2)),
-                  ),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 8,
-                  ),
-                  child: Text(
-                    '$count',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: cardColor,
-                    ),
-                  ),
-                ),
-              ],
             ),
           ),
         );
       }).toList(),
     );
   }
+
 
   Widget _buildPaginationControls() {
     return Center(

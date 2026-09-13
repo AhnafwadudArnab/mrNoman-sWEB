@@ -1,4 +1,4 @@
-﻿import 'package:electrocitybd1/config/app_colors.dart';
+import 'package:electrocitybd1/config/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -8,6 +8,8 @@ import '../../Provider/api_ready_notifier.dart';
 import '../../Dimensions/responsive_dimensions.dart';
 import '../../utils/auth_session.dart';
 import '../../utils/api_service.dart';
+import '../../pages/Profiles/Profile.dart';
+import '../../All_Pages/Registrations/login.dart';
 import '../Sections/Flash_Sale/Flash_Sale_all.dart';
 import '../../pages/Templates/category_products_page.dart';
 
@@ -163,8 +165,8 @@ class _SidebarState extends State<Sidebar> {
       width:
           widget.width ??
           r.value(
-            smallMobile: 0.0,
-            mobile: 0.0,
+            smallMobile: 280.0,
+            mobile: 290.0,
             tablet: 260.0,
             smallDesktop: 280.0,
             desktop: 300.0,
@@ -178,6 +180,55 @@ class _SidebarState extends State<Sidebar> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            if (r.isMobile || r.isSmallMobile || r.isTablet) ...[
+              FutureBuilder<bool>(
+                future: AuthSession.isLoggedIn(),
+                builder: (context, snap) {
+                  final loggedIn = snap.data == true;
+                  return Container(
+                    margin: const EdgeInsets.only(bottom: 12),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFFF7E6),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: const Color(0xFFFAB12F)),
+                    ),
+                    child: ListTile(
+                      dense: true,
+                      leading: const Icon(
+                        Icons.account_circle,
+                        color: Color(0xFFFAB12F),
+                        size: 24,
+                      ),
+                      title: Text(
+                        loggedIn ? 'My Profile & Orders' : 'Login / Register',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 13,
+                          color: Colors.black87,
+                        ),
+                      ),
+                      trailing: const Icon(Icons.chevron_right, size: 18),
+                      onTap: () {
+                        if (Scaffold.of(context).isDrawerOpen) {
+                          Navigator.of(context).pop();
+                        }
+                        if (loggedIn) {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => const ProfilePage(),
+                            ),
+                          );
+                        } else {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(builder: (_) => const LogIn()),
+                          );
+                        }
+                      },
+                    ),
+                  );
+                },
+              ),
+            ],
             // ??? HEADER / CATEGORY TOGGLE
             _buildSectionHeader('CATEGORIES', canToggle: true),
             const SizedBox(height: 8),

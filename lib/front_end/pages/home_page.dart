@@ -48,7 +48,9 @@ class _HomePageState extends State<HomePage> {
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7FA),
-      drawer: !showSidebar ? Drawer(child: const Sidebar()) : null,
+      drawer: !showSidebar
+          ? const Drawer(child: SafeArea(child: Sidebar(width: 290)))
+          : null,
       floatingActionButton: const _WhatsAppSupportFab(),
       body: Column(
         children: [

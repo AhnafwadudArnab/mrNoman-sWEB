@@ -17,6 +17,8 @@ import '../Provider/product_refresh_notifier.dart';
 import '../pages/Templates/all_products_template.dart';
 import '../utils/api_service.dart';
 import '../utils/search_history.dart';
+import '../pages/Profiles/Profile.dart';
+import 'Sidebar/sidebar.dart';
 import 'SearchRes.dart';
 
 class Header extends StatefulWidget implements PreferredSizeWidget {
@@ -379,43 +381,9 @@ class _HeaderState extends State<Header> {
   }
 
   void _navigateToProfile() {
-    // Navigate to profile - use deferred import to avoid circular dependency
-    Future.microtask(() async {
-      if (!mounted) return;
-      try {
-        // Use string-based route if app supports it, otherwise use lazy loading
-        // For now, we'll use a simple workaround by loading the module conditionally
-        final profile = await _loadProfileModule();
-        if (profile != null && mounted) {
-          Navigator.of(
-            context,
-          ).push(MaterialPageRoute(builder: (_) => profile));
-        }
-      } catch (e) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Unable to load profile')),
-          );
-        }
-      }
-    });
-  }
-
-  Future<Widget?> _loadProfileModule() async {
-    try {
-      // Dynamic import using Type.fromString pattern
-      // This is a workaround for circular imports
-      const modulePath =
-          'package:electrocitybd1/front_end/pages/Profiles/Profile';
-
-      // Since Dart doesn't support dynamic imports at runtime easily,
-      // we create a factory pattern. The Profile page should be accessible
-      // through a factory or provider. For now, return null to defer loading.
-      // This would be better solved with dependency injection.
-      return null;
-    } catch (e) {
-      return null;
-    }
+    Navigator.of(context)
+        .push(MaterialPageRoute(builder: (_) => const ProfilePage()))
+        .then((_) => _refreshAuthState());
   }
 
   Widget _buildHeaderAction({
@@ -424,35 +392,36 @@ class _HeaderState extends State<Header> {
     required VoidCallback onTap,
     int count = 0,
     bool showLabel = true,
+    bool isMobile = false,
   }) {
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(8),
       child: Padding(
         padding: EdgeInsets.symmetric(
-          horizontal: showLabel ? 8 : 4,
+          horizontal: showLabel ? 8 : (isMobile ? 3 : 5),
           vertical: 6,
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             badges.Badge(
-              position: badges.BadgePosition.topEnd(top: -8, end: -8),
+              position: badges.BadgePosition.topEnd(top: -7, end: -7),
               badgeContent: Text(
                 count.toString(),
                 style: const TextStyle(
                   color: Colors.white,
-                  fontSize: 10,
+                  fontSize: 9,
                   fontWeight: FontWeight.bold,
                 ),
               ),
               showBadge: count > 0,
               badgeStyle: const badges.BadgeStyle(
                 badgeColor: Colors.black,
-                padding: EdgeInsets.all(4),
+                padding: EdgeInsets.all(3),
                 elevation: 0,
               ),
-              child: Icon(icon, color: Colors.black, size: 22),
+              child: Icon(icon, color: Colors.black, size: isMobile ? 20 : 22),
             ),
             if (showLabel) ...[
               const SizedBox(width: 6),
@@ -493,7 +462,48 @@ class _HeaderState extends State<Header> {
           children: [
             Row(
               children: [
-                // 1. Logo & Brand Name (Fixed size, NEVER truncates "ElectroZoneBD")
+                // Hamburger Menu for Mobile & Tablet
+                if (isSmall) ...[
+                  Builder(
+                    builder: (menuCtx) => IconButton(
+                      icon: const Icon(Icons.menu, color: Colors.black, size: 24),
+                      padding: const EdgeInsets.only(right: 4),
+                      constraints: const BoxConstraints(),
+                      tooltip: 'Menu',
+                      onPressed: () {
+                        final scaffold = Scaffold.maybeOf(menuCtx);
+                        if (scaffold != null && scaffold.hasDrawer) {
+                          scaffold.openDrawer();
+                        } else {
+                          showModalBottomSheet(
+                            context: menuCtx,
+                            isScrollControlled: true,
+                            backgroundColor: Colors.transparent,
+                            builder: (_) => FractionallySizedBox(
+                              heightFactor: 0.9,
+                              alignment: Alignment.centerLeft,
+                              child: Container(
+                                width: 290,
+                                decoration: const BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.horizontal(
+                                    right: Radius.circular(16),
+                                  ),
+                                ),
+                                child: const SafeArea(
+                                  child: Sidebar(width: 290),
+                                ),
+                              ),
+                            ),
+                          );
+                        }
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                ],
+
+                // 1. Logo & Brand Name (Fixed size, NEVER truncates or disappears)
                 InkWell(
                   onTap: () => Navigator.of(context).pushAndRemoveUntil(
                     MaterialPageRoute(builder: (_) => const HomePage()),
@@ -509,12 +519,12 @@ class _HeaderState extends State<Header> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Container(
-                          height: isMobile ? 28 : (isSmall ? 32 : 40),
-                          width: isMobile ? 28 : (isSmall ? 32 : 40),
+                          height: isMobile ? 26 : (isSmall ? 30 : 38),
+                          width: isMobile ? 26 : (isSmall ? 30 : 38),
                           decoration: BoxDecoration(
                             color: Colors.white,
                             borderRadius: BorderRadius.circular(
-                              isMobile ? 6 : 10,
+                              isMobile ? 6 : 8,
                             ),
                             boxShadow: const [
                               BoxShadow(
@@ -524,23 +534,23 @@ class _HeaderState extends State<Header> {
                               ),
                             ],
                           ),
-                          padding: const EdgeInsets.all(3),
+                          padding: const EdgeInsets.all(2.5),
                           child: Image.asset(
                             'assets/elogo.png',
                             fit: BoxFit.contain,
                             errorBuilder: (_, __, ___) => Icon(
                               Icons.electric_bolt,
                               color: const Color(0xFFFAB12F),
-                              size: isMobile ? 16 : 24,
+                              size: isMobile ? 16 : 22,
                             ),
                           ),
                         ),
-                        const SizedBox(width: 8),
+                        const SizedBox(width: 6),
                         Text(
                           'ElectroZoneBD',
                           style: TextStyle(
                             color: Colors.black,
-                            fontSize: isMobile ? 15 : 18,
+                            fontSize: isMobile ? 14 : 17,
                             fontWeight: FontWeight.w900,
                             letterSpacing: -0.5,
                           ),
@@ -576,8 +586,9 @@ class _HeaderState extends State<Header> {
                         icon: Icon(
                           _isSearchExpanded ? Icons.close : Icons.search,
                           color: Colors.black,
+                          size: isMobile ? 20 : 22,
                         ),
-                        padding: const EdgeInsets.symmetric(horizontal: 4),
+                        padding: EdgeInsets.symmetric(horizontal: isMobile ? 2 : 4),
                         constraints: const BoxConstraints(),
                         onPressed: () {
                           setState(
@@ -585,12 +596,13 @@ class _HeaderState extends State<Header> {
                           );
                         },
                       ),
-                    if (isSmall) const SizedBox(width: 4),
+                    if (isSmall) SizedBox(width: isMobile ? 1 : 4),
                     _buildHeaderAction(
                       icon: Icons.favorite_outline,
                       label: 'Wishlist',
                       count: wishlistCount,
                       showLabel: width >= 1150,
+                      isMobile: isMobile,
                       onTap: () {
                         Navigator.of(context).push(
                           MaterialPageRoute(
@@ -599,19 +611,21 @@ class _HeaderState extends State<Header> {
                         );
                       },
                     ),
-                    SizedBox(width: isMobile ? 2 : 6),
+                    SizedBox(width: isMobile ? 1 : 4),
                     _buildHeaderAction(
                       icon: Icons.shopping_bag_outlined,
                       label: 'Cart',
                       count: cartCount,
                       showLabel: width >= 1150,
+                      isMobile: isMobile,
                       onTap: () => _openCart(context),
                     ),
-                    SizedBox(width: isMobile ? 2 : 6),
+                    SizedBox(width: isMobile ? 1 : 4),
                     _buildHeaderAction(
                       icon: Icons.account_circle_outlined,
                       label: _isLoggedIn ? 'Account' : 'Login',
                       showLabel: width >= 1150,
+                      isMobile: isMobile,
                       onTap: () {
                         if (_isLoggedIn) {
                           _navigateToProfile();
@@ -627,11 +641,12 @@ class _HeaderState extends State<Header> {
                       },
                     ),
                     if (_isAdmin) ...[
-                      SizedBox(width: isMobile ? 2 : 6),
+                      SizedBox(width: isMobile ? 1 : 4),
                       _buildHeaderAction(
                         icon: Icons.admin_panel_settings_outlined,
                         label: 'Admin',
                         showLabel: width >= 1150,
+                        isMobile: isMobile,
                         onTap: () {
                           Navigator.of(context)
                               .push(

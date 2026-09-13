@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:electrocitybd1/config/app_colors.dart';
 import 'package:provider/provider.dart';
-import 'package:electrocitybd1/config/app_config.dart';
 
 import '../../utils/api_service.dart';
 import '../../Dimensions/responsive_dimensions.dart';
