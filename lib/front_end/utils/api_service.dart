@@ -1075,12 +1075,26 @@ class ApiService {
     bool useCache = true,
     int days = 8,
   }) async {
-    final result = await get('/admin/dashboard?days=$days', useCache: useCache);
-    if (result is Map<String, dynamic>) return result;
-    if (result is Map) return Map<String, dynamic>.from(result);
-    // Server returned something unexpected — return empty map so the
-    // dashboard renders with zeros rather than crashing.
-    return <String, dynamic>{};
+    try {
+      final result = await get('/admin/dashboard?days=$days', useCache: useCache);
+      if (result is Map<String, dynamic>) return result;
+      if (result is Map) return Map<String, dynamic>.from(result);
+      return <String, dynamic>{
+        'totalRevenue': 0,
+        'totalOrders': 0,
+        'totalCustomers': 0,
+        'pendingOrders': 0,
+        'dailyRevenue': [],
+      };
+    } catch (_) {
+      return <String, dynamic>{
+        'totalRevenue': 0,
+        'totalOrders': 0,
+        'totalCustomers': 0,
+        'pendingOrders': 0,
+        'dailyRevenue': [],
+      };
+    }
   }
 
   static Future<List<dynamic>> getCustomers() async {

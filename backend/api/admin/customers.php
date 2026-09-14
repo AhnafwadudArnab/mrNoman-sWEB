@@ -1,8 +1,22 @@
 <?php
 header('Content-Type: application/json');
-require_once __DIR__ . '/../bootstrap.php';
-require_once __DIR__ . '/../../config/cors.php';
-require_once __DIR__ . '/../../middleware/authmiddleware.php';
+if (file_exists(__DIR__ . '/../bootstrap.php')) {
+    require_once __DIR__ . '/../bootstrap.php';
+} elseif (file_exists(__DIR__ . '/../../bootstrap.php')) {
+    require_once __DIR__ . '/../../bootstrap.php';
+}
+
+if (file_exists(__DIR__ . '/../config/cors.php')) {
+    require_once __DIR__ . '/../config/cors.php';
+} elseif (file_exists(__DIR__ . '/../../config/cors.php')) {
+    require_once __DIR__ . '/../../config/cors.php';
+}
+
+if (file_exists(__DIR__ . '/../middleware/authmiddleware.php')) {
+    require_once __DIR__ . '/../middleware/authmiddleware.php';
+} elseif (file_exists(__DIR__ . '/../../middleware/authmiddleware.php')) {
+    require_once __DIR__ . '/../../middleware/authmiddleware.php';
+}
 
 $method = $_SERVER['REQUEST_METHOD'];
 $user = AuthMiddleware::authenticateAdmin();
