@@ -76,13 +76,25 @@ if ($method === 'GET') {
 if ($method === 'POST') {
     $admin = AuthMiddleware::authenticateAdmin();
     
-    // Handle both JSON and form data
-    $input = file_get_contents('php://input');
-    $data = !empty($input) ? json_decode($input, true) : $_POST;
+    // Handle both multipart/form-data and JSON data cleanly
+    if (!empty($_POST)) {
+        $data = $_POST;
+    } else {
+        $input = file_get_contents('php://input') ?: '';
+        $decoded = json_decode($input, true);
+        $data = is_array($decoded) ? $decoded : [];
+    }
     
     if (!empty($_FILES['image'])) {
         $path = saveUploadedImage($_FILES['image']);
         if ($path) $data['image_url'] = $path;
+    }
+
+    if (isset($data['specs']) && is_string($data['specs'])) {
+        $decodedSpecs = json_decode($data['specs'], true);
+        if (is_array($decodedSpecs)) {
+            $data['specs'] = $decodedSpecs;
+        }
     }
     
     // Check if this is an update request (?id=X, product_id in body, or _method=PUT)

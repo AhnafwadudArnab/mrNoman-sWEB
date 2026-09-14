@@ -5,8 +5,6 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:electrocitybd1/config/app_config.dart';
 
-import 'constants.dart';
-
 String _apiBase() => ApiService.overrideBaseUrl ?? AppConfig.apiBaseUrl;
 
 /// Convert endpoint to .php file (e.g., /products -> /products.php, /deals_timer/3 -> /deals_timer.php?id=3)
@@ -95,11 +93,8 @@ class ApiService {
 
   /// Get the upload endpoint URL
   static String getUploadUrl() {
-    final base = overrideBaseUrl ?? AppConstants.baseUrl;
-    if (base.endsWith('/api')) {
-      return base.replaceAll('/api', '/api/upload');
-    }
-    return '$base/upload';
+    final base = _apiBase();
+    return '$base/upload.php';
   }
 
   static String get baseUrl {
@@ -160,16 +155,22 @@ class ApiService {
     _cachedToken = token;
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_tokenKey, token);
+    invalidateCache();
   }
 
   static Future<void> clearToken() async {
     _cachedToken = null;
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_tokenKey);
+    invalidateCache();
   }
 
   static Future<Map<String, String>> _headers({bool withAuth = true}) async {
-    final headers = <String, String>{'Content-Type': 'application/json'};
+    final headers = <String, String>{
+      'Content-Type': 'application/json',
+      'Cache-Control': 'no-cache, no-store, must-revalidate',
+      'Pragma': 'no-cache',
+    };
     if (withAuth) {
       final token = await getToken();
       if (token != null) {
@@ -431,9 +432,7 @@ class ApiService {
           )
           .timeout(_requestTimeout);
       final handled = await _handleResponse(res);
-      if (!endpoint.contains('login') && !endpoint.contains('register')) {
-        invalidateCache();
-      }
+      invalidateCache();
       return handled;
     });
   }
@@ -540,7 +539,8 @@ class ApiService {
   static Future<Map<String, dynamic>> getProfile({
     bool useCache = false,
   }) async {
-    return await get('/auth/me', useCache: useCache) as Map<String, dynamic>;
+    final t = DateTime.now().millisecondsSinceEpoch;
+    return await get('/auth/me?_t=$t', useCache: false) as Map<String, dynamic>;
   }
 
   static Future<void> updateProfile(Map<String, dynamic> data) async {
@@ -652,10 +652,16 @@ class ApiService {
     Map<String, dynamic>? specs,
   }) async {
     Future<Map<String, dynamic>> _send(String base) async {
-      final uri = Uri.parse('$base/products');
+      final endpoint = _toPHP('/products');
+      final uri = Uri.parse('$base$endpoint');
       final request = http.MultipartRequest('POST', uri);
       final token = await getToken();
-      if (token != null) request.headers['Authorization'] = 'Bearer $token';
+      if (token != null) {
+        request.headers['Authorization'] = 'Bearer $token';
+        request.headers['X-Authorization'] = 'Bearer $token';
+      }
+      request.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate';
+      request.headers['Pragma'] = 'no-cache';
 
       request.fields['product_name'] = product_name;
       request.fields['description'] = description;
@@ -669,6 +675,8 @@ class ApiService {
       if (brand_id != null) request.fields['brand_id'] = brand_id.toString();
       if (image_url != null && image_url.isNotEmpty)
         request.fields['image_url'] = image_url;
+      if (specs != null && specs.isNotEmpty)
+        request.fields['specs'] = jsonEncode(specs);
 
       if (imageBytes != null &&
           imageBytes.isNotEmpty &&
@@ -692,36 +700,29 @@ class ApiService {
         throw ApiException('Empty response from server', res.statusCode);
       }
 
-      // Check if response starts with valid JSON
-      if (!body.startsWith('{') && !body.startsWith('[')) {
-        throw ApiException(
-          'Unable to process server response. Please try again.',
-          res.statusCode,
-        );
-      }
-
       final decoded = _tryJsonDecode(body);
       if (res.statusCode >= 200 && res.statusCode < 300) {
         return decoded is Map<String, dynamic> ? decoded : {'data': decoded};
       }
       throw ApiException(
         decoded is Map
-            ? (decoded['error'] ?? 'Request failed')
-            : 'Request failed',
+            ? cleanErrorMessage(decoded['error'] ?? decoded['message'] ?? 'Request failed', statusCode: res.statusCode)
+            : cleanErrorMessage(decoded, statusCode: res.statusCode),
         res.statusCode,
       );
     }
 
     try {
       final result = await _send(_apiBase());
-      invalidateCache('/products');
+      invalidateCache();
       return result;
-    } catch (_) {
+    } catch (e) {
+      if (e is ApiException && e.statusCode > 0) rethrow;
       final base = await _reprobeBase();
       if (base != null) {
         setBaseUrl(base);
         final result = await _send(base);
-        invalidateCache('/products');
+        invalidateCache();
         return result;
       }
       rethrow;
@@ -776,7 +777,8 @@ class ApiService {
   // --- Orders API ---
 
   static Future<List<dynamic>> getOrders({bool admin = false}) async {
-    final endpoint = admin ? '/orders.php?admin=true' : '/orders.php';
+    final t = DateTime.now().millisecondsSinceEpoch;
+    final endpoint = admin ? '/orders.php?admin=true&_t=$t' : '/orders.php?_t=$t';
     final token = await getToken();
     final withAuth = token != null && token.isNotEmpty;
 
@@ -843,10 +845,11 @@ class ApiService {
   }
 
   static Future<Map<String, dynamic>> getOrderDetail(int orderId) async {
+    final t = DateTime.now().millisecondsSinceEpoch;
     return _withReprobeBase((base) async {
       final res = await http
           .get(
-            Uri.parse('$base/orders.php?id=$orderId'),
+            Uri.parse('$base/orders.php?id=$orderId&_t=$t'),
             headers: await _headers(withAuth: true),
           )
           .timeout(_requestTimeout);
@@ -1400,12 +1403,10 @@ class ApiService {
   }
 
   static Future<Map<String, dynamic>> getSiteSetting(String key) async {
-    // Use _withReprobeBase directly to avoid _ensureTrailingSlash turning
-    // /site_settings?key=foo into /site_settings/?key=foo which loses the param
     final result = await _withReprobeBase((base) async {
       final res = await http
           .get(
-            Uri.parse('$base/site_settings?key=$key'),
+            Uri.parse('$base/site_settings.php?key=$key'),
             headers: await _headers(withAuth: false),
           )
           .timeout(_requestTimeout);
@@ -1424,11 +1425,10 @@ class ApiService {
   }
 
   static Future<void> saveSiteSetting(Map<String, dynamic> data) async {
-    // Use _withReprobeBase directly to avoid trailing slash on /site_settings/
     await _withReprobeBase((base) async {
       final res = await http
           .post(
-            Uri.parse('$base/site_settings'),
+            Uri.parse('$base/site_settings.php'),
             headers: await _headers(withAuth: true),
             body: jsonEncode(data),
           )

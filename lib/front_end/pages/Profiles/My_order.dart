@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:electrocitybd1/config/app_colors.dart';
 
@@ -20,6 +21,8 @@ class _MyOrdersPageState extends State<MyOrdersPage> {
   bool _isLoggedIn = true;
   String? _error;
   String _selectedFilter = 'All';
+  Timer? _pollingTimer;
+  DateTime? _lastRefreshed;
 
   static const int _itemsPerPage = 10;
   int _currentPage = 1;
@@ -29,14 +32,27 @@ class _MyOrdersPageState extends State<MyOrdersPage> {
   void initState() {
     super.initState();
     _loadOrders();
+    // Auto-sync order status every 10 seconds while user is viewing their orders
+    _pollingTimer = Timer.periodic(const Duration(seconds: 10), (_) {
+      if (mounted && _isLoggedIn) {
+        _loadOrders(silent: true);
+      }
+    });
   }
 
-  Future<void> _loadOrders() async {
-    if (mounted)
+  @override
+  void dispose() {
+    _pollingTimer?.cancel();
+    super.dispose();
+  }
+
+  Future<void> _loadOrders({bool silent = false}) async {
+    if (!silent && mounted) {
       setState(() {
         _loading = true;
         _error = null;
       });
+    }
     try {
       final token = await ApiService.getToken();
       if (token == null || token.isEmpty) {
@@ -57,14 +73,15 @@ class _MyOrdersPageState extends State<MyOrdersPage> {
           .toList();
       final seen = <String>{};
       final unique = parsed.where((o) => seen.add(o.id)).toList();
-      if (mounted)
+      if (mounted) {
         setState(() {
           _orders = unique;
           _loading = false;
-          _currentPage = 1;
+          _lastRefreshed = DateTime.now();
         });
+      }
     } catch (e) {
-      if (mounted)
+      if (mounted && !silent) {
         setState(() {
           _loading = false;
           _error = e
@@ -72,6 +89,7 @@ class _MyOrdersPageState extends State<MyOrdersPage> {
               .replaceFirst('ApiException(', '')
               .replaceFirst(')', '');
         });
+      }
     }
   }
 
@@ -309,6 +327,10 @@ class _MyOrdersPageState extends State<MyOrdersPage> {
   }
 
   Widget _buildPremiumHeader() {
+    final timeStr = _lastRefreshed != null
+        ? '${_lastRefreshed!.hour.toString().padLeft(2, '0')}:${_lastRefreshed!.minute.toString().padLeft(2, '0')}:${_lastRefreshed!.second.toString().padLeft(2, '0')}'
+        : null;
+
     return Container(
       decoration: BoxDecoration(
         gradient: const LinearGradient(
@@ -333,17 +355,56 @@ class _MyOrdersPageState extends State<MyOrdersPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'My Orders',
-                  style: TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
+                Row(
+                  children: [
+                    const Text(
+                      'My Orders',
+                      style: TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 2,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Container(
+                            width: 7,
+                            height: 7,
+                            decoration: const BoxDecoration(
+                              color: Color(0xFF4ADE80), // Live green
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                          const SizedBox(width: 5),
+                          const Text(
+                            'Live Sync',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Track and manage your orders',
+                  timeStr != null
+                      ? 'Track and manage your orders • Synced at $timeStr'
+                      : 'Track and manage your orders',
                   style: TextStyle(
                     fontSize: 12.5,
                     color: Colors.white.withOpacity(0.95),
@@ -354,9 +415,9 @@ class _MyOrdersPageState extends State<MyOrdersPage> {
             ),
           ),
           IconButton(
-            onPressed: _loadOrders,
+            onPressed: () => _loadOrders(silent: false),
             icon: const Icon(Icons.refresh, color: Colors.white, size: 24),
-            tooltip: 'Refresh Orders',
+            tooltip: 'Refresh Orders Now',
           ),
         ],
       ),

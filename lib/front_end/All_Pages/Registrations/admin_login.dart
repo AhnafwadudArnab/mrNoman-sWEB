@@ -42,6 +42,11 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
     setState(() => _isLoading = true);
 
     try {
+      // Wipe any lingering session before admin login
+      await AuthSession.clear();
+      await ApiService.clearToken();
+      ApiService.invalidateCache();
+
       // Call the admin login API
       final result = await ApiService.adminLogin(
         username: username,

@@ -47,6 +47,11 @@ class _LogInState extends State<LogIn> {
       final email = _emailController.text.trim();
       final password = _passwordController.text;
 
+      // Wipe any lingering previous session/token/cache before logging in
+      await AuthSession.clear();
+      await ApiService.clearToken();
+      ApiService.invalidateCache();
+
       final result = await ApiService.login(email: email, password: password);
 
       if (!mounted) return;
@@ -62,10 +67,14 @@ class _LogInState extends State<LogIn> {
         throw ApiException('Invalid email or password.', 401);
       }
 
+      final emailFromBackend = (userMap['email'] ?? '').toString().trim();
+      final resolvedEmail =
+          emailFromBackend.isNotEmpty ? emailFromBackend : email;
+
       final userData = UserData(
         firstName: userMap['firstName'] ?? userMap['full_name'] ?? 'User',
         lastName: userMap['lastName'] ?? userMap['last_name'] ?? '',
-        email: userMap['email'] ?? '',
+        email: resolvedEmail,
         phone: userMap['phone'] ?? userMap['phone_number'] ?? '',
         gender: userMap['gender'] ?? 'Male',
         address: userMap['address'] ?? '',
@@ -89,7 +98,7 @@ class _LogInState extends State<LogIn> {
               userData.firstName,
           lastName:
               profile['lastName'] ?? profile['last_name'] ?? userData.lastName,
-          email: profile['email'] ?? userData.email,
+          email: resolvedEmail, // Strictly preserve user's authenticated email
           phone: profile['phone'] ?? profile['phone_number'] ?? userData.phone,
           gender: profile['gender'] ?? userData.gender,
           address: profile['address'] ?? userData.address,
@@ -98,7 +107,7 @@ class _LogInState extends State<LogIn> {
       } catch (_) {}
 
       await context.read<CartProvider>().setCurrentUserId(
-        userData.email,
+        resolvedEmail,
         mergeFromGuest: true,
       );
 

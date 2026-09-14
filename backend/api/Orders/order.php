@@ -1,5 +1,8 @@
 <?php
 header('Content-Type: application/json');
+header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+header('Pragma: no-cache');
+header('Expires: 0');
 ob_start(); // buffer any PHP warnings/notices so they don't corrupt JSON output
 require_once __DIR__ . '/../bootstrap.php';
 require_once __DIR__ . '/../../config/cors.php';

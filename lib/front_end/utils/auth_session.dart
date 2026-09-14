@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:shared_preferences/shared_preferences.dart';
+import 'api_service.dart';
 
 class UserData {
   final String firstName;
@@ -130,6 +131,8 @@ class AuthSession {
     await prefs.remove(_userDataKey);
     await prefs.remove(_isAdminKey);
     await prefs.remove(_tokenKey);
+    await ApiService.clearToken();
+    ApiService.invalidateCache();
   }
 
   static Future<void> saveToken(String token) async {
@@ -145,6 +148,8 @@ class AuthSession {
   static Future<void> clearToken() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_tokenKey);
+    await ApiService.clearToken();
+    ApiService.invalidateCache();
   }
 }
 

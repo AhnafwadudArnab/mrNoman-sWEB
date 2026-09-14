@@ -1,6 +1,7 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:electrocitybd1/front_end/All_Pages/Registrations/signup.dart';
 import 'package:electrocitybd1/front_end/utils/api_service.dart';
@@ -26,10 +27,12 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
   bool _statsLoading = true;
   String? _adminName;
   String _selectedPeriod = 'Last 7 Days';
+  double? _customMonthlyTarget;
 
   @override
   void initState() {
     super.initState();
+    _loadCustomTarget();
     _loadDashboardStats();
     _loadAdminName();
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -37,6 +40,119 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
         context.read<OrdersProvider>().refreshFromApi(admin: true);
       }
     });
+  }
+
+  Future<void> _loadCustomTarget() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final val = prefs.getDouble('admin_monthly_target');
+      if (val != null && val > 0 && mounted) {
+        setState(() {
+          _customMonthlyTarget = val;
+        });
+      }
+    } catch (_) {}
+  }
+
+  void _showSetTargetDialog(double currentTarget) {
+    final controller = TextEditingController(
+      text: currentTarget > 0 ? currentTarget.toStringAsFixed(0) : '',
+    );
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: AdminTheme.brand.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Icon(Icons.track_changes, color: AdminTheme.brand, size: 20),
+            ),
+            const SizedBox(width: 12),
+            const Text(
+              'Set Monthly Target',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Enter your monthly revenue target in ৳ (BDT). Progress will be calculated relative to this target.',
+              style: TextStyle(fontSize: 13, color: AdminTheme.textSecondary),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: controller,
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              autofocus: true,
+              decoration: InputDecoration(
+                labelText: 'Target Amount (৳)',
+                prefixText: '৳ ',
+                hintText: 'e.g. 500000',
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: const BorderSide(color: AdminTheme.brand, width: 2),
+                ),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text('Cancel', style: TextStyle(color: AdminTheme.textSecondary)),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              final text = controller.text.trim();
+              final amount = double.tryParse(text);
+              if (amount != null && amount > 0) {
+                final prefs = await SharedPreferences.getInstance();
+                await prefs.setDouble('admin_monthly_target', amount);
+                if (mounted) {
+                  setState(() {
+                    _customMonthlyTarget = amount;
+                  });
+                }
+              }
+              if (ctx.mounted) Navigator.of(ctx).pop();
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AdminTheme.brand,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
+            child: const Text('Save Target'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _resetTarget() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('admin_monthly_target');
+      if (mounted) {
+        setState(() {
+          _customMonthlyTarget = null;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Target reset to automatic calculation.'),
+            backgroundColor: Colors.blueGrey,
+          ),
+        );
+      }
+    } catch (_) {}
   }
 
   String? _statsError;
@@ -1098,11 +1214,12 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
   }
 
   Widget _buildMonthlyTarget() {
-    final double target = _toDouble(_dashboardStats?['monthlyTarget']) > 0
-        ? _toDouble(_dashboardStats?['monthlyTarget'])
-        : _toDouble(_dashboardStats?['totalRevenue']) *
-              2; // default: 2x current revenue as target
     final double revenue = _toDouble(_dashboardStats?['totalRevenue']);
+    final double target = _customMonthlyTarget != null && _customMonthlyTarget! > 0
+        ? _customMonthlyTarget!
+        : (_toDouble(_dashboardStats?['monthlyTarget']) > 0
+            ? _toDouble(_dashboardStats?['monthlyTarget'])
+            : (revenue > 0 ? revenue * 2 : 100000));
     final double percentage = target > 0
         ? ((revenue / target) * 100).clamp(0, 100).toDouble()
         : 0;
@@ -1123,7 +1240,53 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
               const Spacer(),
-              Icon(Icons.more_horiz, color: AdminTheme.textSecondary),
+              PopupMenuButton<String>(
+                icon: Icon(Icons.more_horiz, color: AdminTheme.textSecondary),
+                tooltip: 'Target Options',
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                onSelected: (value) {
+                  if (value == 'set') {
+                    _showSetTargetDialog(target);
+                  } else if (value == 'reset') {
+                    _resetTarget();
+                  } else if (value == 'refresh') {
+                    _loadDashboardStats();
+                  }
+                },
+                itemBuilder: (context) => [
+                  const PopupMenuItem(
+                    value: 'set',
+                    child: Row(
+                      children: [
+                        Icon(Icons.edit_outlined, size: 18, color: AdminTheme.brand),
+                        SizedBox(width: 8),
+                        Text('Set Target Amount'),
+                      ],
+                    ),
+                  ),
+                  if (_customMonthlyTarget != null)
+                    const PopupMenuItem(
+                      value: 'reset',
+                      child: Row(
+                        children: [
+                          Icon(Icons.restart_alt, size: 18, color: Colors.orange),
+                          SizedBox(width: 8),
+                          Text('Reset Target'),
+                        ],
+                      ),
+                    ),
+                  const PopupMenuItem(
+                    value: 'refresh',
+                    child: Row(
+                      children: [
+                        Icon(Icons.refresh, size: 18, color: AdminTheme.textSecondary),
+                        SizedBox(width: 8),
+                        Text('Refresh Data'),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ],
           ),
           const SizedBox(height: 30),
@@ -1211,7 +1374,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    target.toStringAsFixed(0),
+                    '৳${target.toStringAsFixed(0)}',
                     style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
                 ],
@@ -1228,7 +1391,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    revenue.toStringAsFixed(0),
+                    '৳${revenue.toStringAsFixed(0)}',
                     style: TextStyle(fontWeight: FontWeight.bold),
                   ),
                 ],

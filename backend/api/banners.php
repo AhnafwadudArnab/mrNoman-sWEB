@@ -92,10 +92,25 @@ if ($method === 'GET') {
             'link' => ''
         ];
 
+        // Fetch trust_badges from site_settings if available
+        $trustBadges = null;
+        try {
+            $tStmt = $db->prepare("SELECT setting_value FROM site_settings WHERE setting_key = 'trust_badges'");
+            $tStmt->execute();
+            $tRow = $tStmt->fetch(PDO::FETCH_ASSOC);
+            if ($tRow && !empty($tRow['setting_value'])) {
+                $decoded = json_decode($tRow['setting_value'], true);
+                if (is_array($decoded)) {
+                    $trustBadges = $decoded;
+                }
+            }
+        } catch (Throwable $e) {}
+
         echo json_encode([
             'hero' => $hero,
             'mid' => $mid,
             'sidebar' => $sidebarPromo,
+            'trust_badges' => $trustBadges,
         ]);
     } catch (Exception $e) {
         http_response_code(500);
@@ -205,13 +220,38 @@ if ($method === 'PUT' || $method === 'POST') {
             ]);
         }
         
+        // Update trust badges
+        if (isset($data['trust_badges'])) {
+            try {
+                $db->exec("CREATE TABLE IF NOT EXISTS site_settings (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    setting_key VARCHAR(100) UNIQUE NOT NULL,
+                    setting_value TEXT,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+                
+                $badgesVal = is_string($data['trust_badges'])
+                    ? $data['trust_badges']
+                    : json_encode($data['trust_badges']);
+                
+                $tStmt = $db->prepare("INSERT INTO site_settings (setting_key, setting_value) 
+                    VALUES ('trust_badges', ?) 
+                    ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value), updated_at = CURRENT_TIMESTAMP");
+                $tStmt->execute([$badgesVal]);
+            } catch (Throwable $e) {
+                error_log("Failed to save trust_badges: " . $e->getMessage());
+            }
+        }
+
         echo json_encode([
             'success' => true, 
             'message' => 'Banners updated successfully',
             'updated' => [
                 'hero' => isset($data['hero']) ? count($data['hero']) : 0,
                 'mid' => isset($data['mid']) ? count($data['mid']) : 0,
-                'sidebar' => isset($data['sidebar']) ? 1 : 0
+                'sidebar' => isset($data['sidebar']) ? 1 : 0,
+                'trust_badges' => isset($data['trust_badges']) ? 1 : 0
             ]
         ]);
     } catch (Throwable $e) {

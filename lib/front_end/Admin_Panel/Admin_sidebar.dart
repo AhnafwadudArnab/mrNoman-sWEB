@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import '../All_Pages/Registrations/login.dart';
+import '../utils/api_service.dart';
+import '../utils/auth_session.dart';
 
 enum AdminSidebarItem {
   dashboard,
@@ -232,7 +235,7 @@ class _AdminSidebarState extends State<AdminSidebar> {
             ),
           ),
 
-          // ── Bottom divider + Settings ───────────────────────────────────────
+          // ── Bottom divider + Settings & Logout ──────────────────────────────
           Container(height: 1, color: _divider),
           const SizedBox(height: 4),
           _buildItem(
@@ -240,8 +243,78 @@ class _AdminSidebarState extends State<AdminSidebar> {
             icon: Icons.settings_outlined,
             label: 'Settings',
           ),
-          const SizedBox(height: 16),
+          _buildLogoutItem(context),
+          const SizedBox(height: 12),
         ],
+      ),
+    );
+  }
+
+  Widget _buildLogoutItem(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(8),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(8),
+          onTap: () async {
+            final confirm = await showDialog<bool>(
+              context: context,
+              builder: (ctx) => AlertDialog(
+                title: const Text('Logout Admin'),
+                content: const Text(
+                  'Are you sure you want to log out of the admin panel?',
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(ctx, false),
+                    child: const Text('Cancel'),
+                  ),
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.red,
+                    ),
+                    onPressed: () => Navigator.pop(ctx, true),
+                    child: const Text(
+                      'Logout',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  ),
+                ],
+              ),
+            );
+            if (confirm == true && context.mounted) {
+              await AuthSession.clear();
+              await ApiService.clearToken();
+              ApiService.invalidateCache();
+              if (context.mounted) {
+                Navigator.of(context).pushAndRemoveUntil(
+                  MaterialPageRoute(builder: (_) => const LogIn()),
+                  (route) => false,
+                );
+              }
+            }
+          },
+          hoverColor: Colors.red.withOpacity(0.12),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            child: Row(
+              children: [
+                Icon(Icons.logout_rounded, size: 20, color: Colors.red[300]),
+                const SizedBox(width: 12),
+                Text(
+                  'Logout',
+                  style: TextStyle(
+                    color: Colors.red[300],
+                    fontSize: 13.5,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }

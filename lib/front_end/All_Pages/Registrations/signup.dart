@@ -56,6 +56,11 @@ class _SignupState extends State<Signup> {
       final email = _emailController.text.trim();
       final password = _passwordController.text;
 
+      // Wipe any lingering previous session/token/cache before registering
+      await AuthSession.clear();
+      await ApiService.clearToken();
+      ApiService.invalidateCache();
+
       // Call register API
       final result = await ApiService.register(
         firstName: firstName,
@@ -90,7 +95,7 @@ class _SignupState extends State<Signup> {
       final userData = UserData(
         firstName: userMap['firstName'] ?? userMap['full_name'] ?? firstName,
         lastName: userMap['lastName'] ?? userMap['last_name'] ?? lastName,
-        email: userMap['email'] ?? email,
+        email: email,
         phone: userMap['phone'] ?? userMap['phone_number'] ?? '',
         gender: userMap['gender'] ?? 'Male',
         address: userMap['address'] ?? '',
@@ -115,7 +120,7 @@ class _SignupState extends State<Signup> {
               userData.firstName,
           lastName:
               profile['lastName'] ?? profile['last_name'] ?? userData.lastName,
-          email: profile['email'] ?? userData.email,
+          email: email, // Strictly preserve user's registered email
           phone: profile['phone'] ?? profile['phone_number'] ?? userData.phone,
           gender: profile['gender'] ?? userData.gender,
           address: profile['address'] ?? userData.address,

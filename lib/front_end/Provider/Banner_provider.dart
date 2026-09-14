@@ -137,6 +137,27 @@ class BannerProvider extends ChangeNotifier {
         _sidebarPromo = _toSidebarEntry(sidebarRaw.first);
       }
 
+      // Parse trust_badges from server
+      if (data['trust_badges'] is List && (data['trust_badges'] as List).isNotEmpty) {
+        _trustBadges = (data['trust_badges'] as List)
+            .map((e) => Map<String, String>.from((e as Map).map((k, v) => MapEntry(k.toString(), v.toString()))))
+            .toList();
+      } else {
+        // Fallback to local cache if server hasn't saved custom ones yet
+        try {
+          final prefs = await SharedPreferences.getInstance();
+          final trustJson = prefs.getString(_keyTrustBadges);
+          if (trustJson != null) {
+            final decoded = jsonDecode(trustJson);
+            if (decoded is List && decoded.isNotEmpty) {
+              _trustBadges = decoded
+                  .map((e) => Map<String, String>.from((e as Map).map((k, v) => MapEntry(k.toString(), v.toString()))))
+                  .toList();
+            }
+          }
+        } catch (_) {}
+      }
+
       _error = null;
       _lastLoadedAt = now;
 
@@ -145,6 +166,7 @@ class BannerProvider extends ChangeNotifier {
       await prefs.setString(_keyHero, jsonEncode(_heroSlides));
       await prefs.setString(_keyMid, jsonEncode(_midBanners));
       await prefs.setString(_keySidebar, jsonEncode(_sidebarPromo));
+      await prefs.setString(_keyTrustBadges, jsonEncode(_trustBadges));
     } catch (e) {
       // Try local cache before falling back to empty state
       bool restoredFromCache = false;
@@ -298,6 +320,26 @@ class BannerProvider extends ChangeNotifier {
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString(_keyTrustBadges, jsonEncode(_trustBadges));
+
+      ApiService.invalidateCache('/banners');
+      try {
+        await ApiService.post('/banners', {
+          'trust_badges': _trustBadges,
+        }, withAuth: true);
+      } catch (e) {
+        debugPrint('Banner trust badges post error: $e');
+      }
+
+      // Backup: save to site_settings table
+      try {
+        await ApiService.post('/site_settings.php', {
+          'setting_key': 'trust_badges',
+          'setting_value': jsonEncode(_trustBadges),
+        }, withAuth: true);
+      } catch (e) {
+        debugPrint('site_settings trust badges post error: $e');
+      }
+
       return true;
     } catch (e) {
       _trustBadges = previous;

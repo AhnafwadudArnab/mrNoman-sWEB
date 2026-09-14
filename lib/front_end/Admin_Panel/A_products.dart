@@ -288,8 +288,12 @@ class _SectionUploadCardState extends State<_SectionUploadCard> {
 
   static const Map<String, String> _sectionToApiKey = {
     'Best Sellings': 'best_sellers',
-    'Flash_Sale': 'Flash_Sale',
+    'Best Selling': 'best_sellers',
+    'Flash_Sale': 'flash_sale',
+    'Flash Sale': 'flash_sale',
     'Trending Items': 'trending',
+    'Trendings': 'trending',
+    'Trending': 'trending',
     'Deals of the Day': 'deals',
     'Tech Part': 'tech_part',
     // 'Others' intentionally unmapped; optional Tech Part assignment controlled by toggle

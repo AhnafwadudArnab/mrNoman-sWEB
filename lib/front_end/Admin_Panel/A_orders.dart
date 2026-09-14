@@ -87,8 +87,207 @@ class _AdminOrdersPageState extends State<AdminOrdersPage> {
   Timer? _autoTimer;
   DateTime? _lastUpdated;
   static const int _refreshIntervalSeconds = 8;
+  final Set<String> _selectedOrderIds = {};
+  bool _isDeletingOrders = false;
 
   final _searchCtrl = TextEditingController();
+
+  Future<void> _confirmDeleteSelected(OrdersProvider p) async {
+    if (_selectedOrderIds.isEmpty) return;
+    final count = _selectedOrderIds.length;
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.red.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Icon(Icons.delete_outline, color: Colors.red, size: 22),
+            ),
+            const SizedBox(width: 12),
+            const Text(
+              'Delete Orders',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+          ],
+        ),
+        content: Text(
+          'Are you sure you want to permanently delete $count selected order${count > 1 ? 's' : ''}? This action cannot be undone.',
+          style: const TextStyle(fontSize: 14, color: _C.textSub),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: const Text('Cancel', style: TextStyle(color: _C.textMuted)),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
+            child: Text('Delete $count Order${count > 1 ? 's' : ''}'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm != true || !mounted) return;
+
+    setState(() => _isDeletingOrders = true);
+    int successCount = 0;
+    final idsToDelete = List<String>.from(_selectedOrderIds);
+
+    for (final id in idsToDelete) {
+      try {
+        await p.deleteOrder(id);
+        successCount++;
+      } catch (e) {
+        debugPrint('Failed to delete order $id: $e');
+      }
+    }
+
+    if (mounted) {
+      setState(() {
+        _selectedOrderIds.clear();
+        _isDeletingOrders = false;
+      });
+      await p.refreshFromApi(admin: true);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Successfully deleted $successCount order(s).'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    }
+  }
+
+  Future<void> _confirmDeleteSingleOrder(String orderId, OrdersProvider p) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.red.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Icon(Icons.delete_outline, color: Colors.red, size: 22),
+            ),
+            const SizedBox(width: 12),
+            const Text(
+              'Delete Order',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+          ],
+        ),
+        content: Text(
+          'Are you sure you want to permanently delete order #$orderId? This action cannot be undone.',
+          style: const TextStyle(fontSize: 14, color: _C.textSub),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: const Text('Cancel', style: TextStyle(color: _C.textMuted)),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
+            child: const Text('Delete Order'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm != true || !mounted) return;
+
+    try {
+      await p.deleteOrder(orderId);
+      _selectedOrderIds.remove(orderId);
+      await p.refreshFromApi(admin: true);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Order #$orderId deleted successfully.'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to delete order: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  Widget _buildSelectionBar(OrdersProvider p, List<Map<String, String>> filtered) {
+    if (_selectedOrderIds.isEmpty) return const SizedBox.shrink();
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFEF2F2),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: const Color(0xFFFECACA)),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.check_circle, color: Colors.red, size: 20),
+          const SizedBox(width: 10),
+          Text(
+            '${_selectedOrderIds.length} order${_selectedOrderIds.length > 1 ? 's' : ''} selected',
+            style: const TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 14,
+              color: Color(0xFF991B1B),
+            ),
+          ),
+          const Spacer(),
+          TextButton(
+            onPressed: () => setState(() => _selectedOrderIds.clear()),
+            style: TextButton.styleFrom(foregroundColor: _C.textSub),
+            child: const Text('Clear Selection'),
+          ),
+          const SizedBox(width: 8),
+          ElevatedButton.icon(
+            onPressed: _isDeletingOrders ? null : () => _confirmDeleteSelected(p),
+            icon: _isDeletingOrders
+                ? const SizedBox(
+                    width: 14,
+                    height: 14,
+                    child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                  )
+                : const Icon(Icons.delete_outline, size: 16),
+            label: Text(_isDeletingOrders ? 'Deleting...' : 'Delete Selected'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
   @override
   void initState() {
@@ -270,6 +469,9 @@ class _AdminOrdersPageState extends State<AdminOrdersPage> {
               // ── Toolbar (search + filters + export + add)
               _buildToolbar(allRows, filtered, p),
               SizedBox(height: isMobile ? 12 : 16),
+
+              // ── Bulk selection bar (if orders are checked)
+              _buildSelectionBar(p, filtered),
 
               // ── Table
               _buildTable(filtered, allRows, p),
@@ -740,17 +942,44 @@ class _AdminOrdersPageState extends State<AdminOrdersPage> {
                   ),
                   border: Border(bottom: BorderSide(color: _C.border)),
                 ),
-                child: const Row(
+                child: Row(
                   children: [
-                    SizedBox(width: 36), // checkbox placeholder
-                    _TH('ORDER NUMBER', flex: 3),
-                    _TH('CUSTOMER', flex: 3),
-                    _TH('CATEGORY', flex: 2),
-                    _TH('PRICE', flex: 2),
-                    _TH('DATE', flex: 2),
-                    _TH('PAYMENT', flex: 2),
-                    _TH('STATUS', flex: 2),
-                    SizedBox(width: 40), // actions column
+                    SizedBox(
+                      width: 36,
+                      child: Checkbox(
+                        value: filtered.isNotEmpty &&
+                            filtered.every((r) => _selectedOrderIds.contains(r['id'])),
+                        onChanged: (val) {
+                          setState(() {
+                            if (val == true) {
+                              _selectedOrderIds.addAll(
+                                filtered
+                                    .map((r) => r['id'] ?? '')
+                                    .where((id) => id.isNotEmpty),
+                              );
+                            } else {
+                              for (final r in filtered) {
+                                if (r['id'] != null) {
+                                  _selectedOrderIds.remove(r['id']!);
+                                }
+                              }
+                            }
+                          });
+                        },
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        side: BorderSide(color: _C.border),
+                      ),
+                    ),
+                    const _TH('ORDER NUMBER', flex: 3),
+                    const _TH('CUSTOMER', flex: 3),
+                    const _TH('CATEGORY', flex: 2),
+                    const _TH('PRICE', flex: 2),
+                    const _TH('DATE', flex: 2),
+                    const _TH('PAYMENT', flex: 2),
+                    const _TH('STATUS', flex: 2),
+                    const SizedBox(width: 40), // actions column
                   ],
                 ),
               ),
@@ -848,12 +1077,21 @@ class _AdminOrdersPageState extends State<AdminOrdersPage> {
         ),
         child: Row(
           children: [
-            // Checkbox placeholder
+            // Checkbox for selection
             SizedBox(
               width: 36,
               child: Checkbox(
-                value: false,
-                onChanged: (_) {},
+                value: row['id'] != null && _selectedOrderIds.contains(row['id']),
+                onChanged: (val) {
+                  if (row['id'] == null) return;
+                  setState(() {
+                    if (val == true) {
+                      _selectedOrderIds.add(row['id']!);
+                    } else {
+                      _selectedOrderIds.remove(row['id']!);
+                    }
+                  });
+                },
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(4),
                 ),
@@ -953,6 +1191,12 @@ class _AdminOrdersPageState extends State<AdminOrdersPage> {
                     _showOrderDetailsDialog(context, full, p);
                     return;
                   }
+                  if (value == '__delete__') {
+                    if (row['id'] != null) {
+                      _confirmDeleteSingleOrder(row['id']!, p);
+                    }
+                    return;
+                  }
                   try {
                     await p.updateOrderStatus(row['id']!, value);
                     if (!context.mounted) return;
@@ -988,6 +1232,17 @@ class _AdminOrdersPageState extends State<AdminOrdersPage> {
                   PopupMenuItem(
                     value: 'cancelled',
                     child: Text('Mark Cancelled'),
+                  ),
+                  PopupMenuDivider(),
+                  PopupMenuItem(
+                    value: '__delete__',
+                    child: Row(
+                      children: [
+                        Icon(Icons.delete_outline, size: 16, color: Colors.red),
+                        SizedBox(width: 8),
+                        Text('Delete Order', style: TextStyle(color: Colors.red)),
+                      ],
+                    ),
                   ),
                 ],
               ),
@@ -1659,6 +1914,8 @@ class _AdminOrdersPageState extends State<AdminOrdersPage> {
     if (ok != true) return;
     try {
       await p.deleteOrder(order.orderId);
+      _selectedOrderIds.remove(order.orderId);
+      await p.refreshFromApi(admin: true);
       if (!context.mounted) return;
       Navigator.pop(context);
       ScaffoldMessenger.of(context).showSnackBar(

@@ -122,42 +122,62 @@ class _ProfilePageState extends State<ProfilePage> {
       return;
     }
     _isLoggedIn = true;
+    final savedUser = await AuthSession.getUserData();
+    final isAdmin = await AuthSession.isAdmin();
+
+    // Immediately display saved user data without delay
+    if (savedUser != null && mounted) {
+      setState(() {
+        firstNameController.text = savedUser.firstName;
+        lastNameController.text = savedUser.lastName;
+        emailController.text = savedUser.email;
+        phoneController.text = savedUser.phone;
+        selectedGender = savedUser.gender;
+        if (savedUser.address.isNotEmpty) {
+          addresses = [
+            {'address': savedUser.address},
+          ];
+        }
+      });
+    }
+
     try {
       final profile = await ApiService.getProfile();
       if (!mounted) return;
-      final userData = UserData.fromApiResponse(profile);
-      await AuthSession.updateUserData(userData);
-      setState(() {
-        firstNameController.text = userData.firstName;
-        lastNameController.text = userData.lastName;
-        emailController.text = userData.email;
-        phoneController.text = userData.phone;
-        selectedGender = userData.gender;
-        if (userData.address.isNotEmpty) {
-          addresses = [
-            {'address': userData.address},
-          ];
-        }
-      });
+      final apiUser = UserData.fromApiResponse(profile);
+
+      // Protect against admin email leakage into customer profile
+      final safeEmail = (!isAdmin && apiUser.email.toLowerCase().contains('superadmin'))
+          ? (savedUser?.email ?? '')
+          : (apiUser.email.isNotEmpty ? apiUser.email : (savedUser?.email ?? ''));
+
+      final updatedUser = UserData(
+        firstName: apiUser.firstName.isNotEmpty ? apiUser.firstName : (savedUser?.firstName ?? ''),
+        lastName: apiUser.lastName.isNotEmpty ? apiUser.lastName : (savedUser?.lastName ?? ''),
+        email: safeEmail,
+        phone: apiUser.phone.isNotEmpty ? apiUser.phone : (savedUser?.phone ?? ''),
+        gender: apiUser.gender.isNotEmpty ? apiUser.gender : (savedUser?.gender ?? 'Male'),
+        address: apiUser.address.isNotEmpty ? apiUser.address : (savedUser?.address ?? ''),
+      );
+
+      await AuthSession.updateUserData(updatedUser);
+      if (mounted) {
+        setState(() {
+          firstNameController.text = updatedUser.firstName;
+          lastNameController.text = updatedUser.lastName;
+          emailController.text = updatedUser.email;
+          phoneController.text = updatedUser.phone;
+          selectedGender = updatedUser.gender;
+          if (updatedUser.address.isNotEmpty) {
+            addresses = [
+              {'address': updatedUser.address},
+            ];
+          }
+        });
+      }
       return;
     } catch (e) {
-      // API failed, fall back to locally cached user data
       if (kDebugMode) print('Profile API error: $e');
-    }
-    final userData = await AuthSession.getUserData();
-    if (userData != null && mounted) {
-      setState(() {
-        firstNameController.text = userData.firstName;
-        lastNameController.text = userData.lastName;
-        emailController.text = userData.email;
-        phoneController.text = userData.phone;
-        selectedGender = userData.gender;
-        if (userData.address.isNotEmpty) {
-          addresses = [
-            {'address': userData.address},
-          ];
-        }
-      });
     }
   }
 
