@@ -69,19 +69,27 @@ class _TrendingItemsState extends State<TrendingItems> {
   Future<void> _loadFromDb() async {
     if (mounted) setState(() => _loading = true);
     try {
-      final res = await ApiService.get(
+      dynamic res = await ApiService.get(
         '/products?action=trending&limit=12',
         withAuth: false,
         useCache: true,
       );
 
-      List<dynamic> productsList;
+      List<dynamic> productsList = [];
       if (res is Map<String, dynamic>) {
         productsList = (res['products'] as List<dynamic>? ?? []);
       } else if (res is List) {
         productsList = res;
-      } else {
-        productsList = [];
+      }
+
+      // If trending is empty, fall back to general products from DB
+      if (productsList.isEmpty) {
+        res = await ApiService.getProducts(limit: 12, useCache: true);
+        if (res is Map<String, dynamic>) {
+          productsList = (res['products'] as List<dynamic>? ?? []);
+        } else if (res is List) {
+          productsList = res;
+        }
       }
 
       if (mounted) {
@@ -102,45 +110,8 @@ class _TrendingItemsState extends State<TrendingItems> {
     }
   }
 
-  // ???????? ?????????
-  static const List<TrendingItem> _sampleProducts = [
-    TrendingItem(
-      image: 'assets/prod/99.png',
-      title: 'Blender Machine',
-      originalPrice: 4500,
-      discountedPrice: 3850,
-    ),
-    TrendingItem(
-      image: 'assets/prod/8.png',
-      title: 'Water Heater',
-      originalPrice: 8500,
-      discountedPrice: 6990,
-    ),
-    TrendingItem(
-      image: 'assets/prod/9.png',
-      title: 'Blender Machine Complete Set',
-      originalPrice: 6500,
-      discountedPrice: 5200,
-    ),
-    TrendingItem(
-      image: 'assets/prod/4.jpg',
-      title: 'Iron Machine',
-      originalPrice: 2200,
-      discountedPrice: 1650,
-    ),
-    TrendingItem(
-      image: 'assets/prod/5.png',
-      title: 'Electric Oven (20L)',
-      originalPrice: 9500,
-      discountedPrice: 7800,
-    ),
-    TrendingItem(
-      image: 'assets/prod/6.png',
-      title: 'Washing Machine (Semi-Auto)',
-      originalPrice: 18500,
-      discountedPrice: 15900,
-    ),
-  ];
+  // Fallback products (empty - all products come from DB/admin)
+  static const List<TrendingItem> _sampleProducts = [];
 
   static double _parsePrice(dynamic v) {
     if (v == null) return 0;
@@ -155,13 +126,13 @@ class _TrendingItemsState extends State<TrendingItems> {
     return ImageResolver.resolveUrl(raw);
   }
 
-  // ???????? ??????????? TrendingItem-? ??????? ???
+  // Convert Admin products to TrendingItem
   List<TrendingItem> _convertAdminProducts(
     List<Map<String, dynamic>> adminProducts,
   ) {
     return adminProducts.map((p) {
       final price = _parsePrice(p['price']);
-      final discountedPrice = (price * 0.85).toInt(); // 15% ?????????
+      final discountedPrice = (price * 0.85).toInt(); // 15% discount
 
       return TrendingItem(
         image: p['bytes'] != null
@@ -247,7 +218,7 @@ class _TrendingItemsState extends State<TrendingItems> {
       context,
     ).getProductsBySection("Trending Items");
 
-    // Use database products first, then admin, then sample
+    // Use database products first, then admin
     final useDb = _dbProducts.isNotEmpty;
     final displayProducts = useDb
         ? _dbProducts
@@ -255,7 +226,11 @@ class _TrendingItemsState extends State<TrendingItems> {
     final adminTrendItems = !useDb && adminProducts.isNotEmpty
         ? _convertAdminProducts(adminProducts)
         : <TrendingItem>[];
-    final allProducts = useDb ? [] : [...adminTrendItems, ..._sampleProducts];
+    final allProducts = useDb ? [] : [...adminTrendItems];
+
+    if (!useDb && adminTrendItems.isEmpty) {
+      return const SizedBox.shrink();
+    }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

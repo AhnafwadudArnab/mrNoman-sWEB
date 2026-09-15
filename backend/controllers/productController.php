@@ -22,12 +22,22 @@ class ProductController {
                 continue;
             }
 
-            // Normalize uploads/ path — ensure leading slash
-            if (str_starts_with($raw, 'uploads/')) {
+            // Normalize any upload path variants to /public/uploads/filename
+            if (str_starts_with($raw, '/api/public/uploads/')) {
+                $p['image_url'] = '/public/uploads/' . substr($raw, strlen('/api/public/uploads/'));
+            } elseif (str_starts_with($raw, 'api/public/uploads/')) {
+                $p['image_url'] = '/public/uploads/' . substr($raw, strlen('api/public/uploads/'));
+            } elseif (str_starts_with($raw, '/api/uploads/')) {
+                $p['image_url'] = '/public/uploads/' . substr($raw, strlen('/api/uploads/'));
+            } elseif (str_starts_with($raw, 'api/uploads/')) {
+                $p['image_url'] = '/public/uploads/' . substr($raw, strlen('api/uploads/'));
+            } elseif (str_starts_with($raw, 'public/uploads/')) {
                 $p['image_url'] = '/' . $raw;
+            } elseif (str_starts_with($raw, 'uploads/')) {
+                $p['image_url'] = '/public/' . $raw;
+            } elseif (str_starts_with($raw, '/uploads/')) {
+                $p['image_url'] = '/public' . $raw;
             }
-            // Do NOT do disk existence check — path resolution differs per server environment
-            // The Flutter client resolves /uploads/... → https://domain.com/api/uploads/...
         }
 
         return $products;

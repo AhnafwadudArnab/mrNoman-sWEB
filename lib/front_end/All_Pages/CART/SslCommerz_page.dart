@@ -105,7 +105,7 @@ class _SslCommerzPageState extends State<SslCommerzPage> {
               ),
             ),
             Text(
-              '?${widget.amount.toStringAsFixed(2)}',
+              '৳${widget.amount.toStringAsFixed(2)}',
               style: TextStyle(
                 fontSize: isMobile ? 10 : 12,
                 color: Colors.white70,

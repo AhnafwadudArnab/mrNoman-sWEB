@@ -1561,14 +1561,14 @@ class _AdminOrdersPageState extends State<AdminOrdersPage> {
                           icon: Icons.local_shipping_outlined,
                           title: order.deliveryLabel,
                           content:
-                              '?${order.effectiveDeliveryCharge.toStringAsFixed(2)}',
+                              '৳${order.effectiveDeliveryCharge.toStringAsFixed(2)}',
                         ),
                         if (order.couponDiscount > 0)
                           _dlCard(
                             icon: Icons.discount_outlined,
                             title: 'Discount',
                             content:
-                                '-?${order.couponDiscount.toStringAsFixed(2)}',
+                                '-৳${order.couponDiscount.toStringAsFixed(2)}',
                           ),
                         _dlCard(
                           icon: Icons.attach_money,

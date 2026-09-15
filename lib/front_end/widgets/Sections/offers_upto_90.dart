@@ -72,7 +72,7 @@ class _OfferCard extends StatelessWidget {
         child: Container(
           decoration: BoxDecoration(
             image: DecorationImage(
-              image: NetworkImage(ImageResolver.resolveUrl(imageUrl)),
+              image: ImageResolver.imageProvider(imageUrl),
               fit: BoxFit.cover,
               colorFilter: ColorFilter.mode(
                 const Color(0x59000000),

@@ -372,7 +372,7 @@ class _TimerSettingsCardState extends State<_TimerSettingsCard> {
                         ),
                       ),
                       Text(
-                        'Off ???? homepage ???? Deals section hide ???',
+                        'When turned off, Deals section will be hidden on homepage',
                         style: TextStyle(color: AdminTheme.textSecondary, fontSize: 12),
                       ),
                     ],

@@ -1089,13 +1089,13 @@ class _SectionUploadCardState extends State<_SectionUploadCard> {
     );
   }
 
-  // ???? ??????? ???? ?????
+  // Pick product image
   Future<void> _pickImage() async {
     PlatformFile? file = await FilePicker.pickFile(type: FileType.image);
     if (file != null) setState(() => _selectedFile = file);
   }
 
-  // ?????? ???? ????? - API ?? ??? ??? ????? ?????? ???????? ???
+  // Publish product - Save via API and update local provider
   Future<void> _handlePublish(AdminProductProvider provider) async {
     final token = await ApiService.getToken();
     if (token == null || token.isEmpty) {
@@ -1213,7 +1213,7 @@ class _SectionUploadCardState extends State<_SectionUploadCard> {
           ? Map<String, dynamic>.from(res['product'])
           : null;
 
-      // Get image URL from server response ? check root level and nested product
+      // Get image URL from server response - check root level and nested product
       String? imageUrl;
       final rawImageUrl = (res['image_url'] ?? serverProduct?['image_url'])
           ?.toString();
@@ -1279,7 +1279,7 @@ class _SectionUploadCardState extends State<_SectionUploadCard> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             backgroundColor: Colors.green,
-            content: Text("${widget.sectionTitle}-? ????? ??? ?????!"),
+            content: Text("Product successfully published to ${widget.sectionTitle}!"),
           ),
         );
       }

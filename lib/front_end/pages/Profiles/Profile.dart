@@ -1969,7 +1969,7 @@ class _ProfilePageState extends State<ProfilePage> {
     setState(() {
       paymentMethods.add({
         "type":
-            "${cardHolderController.text} ???? ${cardNumberController.text.substring(cardNumberController.text.length - 4)}",
+            "${cardHolderController.text} ending in ${cardNumberController.text.substring(cardNumberController.text.length - 4)}",
         "status": "Active",
       });
     });

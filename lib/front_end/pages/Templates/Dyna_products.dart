@@ -5,7 +5,7 @@ import 'package:provider/provider.dart';
 import '../../All_Pages/CART/Cart_provider.dart';
 import '../../Dimensions/responsive_dimensions.dart';
 import '../../utils/image_resolver.dart';
-import '../../widgets/Sections/BestSellings/ProductData.dart';
+import '../../utils/api_service.dart';
 import '../../widgets/Sections/Trendings/trending_all_products.dart';
 import '../../widgets/footer.dart';
 import '../../widgets/header.dart';
@@ -39,10 +39,68 @@ class _UniversalProductDetailsState extends State<UniversalProductDetails>
     return ImageResolver.imageProvider(path);
   }
 
+  List<ProductData> _dbRelatedProducts = [];
+
   @override
   void initState() {
     _tabController = TabController(length: 3, vsync: this);
     super.initState();
+    _loadRelatedProducts();
+  }
+
+  Future<void> _loadRelatedProducts() async {
+    try {
+      dynamic res = await ApiService.getProducts(
+        category: widget.product.category,
+        limit: 8,
+      );
+      List<dynamic> list = [];
+      if (res is Map<String, dynamic>) {
+        list = (res['products'] as List<dynamic>?) ?? [];
+      } else if (res is List) {
+        list = res;
+      }
+      if (list.isEmpty) {
+        final fallbackRes = await ApiService.getProducts(limit: 6);
+        if (fallbackRes is Map<String, dynamic>) {
+          list = (fallbackRes['products'] as List<dynamic>?) ?? [];
+        } else if (fallbackRes is List) {
+          list = fallbackRes;
+        }
+      }
+      final related = list
+          .where((e) => e != null)
+          .map((e) {
+            final p = Map<String, dynamic>.from(e as Map);
+            final id = (p['product_id'] ?? '').toString();
+            final name = (p['product_name'] ?? '').toString();
+            final cat = (p['category_name'] ?? 'General').toString();
+            final priceStr = p['price']?.toString() ?? '0';
+            final price = double.tryParse(priceStr.replaceAll(RegExp(r'[^0-9.]'), '')) ?? 0.0;
+            final img = (p['image_url'] ?? '').toString();
+            final desc = (p['description'] ?? '').toString();
+            return ProductData(
+              id: id,
+              name: name,
+              category: cat,
+              priceBDT: price,
+              images: img.isNotEmpty ? [img] : [],
+              description: desc,
+              additionalInfo: {
+                'Brand': (p['brand_name'] ?? '').toString(),
+                'stock_quantity': (p['stock_quantity'] ?? '0').toString(),
+              },
+            );
+          })
+          .where((p) => p.id != widget.product.id && p.name.isNotEmpty)
+          .toList();
+
+      if (mounted) {
+        setState(() {
+          _dbRelatedProducts = related;
+        });
+      }
+    } catch (_) {}
   }
 
   @override
@@ -52,13 +110,7 @@ class _UniversalProductDetailsState extends State<UniversalProductDetails>
   }
 
   List<ProductData> _getRelatedProducts() {
-    return SampleProducts.bestSellingProducts
-        .where(
-          (product) =>
-              product.id != widget.product.id &&
-              product.category == widget.product.category,
-        )
-        .toList();
+    return _dbRelatedProducts;
   }
 
   @override
@@ -1415,8 +1467,8 @@ class _UniversalProductDetailsState extends State<UniversalProductDetails>
                           SnackBar(
                             content: Text(
                               isAdded
-                                  ? '? Wishlist updated'
-                                  : '? Removed from wishlist',
+                                  ? 'Wishlist updated'
+                                  : 'Removed from wishlist',
                             ),
                             duration: const Duration(seconds: 2),
                           ),

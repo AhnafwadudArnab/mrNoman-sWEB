@@ -1,7 +1,7 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 
 class AdminProductProvider extends ChangeNotifier {
-  // ??????? ??????? ???? ????????? ???????
+  // Product storage per section
   final Map<String, List<Map<String, dynamic>>> _sectionProducts = {
     "Best Sellings": [],
     "Flash_Sale": [],
@@ -15,11 +15,11 @@ class AdminProductProvider extends ChangeNotifier {
   static int _idCounter = 0;
   static String _nextId() => 'admin_${DateTime.now().millisecondsSinceEpoch}_${_idCounter++}';
 
-  // ?????
+  // Getter
   Map<String, List<Map<String, dynamic>>> get sectionProducts =>
       Map.unmodifiable(_sectionProducts);
 
-  // ????????? ??? ???? ???? (unique id ??? ?????)
+  // Getter???? ??? ???? ???? (unique id ??? ?????)
   void addProduct(String sectionTitle, Map<String, dynamic> product) {
     if (_sectionProducts.containsKey(sectionTitle)) {
       final data = Map<String, dynamic>.from(product);
@@ -29,7 +29,7 @@ class AdminProductProvider extends ChangeNotifier {
     }
   }
 
-  // ????????? ?????
+  // Getter???? ?????
   void updateProduct(String sectionTitle, int index, Map<String, dynamic> product) {
     final list = _sectionProducts[sectionTitle];
     if (list == null || index < 0 || index >= list.length) return;
@@ -39,7 +39,7 @@ class AdminProductProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  // ????????? ?????
+  // Getter???? ?????
   void removeProduct(String sectionTitle, int index) {
     final list = _sectionProducts[sectionTitle];
     if (list == null || index < 0 || index >= list.length) return;
@@ -47,12 +47,12 @@ class AdminProductProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  // ???? ??????? ?? ????????? ?????
+  // Get products by section
   List<Map<String, dynamic>> getProductsBySection(String sectionTitle) {
     return _sectionProducts[sectionTitle] ?? [];
   }
 
-  // ?? ??????? ????????? ??????? ??? (??? needed)
+  // Clear all products across sections
   void clearAll() {
     _sectionProducts.forEach((key, value) {
       _sectionProducts[key] = [];

@@ -3022,7 +3022,7 @@ class _PaymentInstructionPageState extends State<_PaymentInstructionPage> {
           children: [
             ClipOval(
               child: Image.asset(
-                'assets/electrozonebd_logo.png',
+                'assets/elogo.png',
                 height: 32,
                 width: 32,
                 fit: BoxFit.cover,

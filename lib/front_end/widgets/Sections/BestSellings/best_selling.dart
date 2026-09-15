@@ -1,7 +1,6 @@
 import 'dart:convert';
 
 import 'package:electrocitybd1/front_end/pages/Templates/Dyna_products.dart';
-import 'package:electrocitybd1/front_end/widgets/Sections/BestSellings/ProductData.dart';
 import 'package:electrocitybd1/config/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -56,19 +55,27 @@ class _BestSellingBoxState extends State<BestSellingBox> {
     if (mounted) setState(() => _loading = true);
     try {
       // Use best-sellers action endpoint with cache enabled
-      final res = await ApiService.get(
+      dynamic res = await ApiService.get(
         '/products?action=best-sellers&limit=10',
         withAuth: false,
         useCache: true,
       );
 
-      List<dynamic> productsList;
+      List<dynamic> productsList = [];
       if (res is Map<String, dynamic>) {
         productsList = (res['products'] as List<dynamic>? ?? []);
       } else if (res is List) {
         productsList = res;
-      } else {
-        productsList = [];
+      }
+
+      // If best-sellers is empty, fall back to general products from DB
+      if (productsList.isEmpty) {
+        res = await ApiService.getProducts(limit: 8, useCache: true);
+        if (res is Map<String, dynamic>) {
+          productsList = (res['products'] as List<dynamic>? ?? []);
+        } else if (res is List) {
+          productsList = res;
+        }
       }
 
       if (mounted)
@@ -92,10 +99,12 @@ class _BestSellingBoxState extends State<BestSellingBox> {
     final adminProducts = context
         .watch<AdminProductProvider>()
         .getProductsBySection("Best Sellings");
-    final sampleProducts = SampleProducts.bestSellingProducts;
-
     final bool useDb = _dbProducts.isNotEmpty;
     final bool hasAdmin = adminProducts.isNotEmpty && !useDb;
+
+    if (!useDb && !hasAdmin && !_loading) {
+      return const SizedBox.shrink();
+    }
 
     final listTiles = <Widget>[];
     if (!_loading) {
@@ -118,20 +127,6 @@ class _BestSellingBoxState extends State<BestSellingBox> {
               adminProducts[i],
               index: i,
               isFromAdmin: true,
-            ),
-          );
-        }
-      } else {
-        final count = sampleProducts.length < maxItems
-            ? sampleProducts.length
-            : maxItems;
-        for (int i = 0; i < count; i++) {
-          listTiles.add(
-            _buildBestSellingTile(
-              context,
-              sampleProducts[i],
-              index: i,
-              isFromAdmin: false,
             ),
           );
         }

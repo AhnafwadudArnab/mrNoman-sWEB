@@ -66,18 +66,28 @@ class _FlashSaleCarouselState extends State<FlashSaleCarousel> {
 
   Future<void> _loadFromDb() async {
     try {
-      final res = await ApiService.getProducts(
+      dynamic res = await ApiService.getProducts(
         section: 'flash-sale',
         limit: 20,
         useCache: true,
       );
-      final List<dynamic> list;
+      List<dynamic> list = [];
       if (res is Map<String, dynamic>) {
         list = (res['products'] as List<dynamic>?) ?? [];
       } else if (res is List) {
         list = res;
-      } else {
-        list = [];
+      }
+      // If flash-sale section is empty, fall back to DB products
+      if (list.isEmpty) {
+        res = await ApiService.getProducts(
+          limit: 12,
+          useCache: true,
+        );
+        if (res is Map<String, dynamic>) {
+          list = (res['products'] as List<dynamic>?) ?? [];
+        } else if (res is List) {
+          list = res;
+        }
       }
       final maps = list
           .map((e) => Map<String, dynamic>.from(e as Map))
@@ -103,58 +113,8 @@ class _FlashSaleCarouselState extends State<FlashSaleCarousel> {
     }
   }
 
-  // ???????? ????????? (??????)
-  final List<FlashSaleItem> sampleProducts = [
-    FlashSaleItem(
-      image: 'assets/flash/av.jpg',
-      title: 'Product 1',
-      originalPrice: 1500,
-      discountedPrice: 999,
-      timeRemaining: '02:12:34',
-    ),
-    FlashSaleItem(
-      image: 'assets/flash/handmixxer.jpg',
-      title: 'Product 2',
-      originalPrice: 2000,
-      discountedPrice: 1299,
-      timeRemaining: '01:45:20',
-    ),
-    FlashSaleItem(
-      image: 'assets/flash/kennede.jpg',
-      title: 'Product 3',
-      originalPrice: 1200,
-      discountedPrice: 799,
-      timeRemaining: '03:30:15',
-    ),
-    FlashSaleItem(
-      image: 'assets/flash/miyoko_kettle.jpg',
-      title: 'Product 4',
-      originalPrice: 1800,
-      discountedPrice: 1199,
-      timeRemaining: '02:00:45',
-    ),
-    FlashSaleItem(
-      image: 'assets/flash/nima_grinder.jpg',
-      title: 'Product 5',
-      originalPrice: 1600,
-      discountedPrice: 999,
-      timeRemaining: '04:15:30',
-    ),
-    FlashSaleItem(
-      image: 'assets/BestSale/electric kettle.jpg',
-      title: 'Electric Kettle',
-      originalPrice: 2500,
-      discountedPrice: 1699,
-      timeRemaining: '01:30:00',
-    ),
-    FlashSaleItem(
-      image: 'assets/BestSale/grinder 400w.jpg',
-      title: 'Grinder 400W',
-      originalPrice: 1800,
-      discountedPrice: 1299,
-      timeRemaining: '02:45:15',
-    ),
-  ];
+  // Fallback products list (empty - all products load from DB/admin)
+  final List<FlashSaleItem> sampleProducts = [];
 
   static double _parsePrice(dynamic v) {
     if (v == null) return 0;
@@ -253,12 +213,11 @@ class _FlashSaleCarouselState extends State<FlashSaleCarousel> {
       context,
     ).getProductsBySection("Flash_Sale");
     final adminFlashItems = _convertAdminProducts(adminProducts);
-    // Only show sample products if no DB products AND no admin products exist
-    final hasRealProducts =
-        _dbFlashItems.isNotEmpty || adminFlashItems.isNotEmpty;
-    final allProducts = hasRealProducts
-        ? [..._dbFlashItems, ...adminFlashItems]
-        : [...sampleProducts];
+    final allProducts = [..._dbFlashItems, ...adminFlashItems];
+
+    if (allProducts.isEmpty) {
+      return const SizedBox.shrink();
+    }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

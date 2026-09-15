@@ -105,6 +105,14 @@ class ImageResolver {
       filename = imageUrl.substring('/api/uploads/'.length);
     } else if (imageUrl.startsWith('/uploads/')) {
       filename = imageUrl.substring('/uploads/'.length);
+    } else if (imageUrl.startsWith('public/uploads/')) {
+      filename = imageUrl.substring('public/uploads/'.length);
+    } else if (imageUrl.startsWith('api/public/uploads/')) {
+      filename = imageUrl.substring('api/public/uploads/'.length);
+    } else if (imageUrl.startsWith('api/uploads/')) {
+      filename = imageUrl.substring('api/uploads/'.length);
+    } else if (imageUrl.startsWith('uploads/')) {
+      filename = imageUrl.substring('uploads/'.length);
     } else {
       filename = imageUrl.split('/').last;
     }
@@ -113,7 +121,7 @@ class ImageResolver {
     if (midBannerAsset != null) return midBannerAsset;
 
     final apiBase = _activeImageBaseUrl().replaceAll(RegExp(r'/api$'), '');
-    return '$apiBase/api/public/uploads/$filename';
+    return '$apiBase/public/uploads/$filename';
   }
 
   static String? _midBannerAssetUrl(String filename) {
@@ -135,7 +143,7 @@ class ImageResolver {
 
     // Serve from backend's public assets folder
     final apiBase = _activeImageBaseUrl().replaceAll(RegExp(r'/api$'), '');
-    return '$apiBase/api/public/assets/mid-banner-products/$bannerName';
+    return '$apiBase/public/assets/mid-banner-products/$bannerName';
   }
 
   /// Resolves any image URL string to a fully qualified URL.
@@ -166,6 +174,8 @@ class ImageResolver {
         imageUrl.startsWith('/api/uploads/') ||
         imageUrl.startsWith('/uploads/') ||
         imageUrl.startsWith('public/uploads/') ||
+        imageUrl.startsWith('api/public/uploads/') ||
+        imageUrl.startsWith('api/uploads/') ||
         imageUrl.startsWith('uploads/')) {
       return _resolveUploadUrl(imageUrl);
     }
@@ -182,7 +192,7 @@ class ImageResolver {
       final mid = _midBannerAssetUrl(imageUrl);
       if (mid != null) return mid;
       final apiBase = base.replaceAll(RegExp(r'/api$'), '');
-      return '$apiBase/api/public/uploads/$imageUrl';
+      return '$apiBase/public/uploads/$imageUrl';
     }
 
     return '$base/$imageUrl';

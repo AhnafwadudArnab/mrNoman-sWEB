@@ -1,4 +1,4 @@
-import 'package:electrocitybd1/config/app_colors.dart';
+﻿import 'package:electrocitybd1/config/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -243,7 +243,7 @@ class _SidebarState extends State<Sidebar> {
                 },
               ),
             ],
-            // ??? HEADER / CATEGORY TOGGLE
+            // HEADER / CATEGORY TOGGLE
             _buildSectionHeader('CATEGORIES', canToggle: true),
             const SizedBox(height: 8),
             AnimatedCrossFade(
@@ -257,7 +257,7 @@ class _SidebarState extends State<Sidebar> {
 
             const SizedBox(height: 24),
 
-            // ??? PROMO CARD
+            // PROMO CARD
             _buildLivePromoCard(primaryRed),
 
             const SizedBox(height: 20),

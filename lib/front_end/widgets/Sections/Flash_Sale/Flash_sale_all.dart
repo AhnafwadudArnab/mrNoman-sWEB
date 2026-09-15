@@ -49,17 +49,24 @@ class _FlashSaleAllState extends State<FlashSaleAll> {
 
   Future<void> _loadFromDb() async {
     try {
-      final res = await ApiService.getProducts(
+      dynamic res = await ApiService.getProducts(
         section: 'flash-sale',
         limit: 60,
       );
-      final List<dynamic> list;
+      List<dynamic> list = [];
       if (res is Map<String, dynamic>) {
         list = (res['products'] as List<dynamic>?) ?? [];
       } else if (res is List) {
         list = res;
-      } else {
-        list = [];
+      }
+      // If flash-sale section is empty, fall back to all DB products
+      if (list.isEmpty) {
+        res = await ApiService.getProducts(limit: 60);
+        if (res is Map<String, dynamic>) {
+          list = (res['products'] as List<dynamic>?) ?? [];
+        } else if (res is List) {
+          list = res;
+        }
       }
       if (mounted)
         setState(() {
@@ -94,90 +101,6 @@ class _FlashSaleAllState extends State<FlashSaleAll> {
         .toList();
   }
 
-  // ???????? ????????? (??????)
-  static const List<Map<String, Object>> _sampleProducts = [
-    {
-      'title': 'Circular Saw',
-      'price': 7200.0,
-      'category': 'Power Tools',
-      'brand': 'Brand A',
-      'specs': ['Corded', 'Laser Guide'],
-      'image': "$imgPath/Circular Saw.jpg",
-    },
-    {
-      'title': 'Orbital Sander',
-      'price': 3800.0,
-      'category': 'Power Tools',
-      'brand': 'Brand B',
-      'specs': ['Cordless', 'LED Light', 'Ergonomic Grip'],
-      'image': "$imgPath/Orbital Sander.jpg",
-    },
-    {
-      'title': 'Power Drill',
-      'price': 4500.0,
-      'category': 'Power Tools',
-      'brand': 'DeWalt',
-      'specs': ['Cordless', 'Hammer Mode', '18V Battery'],
-      'image': "$imgPath/power_drill.jpg",
-    },
-    {
-      'title': 'Electric Kettle',
-      'price': 2500.0,
-      'category': 'Kitchen Appliances',
-      'brand': 'Miyoko',
-      'specs': ['1.5L', 'Auto Shutoff', 'Stainless Steel'],
-      'image': "$imgPath/miyoko_kettle.jpg",
-    },
-    {
-      'title': 'Hand Mixer',
-      'price': 1800.0,
-      'category': 'Kitchen Appliances',
-      'brand': 'Nima',
-      'specs': ['5 Speed', 'Beaters & Dough Hooks', '200W'],
-      'image': "$imgPath/handmixxer.jpg",
-    },
-    {
-      'title': 'Coffee Grinder',
-      'price': 1500.0,
-      'category': 'Kitchen Appliances',
-      'brand': 'Nima',
-      'specs': ['Burr Grinder', '110W', 'Multiple Settings'],
-      'image': "$imgPath/nima_grinder.jpg",
-    },
-    {
-      'title': 'Pressure Cooker',
-      'price': 3200.0,
-      'category': 'Kitchen Appliances',
-      'brand': 'Prestige',
-      'specs': ['5L Capacity', 'Safety Valves', 'Stainless Steel'],
-      'image': "$imgPath/pressure_cooker.jpg",
-    },
-    {
-      'title': 'Air Fryer',
-      'price': 5500.0,
-      'category': 'Kitchen Appliances',
-      'brand': 'Cosori',
-      'specs': ['4.7L', 'Digital Display', 'Temperature Control'],
-      'image': "$imgPath/air_fryer.jpg",
-    },
-    {
-      'title': 'Blender',
-      'price': 2200.0,
-      'category': 'Kitchen Appliances',
-      'brand': 'Philips',
-      'specs': ['Smoothie Mode', '1.5L', '600W'],
-      'image': "$imgPath/blender.jpg",
-    },
-    {
-      'title': 'Toaster',
-      'price': 1200.0,
-      'category': 'Kitchen Appliances',
-      'brand': 'Black+Decker',
-      'specs': ['2 Slice', 'Adjustable Heat', 'Crumb Tray'],
-      'image': "$imgPath/toaster.jpg",
-    },
-  ];
-
   static double _parsePrice(dynamic v) {
     if (v == null) return 0;
     if (v is num) return v.toDouble();
@@ -185,7 +108,7 @@ class _FlashSaleAllState extends State<FlashSaleAll> {
     return double.tryParse(s) ?? 0;
   }
 
-  // ???????? ??????????? ????????????? ???????? ??????? ???
+  // Convert admin products
   List<Map<String, dynamic>> _convertAdminProducts(
     List<Map<String, dynamic>> adminProducts,
   ) {
@@ -237,7 +160,7 @@ class _FlashSaleAllState extends State<FlashSaleAll> {
     );
   }
 
-  // ?? ????????? (DB + ???????? + ????????)
+  // All products (DB + Admin)
   List<Map<String, Object>> _allProducts(BuildContext context) {
     final adminProducts = Provider.of<AdminProductProvider>(
       context,
@@ -247,12 +170,7 @@ class _FlashSaleAllState extends State<FlashSaleAll> {
     ).map((e) => Map<String, Object>.from(e)).toList();
     final dbConverted = _convertDbProducts();
 
-    // If we have DB or admin products, show them; otherwise show sample products
-    if (dbConverted.isNotEmpty || adminConverted.isNotEmpty) {
-      return [...dbConverted, ...adminConverted];
-    } else {
-      return List<Map<String, Object>>.from(_sampleProducts);
-    }
+    return [...dbConverted, ...adminConverted];
   }
 
   List<Map<String, Object>> _filteredProducts(BuildContext context) {
@@ -489,7 +407,7 @@ class _FlashSaleAllState extends State<FlashSaleAll> {
     );
   }
 
-  // --- UI Components (???? ???? ?????, ???? _buildProductsSection ????? ???) ---
+  // --- UI Components ---
 
   Widget _buildBanner(AppResponsive r, BuildContext context) {
     return Container(
@@ -933,26 +851,13 @@ class _FlashSaleAllState extends State<FlashSaleAll> {
                     child: SizedBox(
                       width: double.infinity,
                       height: double.infinity,
-                      child: item['isDb'] == true
-                          ? ImageResolver.image(
+                      child: isAdmin
+                          ? _buildAdminImage(item)
+                          : ImageResolver.image(
                               imageUrl: item['image'] as String?,
                               fit: BoxFit.cover,
                               width: double.infinity,
                               height: double.infinity,
-                            )
-                          : isAdmin
-                          ? _buildAdminImage(item)
-                          : Image.asset(
-                              item['image'] as String,
-                              fit: BoxFit.fill,
-                              width: double.infinity,
-                              height: double.infinity,
-                              errorBuilder: (context, error, stackTrace) {
-                                return Container(
-                                  color: Colors.black26,
-                                  child: const Icon(Icons.image_not_supported),
-                                );
-                              },
                             ),
                     ),
                   ),

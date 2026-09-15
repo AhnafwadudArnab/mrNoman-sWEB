@@ -17,7 +17,7 @@ return [
     ],
     'uploads' => [
         'dir' => __DIR__ . '/public/uploads',
-        'base_path' => '/api/public/uploads',
+        'base_path' => '/public/uploads',
         'max_size_bytes' => (int)Env::get('MAX_FILE_SIZE', 5 * 1024 * 1024), // 5MB default
         'allowed_exts' => explode(',', Env::get('ALLOWED_IMAGE_TYPES', 'jpg,jpeg,png,webp')),
         'max_width' => (int)Env::get('MAX_IMAGE_WIDTH', 2000),

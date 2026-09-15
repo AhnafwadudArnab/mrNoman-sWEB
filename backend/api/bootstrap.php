@@ -229,9 +229,19 @@ function requireAdmin(): array {
 
 function ensureUploadsDir(): void {
     global $CONFIG;
-    $dir = $CONFIG['uploads']['dir'];
-    if (!is_dir($dir)) {
-        @mkdir($dir, 0777, true);
+    $primaryDir = $CONFIG['uploads']['dir'] ?? (__DIR__ . '/../public/uploads');
+    if (!is_dir($primaryDir)) {
+        @mkdir($primaryDir, 0777, true);
+    }
+    // Also ensure website root public/uploads exists
+    $rootDir = dirname(__DIR__, 2) . '/public/uploads';
+    if (!is_dir($rootDir)) {
+        @mkdir($rootDir, 0777, true);
+    }
+    // Also ensure api/public/uploads exists
+    $apiDir = dirname(__DIR__) . '/public/uploads';
+    if (!is_dir($apiDir)) {
+        @mkdir($apiDir, 0777, true);
     }
 }
 
@@ -243,7 +253,29 @@ function saveUploadedImage(array $file): ?string {
     $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
     if (!in_array($ext, $CONFIG['uploads']['allowed_exts'], true)) errorResponse('Invalid file type', 415);
     $name = uniqid('img_', true) . '.' . $ext;
-    $dest = $CONFIG['uploads']['dir'] . DIRECTORY_SEPARATOR . $name;
+    
+    $targetDir = $CONFIG['uploads']['dir'];
+    if (!is_dir($targetDir)) {
+        @mkdir($targetDir, 0777, true);
+    }
+    $dest = $targetDir . DIRECTORY_SEPARATOR . $name;
     if (!move_uploaded_file($file['tmp_name'], $dest)) errorResponse('Failed to save image', 500);
-    return $CONFIG['uploads']['base_path'] . '/' . $name;
+
+    // Mirror to alternative upload dirs so image is reachable under any server layout
+    $altDirs = [
+        dirname(__DIR__, 2) . '/public/uploads',
+        dirname(__DIR__) . '/public/uploads',
+        __DIR__ . '/../public/uploads'
+    ];
+    foreach ($altDirs as $alt) {
+        if (is_dir($alt)) {
+            $altDest = $alt . DIRECTORY_SEPARATOR . $name;
+            if (!file_exists($altDest)) {
+                @copy($dest, $altDest);
+            }
+        }
+    }
+
+    $basePath = rtrim($CONFIG['uploads']['base_path'] ?? '/public/uploads', '/');
+    return $basePath . '/' . $name;
 }

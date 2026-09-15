@@ -1,4 +1,4 @@
-﻿import 'dart:async';
+import 'dart:async';
 
 import 'package:electrocitybd1/config/app_colors.dart';
 import 'package:flutter/material.dart';
@@ -278,8 +278,8 @@ class _KitchenAppliancesPageState extends State<KitchenAppliancesPage> {
                 inactiveColor: AppColors.grey300,
                 divisions: 50,
                 labels: RangeLabels(
-                  '?${_priceRange.start.round()}',
-                  '?${_priceRange.end.round()}',
+                  '৳${_priceRange.start.round()}',
+                  '৳${_priceRange.end.round()}',
                 ),
                 onChanged: (v) => setState(() => _priceRange = v),
               ),
@@ -494,7 +494,7 @@ class _KitchenAppliancesPageState extends State<KitchenAppliancesPage> {
                     overflow: TextOverflow.ellipsis,
                   ),
                   Text(
-                    '?${(item['price'] as double).round()}',
+                    '৳${(item['price'] as double).round()}',
                     style: TextStyle(
                       color: Colors.orange[900],
                       fontWeight: FontWeight.bold,
